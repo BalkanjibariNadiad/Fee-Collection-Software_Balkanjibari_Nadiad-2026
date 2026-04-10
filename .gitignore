@@ -42,6 +42,9 @@ db_backup.json
 # Log files
 *.log
 *.txt
+!requirements.txt
+!backend/requirements.txt
+
 emergency_error.log
 incoming_debug.log
 
