@@ -9,8 +9,8 @@ ALLOWED_HOSTS = ['*']
 CORS_ALLOW_ALL_ORIGINS = True  # More permissive for local dev
 CORS_ALLOW_CREDENTIALS = True
 
-# Use console email backend for development
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Use SMTP backend defined in base.py/env
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Disable some security features for development
 SECURE_SSL_REDIRECT = False

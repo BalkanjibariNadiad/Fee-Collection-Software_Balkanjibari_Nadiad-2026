@@ -134,28 +134,21 @@ export default function RegisterPage() {
   const [isSubjectsLoading, setIsSubjectsLoading] = useState(true)
 
   // Fetch subjects on mount
-  useEffect(() => {
-    console.log('Fetching subjects from:', `${API_BASE}/api/v1/subjects/`)
+  const fetchSubjects = useCallback(() => {
     setIsSubjectsLoading(true)
     fetch(`${API_BASE}/api/v1/subjects/`)
-      .then(r => {
-        if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`)
-        return r.json()
-      })
+      .then(r => r.json())
       .then(data => {
-        console.log('Subjects API Response:', data)
-        // Standardize the list from the { success: true, data: [...] } format
         const list = data?.data || (Array.isArray(data) ? data : data?.results || [])
-        console.log('Processed Subjects List:', list)
         setSubjects(Array.isArray(list) ? [...list].sort((a, b) => a.name.localeCompare(b.name)) : [])
       })
-      .catch((err) => {
-        console.error('Failed to fetch subjects:', err)
-      })
-      .finally(() => {
-        setIsSubjectsLoading(false)
-      })
+      .catch((err) => console.error('Failed to fetch subjects:', err))
+      .finally(() => setIsSubjectsLoading(false))
   }, [])
+
+  useEffect(() => {
+    fetchSubjects()
+  }, [fetchSubjects])
 
   // Auto-calculate age from DOB
   const handleDobChange = (value: string) => {
@@ -251,9 +244,26 @@ export default function RegisterPage() {
   const updateSubject = (idx: number, field: keyof SelectedSubject, value: any) => {
     setSelectedSubjects(prev => {
       const updated = [...prev]
-      if (field === 'batch_time') {
-        const conflict = updated.some((row, i) => i !== idx && row.batch_time === value && row.subject_id > 0)
-        if (conflict) { toast.error(`Time slot "${value}" is already chosen. Pick a different time.`); return prev }
+      if (field === 'subject_id') {
+        const val = parseInt(value as string)
+        const subInfo = subjects.find(s => s.id === val)
+        if (subInfo && subInfo.enrolled_count >= subInfo.max_seats) {
+          toast.error(`Sorry, ${subInfo.name} batch is full! Please select another subject.`, {
+            icon: <AlertCircle className="text-rose-500" />
+          })
+          return prev
+        }
+        updated[idx] = { ...updated[idx], subject_id: val, subject_name: subInfo?.name || '', batch_time: subInfo?.default_batch_timing || '' }
+      } else if (field === 'batch_time') {
+        const valClean = (value || '').trim().toLowerCase()
+        const conflict = updated.some((row, i) => {
+          if (i === idx || !row.subject_id) return false
+          return (row.batch_time || '').trim().toLowerCase() === valClean
+        })
+        if (conflict) { 
+          toast.error(`Time slot "${value}" is already occupied by another selected subject.`) 
+          return prev 
+        }
       }
       // No need for setError('') here anymore
       if (field === 'subject_id') {
@@ -285,8 +295,10 @@ export default function RegisterPage() {
     const age = parseInt(form.age)
     if (isNaN(age) || age < 4 || age > 18) return 'Student age must be between 4 and 18 years for Summer Camp eligibility.'
     if (!form.gender) return 'Gender selection is required.'
+    if (!form.phone.trim()) return 'Mobile number is required.'
     if (!/^\d{10}$/.test(form.phone)) return 'Please enter a valid 10-digit mobile number.'
-    if (form.email && !/\S+@\S+\.\S+/.test(form.email)) return 'Please enter a valid email address.'
+    // Email is now optional, but validate format if provided
+    if (form.email && !/\S+@\S+\.\S+/.test(form.email)) return 'Please enter a valid email address format.'
     if (!form.area.trim()) return 'Area/Neighborhood is required.'
     if (!form.address.trim()) return 'Full address is required.'
     if (!form.city.trim()) return 'City/Village name is required.'
@@ -708,7 +720,7 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div>
-                  <label className={labelCls}>Email Address <span className="text-slate-400 text-[10px] font-normal font-inter">(Optional)</span></label>
+                  <label className={labelCls}>Email Address <span className="text-red-500">*</span></label>
                   <input
                     type="email"
                     className={inputCls}
@@ -751,6 +763,57 @@ export default function RegisterPage() {
             </div>
 
 
+            {/* ---- Subjects Overview (Confirm Details) ---- */}
+            <div className="mb-8 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+              <div className="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <h3 className="font-poppins font-bold text-slate-800 dark:text-white text-sm uppercase tracking-wider flex items-center gap-2">
+                  <BookOpen size={16} className="text-primary" /> Summer Camp Subject Schedule
+                </h3>
+                <button 
+                  onClick={(e) => { e.preventDefault(); fetchSubjects(); toast.success('Subject details updated.') }}
+                  className="flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-black text-slate-500 transition-all uppercase"
+                >
+                  <Plus size={10} className="rotate-45" /> Refresh Data
+                </button>
+              </div>
+              <div className="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar">
+                <table className="w-full text-left border-collapse">
+                  <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800 z-10">
+                    <tr className="border-b border-slate-200 dark:border-slate-800">
+                      <th className="px-4 py-2 text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase">Subject</th>
+                      <th className="px-4 py-2 text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase">Batch Time</th>
+                      <th className="px-4 py-2 text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase text-center">Fee</th>
+                      <th className="px-4 py-2 text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase text-right">Availability</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {subjects.filter(s => s.activity_type === 'SUMMER_CAMP').map((s) => {
+                      const isFull = s.enrolled_count >= s.max_seats
+                      const fee = s.current_fee ? s.current_fee.amount : s.monthly_fee || '0'
+                      return (
+                        <tr key={s.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
+                          <td className="px-4 py-3 text-[13px] font-bold text-slate-700 dark:text-slate-200">{s.name}</td>
+                          <td className="px-4 py-3 text-[12px] text-slate-500 dark:text-slate-400">{s.default_batch_timing}</td>
+                          <td className="px-4 py-3 text-[13px] font-black text-blue-600 dark:text-indigo-400 text-center">₹{parseFloat(fee).toFixed(0)}</td>
+                          <td className="px-4 py-3 text-right">
+                            {isFull ? (
+                              <span className="px-2 py-0.5 bg-rose-500 text-white text-[10px] font-black rounded uppercase">FULL</span>
+                            ) : (
+                              <div className="flex flex-col items-end">
+                                <span className="text-[11px] font-black text-emerald-500 dark:text-emerald-400">
+                                  {s.max_seats - s.enrolled_count} LEFT
+                                </span>
+                                <span className="text-[9px] font-medium text-slate-400 dark:text-slate-500 uppercase">Limit: {s.max_seats}</span>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
             {/* ---- Subject Selection ---- */}
             <div>
@@ -764,7 +827,7 @@ export default function RegisterPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => window.open('/templates/activity_schedule_2026.pdf', '_blank')}
+                  onClick={() => window.open('/Summer-Camp-Details.pdf', '_blank')}
                   className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-black flex items-center gap-1 shadow-sm transition-all"
                 >
                   <Download size={12} /> DOWNLOAD PDF

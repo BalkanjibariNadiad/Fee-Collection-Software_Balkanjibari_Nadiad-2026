@@ -113,8 +113,9 @@ def register_student(request):
         return Response({'success': False, 'error': 'Full name is required.'}, status=400)
     if not phone or len(phone) < 10:
         return Response({'success': False, 'error': 'Valid 10-digit mobile number is required.'}, status=400)
-    if not email:
-        return Response({'success': False, 'error': 'Email is required for login credentials.'}, status=400)
+    # Email is now optional, but recommended
+    # if not email:
+    #     return Response({'success': False, 'error': 'Email is required for login credentials.'}, status=400)
 
     # Parse subjects
     subjects_raw = data.get('subjects_data', '[]')
@@ -129,8 +130,20 @@ def register_student(request):
     if not subjects_list:
         return Response({'success': False, 'error': 'At least one subject must be selected.'}, status=400)
 
-    # --- Check email uniqueness ---
-    if User.objects.filter(email=email).exists():
+    # --- Limit to 4 subjects ---
+    if len(subjects_list) > 4:
+        return Response({'success': False, 'error': 'Maximum 4 subjects can be selected per student.'}, status=400)
+
+    # --- Check for timing conflicts ---
+    batch_times = [str(s.get('batch_time', '')).strip().lower() for s in subjects_list if s.get('subject_id')]
+    if len(batch_times) != len(set(batch_times)):
+        return Response({
+            'success': False, 
+            'error': 'Timing conflict: Multiple subjects cannot be scheduled at the same time.'
+        }, status=400)
+
+    # --- Check email uniqueness (only if provided) ---
+    if email and User.objects.filter(email=email).exists():
         return Response({
             'success': False,
             'error': 'An account with this email already exists. Please use a different email or login.'

@@ -34,8 +34,12 @@ CORS_ALLOWED_ORIGINS = [
     'https://admin-student-dashboard-ui.vercel.app',
 ]
 
-# CSRF Trusted Origins for Production
+# CSRF Trusted Origins
 CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
     'https://balkanji-bari-dashboard.vercel.app',
     'https://balkan-ji-ni-bari-nadiad.vercel.app',
     'https://admin-student-dashboard-ui.vercel.app',
