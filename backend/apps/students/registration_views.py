@@ -425,26 +425,12 @@ def _send_registration_email(student, enrolled_subjects, receipt_token=None):
     base_url = "https://fee-collection-software-balkanjibar.vercel.app"
     receipt_link = f"{base_url}/download-receipt?token={receipt_token}" if receipt_token else "Viewable in your dashboard"
 
-    message = f"""
-✅ Payment Successful
----------------------------------
+    message = f"""✅ Payment Successful
 Student ID: {student.student_id}
 Username:   {student.login_username}
 Password:   {student.login_password_hint}
-Subjects:   {subjects_text}
----------------------------------
-
-Your enrollment for Summer Camp 2026 is confirmed!
-
-📄 Download Receipt: {receipt_link}
-
-Thanks for enrolling in Balkanji Bari! 
-We look forward to seeing you at the center.
-
-Regards,
-Team Balkanji Ni Bari, Nadiad
- info@balkanjibari.org
-"""
+Subjects: {subjects_text}
+Thanks for enrolling in Summer Camp 2026!"""
     if not student.email:
         print("\n" + "="*50)
         print("SIMULATED SMS NOTIFICATION (No Email Provided)")
