@@ -4,7 +4,7 @@ New A4 Portrait format as per 2026 design.
 """
 
 import os
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A5
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
@@ -19,58 +19,69 @@ class ReceiptCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
         canvas.Canvas.__init__(self, *args, **kwargs)
 
+    def showPage(self):
+        self.draw_background()
+        canvas.Canvas.showPage(self)
+
+    def save(self):
+        self.draw_background()
+        canvas.Canvas.save(self)
+
     def draw_background(self):
+        from reportlab.lib.pagesizes import A5
+        from reportlab.lib.colors import HexColor
+        page_w, page_h = A5  # 148 x 210 mm (portrait)
         self.saveState()
         
-        # 1. Logo (Top Left)
+        # Rounded border
+        margin = 6 * mm
+        self.setStrokeColor(HexColor('#4F46E5'))
+        self.setLineWidth(1.0)
+        self.roundRect(margin, margin, page_w - 2*margin, page_h - 2*margin,
+                       radius=5*mm, stroke=1, fill=0)
+
+        # 1. Logo (Top Left inside border)
         logo_path = os.path.join(settings.BASE_DIR, 'apps', 'payments', 'static', 'images', 'logo.png')
         if os.path.exists(logo_path):
-            logo_size = 30 * mm
-            self.drawImage(logo_path, 15 * mm, 297 * mm - 15 * mm - logo_size, 
+            logo_size = 25 * mm
+            self.drawImage(logo_path, 15*mm, page_h - 15*mm - logo_size,
                            width=logo_size, height=logo_size, mask='auto', preserveAspectRatio=True)
         
-        # 2. Header Text (Top Center-Right)
+        # 2. Header Text
         self.setFillColor(black)
+        self.setFont("Helvetica-Bold", 18)
+        self.drawString(43*mm, page_h - 22*mm, "BALKAN-JI-BARI")
         
-        # BALKAN-JI-BARI
-        self.setFont("Helvetica-Bold", 24)
-        self.drawString(50 * mm, 297 * mm - 25 * mm, "BALKAN-JI-BARI")
+        self.setFont("Helvetica", 9)
+        self.drawString(43*mm, page_h - 29*mm, "Mill Road, Nadiad - 387 001.")
         
-        # Address
-        self.setFont("Helvetica", 12)
-        self.drawString(50 * mm, 297 * mm - 32 * mm, "Mill Road, Nadiad - 387 001.")
+        self.setFont("Helvetica-Bold", 12)
+        self.drawRightString(page_w - 12*mm, page_h - 20*mm, "Summer Camp 2026")
         
-        # Summer Camp 2026
-        self.setFont("Helvetica-Bold", 16)
-        self.drawRightString(210 * mm - 15 * mm, 297 * mm - 20 * mm, "Summer Camp 2026")
-        
-        # Title: Official Fee Receipt
-        self.setFont("Helvetica-Bold", 20)
-        self.drawRightString(210 * mm - 15 * mm, 297 * mm - 40 * mm, "Official Fee Receipt")
+        self.setFont("Helvetica-Bold", 14)
+        self.drawRightString(page_w - 12*mm, page_h - 32*mm, "Official Fee Receipt")
         
         # 3. Logo Watermark (Large Center)
         if os.path.exists(logo_path):
             self.saveState()
             self.setFillAlpha(0.04)
-            watermark_size = 120 * mm
-            self.drawImage(logo_path, (210 * mm - watermark_size)/2, (297 * mm - watermark_size)/2, 
+            watermark_size = 70 * mm
+            self.drawImage(logo_path, (page_w - watermark_size)/2, (page_h - watermark_size)/2,
                            width=watermark_size, height=watermark_size, mask='auto')
             self.restoreState()
             
         self.restoreState()
 
+
 def generate_itemized_receipt_pdf(payment, enrollments_with_fees=None):
     """
-    Generate an itemized fee receipt PDF in A4 Portrait format.
+    Generate an itemized fee receipt PDF in A5 Landscape format.
     """
     student = payment.enrollment.student
     buffer = BytesIO()
     
-    def on_page(canvas, doc):
-        canvas.draw_background()
-
     # Document margins
-    pagesize = A4 # 210 x 297 mm
+    pagesize = A5  # 148 x 210 mm
     doc = SimpleDocTemplate(
         buffer, 
         pagesize=pagesize, 
@@ -148,7 +159,7 @@ def generate_itemized_receipt_pdf(payment, enrollments_with_fees=None):
             total_amount += lib_fee
 
     # Fill empty space
-    while len(table_data) < 10:
+    while len(table_data) < 6:
         table_data.append(["", "", "", ""])
 
     # Total Row
@@ -216,9 +227,7 @@ def generate_itemized_receipt_pdf(payment, enrollments_with_fees=None):
 
     # Build PDF
     doc.build(
-        elements, 
-        onFirstPage=on_page, 
-        onLaterPages=on_page, 
+        elements,
         canvasmaker=ReceiptCanvas
     )
     
