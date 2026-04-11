@@ -10,6 +10,7 @@ from decouple import config
 # Host and Security Settings
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = [
+    '*',
     'balkanji-backend-ai5a.onrender.com',
     'balkanji-backend.onrender.com',
     'balkanji-bari-dashboard.vercel.app',
@@ -18,6 +19,29 @@ ALLOWED_HOSTS = [
     'admin-student-dashboard-ui.vercel.app',
     'localhost',
     '127.0.0.1',
+]
+
+# CORS Configuration - PERMANENT FIX
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
 ]
 
 # Database configuration - prioritize env variable with proper decouple loading
@@ -38,24 +62,6 @@ DATABASES = {
 # Static file handling with WhiteNoise
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-
-# CORS Hardening
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    'https://balkanji-bari-dashboard.vercel.app',
-    'https://fee-collection-software-balkanjibari-nadiad-2026.vercel.app',
-    'https://fee-collection-software-balkanjibar.vercel.app',
-    'https://admin-student-dashboard-ui.vercel.app',
-    'https://balkanji-backend-ai5a.onrender.com',
-    'https://balkanji-backend.onrender.com',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-]
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://.*\.vercel\.app$",
-    r"^https://.*\.onrender\.com$",
-]
 
 # CSRF Trusted Origins
 CSRF_TRUSTED_ORIGINS = [

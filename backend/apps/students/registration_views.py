@@ -95,6 +95,29 @@ def _calculate_age(dob) -> int | None:
     return age
 
 
+def _return_registration_success(student, user, order_id):
+    """Unified success response for new and resumed registrations."""
+    # Find active enrollments and payments for this order
+    enrollments = Enrollment.objects.filter(student=student, payment__razorpay_order_id=order_id).distinct()
+    payments = Payment.objects.filter(razorpay_order_id=order_id, enrollment__student=student)
+    
+    total_amount = sum(e.total_fee for e in enrollments)
+    
+    return Response({
+        'success': True,
+        'student_id': student.student_id,
+        'username': user.username,
+        'order_id': order_id,
+        'amount': float(total_amount),
+        'amount_paise': int(total_amount * 100),
+        'currency': 'INR',
+        'key_id': RAZORPAY_KEY_ID,
+        'enrollment_ids': [e.id for e in enrollments],
+        'payment_ids': [p.id for p in payments],
+        'test_mode': not razorpay_client or (order_id or '').startswith('order_test_'),
+    }, status=200)
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_student(request):
@@ -176,6 +199,24 @@ def _handle_registration_logic(request):
 
     # --- Check email uniqueness (only if provided) ---
     if email and User.objects.filter(email=email).exists():
+        # Optimization: If student already exists but has not completed payment,
+        # allow them to "re-register" to get a new order_id and finish the process.
+        try:
+            user = User.objects.get(email=email)
+            student = Student.objects.get(user=user)
+            # Find the most recent unpaid enrollment/payment
+            pending_pay = Payment.objects.filter(
+                enrollment__student=student,
+                status='CREATED'
+            ).order_by('-created_at').first()
+            
+            if pending_pay:
+                # User exists and has a pending payment. Return success so they can pay.
+                # We reuse the existing student info but generate a new order if needed.
+                return _return_registration_success(student, user, pending_pay.razorpay_order_id)
+        except (User.DoesNotExist, Student.DoesNotExist):
+            pass
+
         return Response({
             'success': False,
             'error': 'An account with this email already exists. Please use a different email or login.'
@@ -335,19 +376,7 @@ def _handle_registration_logic(request):
         )
         payment_ids.append(pay.id)
 
-    return Response({
-        'success': True,
-        'student_id': student.student_id,
-        'username': final_username,
-        'order_id': order_id,
-        'amount': float(total_amount),
-        'amount_paise': amount_paise,
-        'currency': 'INR',
-        'key_id': RAZORPAY_KEY_ID,
-        'enrollment_ids': [e.id for e in created_enrollments],
-        'payment_ids': payment_ids,
-        'test_mode': not razorpay_client or (order_id or '').startswith('order_test_'),
-    }, status=200)
+    return _return_registration_success(student, user, order_id)
 
 
 @api_view(['POST'])
