@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, CheckCircle, AlertCircle, Plus, Trash2, Loader2, Lock, Download, BookOpen, CreditCard, ShieldCheck as LucideShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 
-const DEFAULT_BACKEND_URL = 'https://balkanji-backend.onrender.com'
+const DEFAULT_BACKEND_URL = 'https://balkanjibari.org'
 let API_BASE = process.env.NEXT_PUBLIC_API_URL || DEFAULT_BACKEND_URL
 
 // Force fallback on Vercel if env var is missing/wrong
