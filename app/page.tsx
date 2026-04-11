@@ -137,7 +137,7 @@ export default function LandingPage() {
                 <div className="space-y-3">
                   <p className="text-slate-300 dark:text-slate-600 text-sm leading-relaxed">Need help with the form? Visit the office for assistance.</p>
                   <p className="text-slate-400 dark:text-slate-500 text-[13px] leading-relaxed border-t border-white/10 dark:border-slate-200 pt-3 mt-3">
-                    ઓનલાઈન ફોર્મ ભરવામાં મદદ જોઈતી હોય તેવા વિદ્યાર્થીઓ પણ ઉપરોક્ત સમય દરમિયાન ઓફિસની મુલાકાત લઈ શકે છે.
+                    ઓનલાઈન ફોર્મ ભરવામાં મદદ જોઈતી હોય તેવા વિદ્યાર્થીઓ પણ ઉક્ત સમય દરમિયાન ઓફિસની મુલાકાત લઈ શકે છે.
                   </p>
                 </div>
               </div>

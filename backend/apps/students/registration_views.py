@@ -13,7 +13,9 @@ import hmac
 import hashlib
 import secrets
 import string
+import time
 from decimal import Decimal
+from django.db import OperationalError
 
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -95,13 +97,43 @@ def _calculate_age(dob) -> int | None:
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-@transaction.atomic
 def register_student(request):
     """
     Step 1: Create student account + enrollments, then create Razorpay order.
-    Called by the public registration form before payment.
-    Returns Razorpay order details for the frontend checkout.
+    Includes a retry mechanism for database connectivity issues (e.g. DNS resolution).
     """
+    max_retries = 3
+    last_error = None
+
+    for attempt in range(max_retries):
+        try:
+            with transaction.atomic():
+                return _handle_registration_logic(request)
+        except OperationalError as e:
+            last_error = e
+            error_str = str(e).lower()
+            if ("translate host name" in error_str or "could not connect" in error_str) and attempt < max_retries - 1:
+                time.sleep(1)  # Wait 1s before retry
+                continue
+            break
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({
+                'success': False, 
+                'error': f'Registration failed: {str(e)}',
+                'detail': 'An unexpected server error occurred.'
+            }, status=500)
+
+    return Response({
+        'success': False, 
+        'error': 'Server connection error. Please try again in a few seconds.',
+        'detail': str(last_error) if last_error else 'Connection pooler timeout.'
+    }, status=500)
+
+
+def _handle_registration_logic(request):
+    """Internal helper for registration logic wrapped in a transaction."""
     data = request.data
 
     # --- Validate required fields ---

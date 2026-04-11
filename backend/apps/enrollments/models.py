@@ -41,7 +41,7 @@ class Enrollment(models.Model):
     )
     
     batch_time = models.CharField(
-        max_length=20,
+        max_length=50,
         default='7-8 AM',
         help_text='Batch timing for the subject'
     )
@@ -105,32 +105,42 @@ class Enrollment(models.Model):
     def save(self, *args, **kwargs):
         # 1. Auto-generate enrollment_id if not set (Phase 3: Subject-Wise)
         if not self.enrollment_id:
-            # Get short code from subject name (first 3-4 letters, capitalized)
-            # Example: "Drawing" -> "DRA", "Piano" -> "PIA"
             import re
             subject_name = self.subject.name
-            # Remove spaces and non-alpha, upper case
-            clean_name = re.sub(r'[^A-Z]', '', subject_name.upper())
-            prefix = clean_name[:3] if len(clean_name) >= 3 else clean_name
             
-            # Find the last enrollment for THIS SUBJECT
-            last_for_subject = Enrollment.objects.filter(
-                subject=self.subject
+            # --- PREFIX GENERATION (v4.0) ---
+            # Special case for Tabla as requested by user
+            if subject_name.lower() == 'tabla':
+                prefix = 'TABLA'
+            else:
+                # Remove spaces and non-alpha, upper case
+                clean_name = re.sub(r'[^A-Z]', '', subject_name.upper())
+                prefix = clean_name[:3] if len(clean_name) >= 3 else clean_name
+            
+            # --- GLOBAL SEARCH FOR COLLISIONS ---
+            # Search across ALL subjects that share this prefix
+            last_with_prefix = Enrollment.objects.filter(
+                enrollment_id__startswith=f'ENR-{prefix}-'
             ).order_by('id').last()
             
-            if last_for_subject and last_for_subject.enrollment_id:
+            if last_with_prefix and last_with_prefix.enrollment_id:
                 try:
-                    # Expecting format ENR-DRA-001
-                    parts = last_for_subject.enrollment_id.split('-')
+                    # Expecting format ENR-PREFIX-001
+                    parts = last_with_prefix.enrollment_id.split('-')
                     last_num = int(parts[-1])
                     new_num = last_num + 1
                 except (IndexError, ValueError):
-                    # Fallback if format was different
-                    new_num = Enrollment.objects.filter(subject=self.subject).count() + 1
+                    new_num = Enrollment.objects.filter(enrollment_id__startswith=f'ENR-{prefix}-').count() + 1
             else:
                 new_num = 1
             
-            self.enrollment_id = f'ENR-{prefix}-{new_num:03d}'
+            # Final unique check loop
+            while True:
+                candidate_id = f'ENR-{prefix}-{new_num:03d}'
+                if not Enrollment.objects.filter(enrollment_id=candidate_id).exists():
+                    self.enrollment_id = candidate_id
+                    break
+                new_num += 1
         
         # Calculate pending amount
         self.pending_amount = self.total_fee - self.paid_amount

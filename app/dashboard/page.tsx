@@ -1,21 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import LoginPage from '@/components/LoginPage'
 import DashboardLayout from '@/components/DashboardLayout'
+import { useRouter } from 'next/navigation'
 
-export default function AdminPage() {
+export default function StudentDashboardPage() {
   const { isAuthenticated, user, isLoading } = useAuth()
   const [currentPage, setCurrentPage] = useState('dashboard')
-  const router = typeof window !== 'undefined' ? require('next/navigation').useRouter() : null
+  const router = useRouter()
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600">Loading Dashboard...</p>
         </div>
       </div>
     )
@@ -25,9 +26,9 @@ export default function AdminPage() {
     return <LoginPage />
   }
 
-  // Security: If Student, redirect to student dashboard
-  if (user?.role === 'STUDENT' && router) {
-    router.replace('/dashboard')
+  // Security: If not a student, send back to admin
+  if (user?.role !== 'STUDENT') {
+    router.replace('/admin')
     return null
   }
 
@@ -35,7 +36,7 @@ export default function AdminPage() {
     <DashboardLayout
       currentPage={currentPage}
       setCurrentPage={setCurrentPage}
-      userRole={user?.role.toLowerCase() as 'admin' | 'staff' | 'student' | 'accountant'}
+      userRole="student"
     />
   )
 }
