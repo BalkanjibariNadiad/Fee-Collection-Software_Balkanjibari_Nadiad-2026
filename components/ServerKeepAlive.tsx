@@ -17,11 +17,8 @@ export default function ServerKeepAlive() {
     // Pinging every 5 minutes (300000ms) keeps it active.
     const PING_INTERVAL = 300000 
     
-    // Clean up the base URL and ensure /health/ is appended correctly
-    // NEXT_PUBLIC_API_URL might be http://127.0.0.1:8000 or http://127.0.0.1:8000/api/v1
-    const baseUrlRaw = process.env.NEXT_PUBLIC_API_URL || 'https://api.balkanjibari.org'
-    const baseUrlClean = baseUrlRaw.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')
-    const healthUrl = `${baseUrlClean}/health/`
+    const baseUrlRaw = process.env.NEXT_PUBLIC_API_URL || ''
+    const healthUrl = `/health`
 
     const pingServer = async () => {
       try {
