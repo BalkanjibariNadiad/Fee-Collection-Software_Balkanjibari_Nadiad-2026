@@ -10,8 +10,8 @@ from decouple import config
 # Host and Security Settings
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = [
+    '*',
     'balkanjibari.org',
-    'www.balkanjibari.org',
     'balkanji-backend-ai5a.onrender.com',
     'balkanji-backend.onrender.com',
     'balkanji-bari-dashboard.vercel.app',
