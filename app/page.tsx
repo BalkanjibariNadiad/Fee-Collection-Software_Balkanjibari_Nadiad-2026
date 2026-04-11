@@ -123,7 +123,7 @@ export default function LandingPage() {
                   <p className="text-blue-300 dark:text-slate-600 font-semibold text-sm italic">Visit: April 15th - April 25th</p>
                   <p className="text-primary font-bold text-sm tracking-wide bg-primary/10 dark:bg-primary/5 py-1 px-3 rounded-md inline-block">5:00 PM – 7:00 PM</p>
                   <p className="text-slate-400 dark:text-slate-500 text-[13px] leading-relaxed border-t border-white/10 dark:border-slate-200 pt-3 mt-3">
-                    રોકડ ચૂકવણી દ્વારા પ્રવેશ માટે, ૧૫ થી ૨૫ એપ્રિલ દરમિયાન સાંજે ૫:૦૦ થી ૭:૦૦ વાગ્યા સુધી બાળકાંજી બારી, નડિયાદ ઓફિસમાં રૂબરૂ આવવું.
+                    રોકડ ચૂકવણી દ્વારા પ્રવેશ માટે, ૧૫ થી ૨૫ એપ્રિલ દરમિયાન સાંજે ૫:૦૦ થી ૭:૦૦ વાગ્યા સુધી બાલકન-જી-બારી ઓફિસમાં રૂબરૂ આવવું.
                   </p>
                 </div>
               </div>
@@ -227,6 +227,13 @@ export default function LandingPage() {
                         Join with us <ExternalLink size={16} />
                       </a>
                     </div>
+                  </div>
+
+                  {/* Note */}
+                  <div className="pt-4 border-t border-white/5 dark:border-slate-200">
+                    <p className="text-primary font-bold text-sm text-center leading-relaxed">
+                      નોંધ : દરેક બેચમાં પ્રવેશ વહેલા તે પહેલાના ધોરણે જ આપવામાં આવશે.
+                    </p>
                   </div>
                 </div>
 

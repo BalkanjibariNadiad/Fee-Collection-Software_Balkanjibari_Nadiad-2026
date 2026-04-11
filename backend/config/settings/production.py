@@ -13,10 +13,10 @@ ALLOWED_HOSTS = [
     'balkanji-backend-ai5a.onrender.com',
     'balkanji-backend.onrender.com',
     'balkanji-bari-dashboard.vercel.app',
+    'fee-collection-software-balkanjibari-nadiad-2026.vercel.app',
     'admin-student-dashboard-ui.vercel.app',
     'localhost',
     '127.0.0.1',
-    '*', # Temporarily allow wildcard to debug persistent 400
 ]
 
 # Database configuration - prioritize env variable with proper decouple loading
@@ -41,8 +41,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 # CORS Hardening
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
     'https://balkanji-bari-dashboard.vercel.app',
+    'https://fee-collection-software-balkanjibari-nadiad-2026.vercel.app',
     'https://admin-student-dashboard-ui.vercel.app',
     'https://balkanji-backend-ai5a.onrender.com',
     'https://balkanji-backend.onrender.com',
@@ -57,6 +57,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 # CSRF Trusted Origins
 CSRF_TRUSTED_ORIGINS = [
     'https://balkanji-bari-dashboard.vercel.app',
+    'https://fee-collection-software-balkanjibari-nadiad-2026.vercel.app',
     'https://admin-student-dashboard-ui.vercel.app',
     'https://balkanji-backend-ai5a.onrender.com',
     'https://balkanji-backend.onrender.com',

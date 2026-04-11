@@ -5,7 +5,15 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, CheckCircle, AlertCircle, Plus, Trash2, Loader2, Lock, Download, BookOpen, CreditCard, ShieldCheck as LucideShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const DEFAULT_BACKEND_URL = 'https://balkanji-backend.onrender.com'
+let API_BASE = process.env.NEXT_PUBLIC_API_URL || DEFAULT_BACKEND_URL
+
+// Force fallback on Vercel if env var is missing/wrong
+if (typeof window !== 'undefined' && (!process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL === '/')) {
+  if (window.location.hostname.includes('vercel.app')) {
+    API_BASE = DEFAULT_BACKEND_URL
+  }
+}
 
 interface Subject {
   id: number
@@ -58,7 +66,7 @@ const SUBJECT_BATCH_TIMINGS: Record<string, string[]> = {
   'Western Dance': ['10:00 AM - 11:00 AM'],
   'Yogasan': ['7:00 AM - 8:00 AM'],
   'Mehendi': ['5:00 PM - 6:00 PM (Batch A)', '6:00 PM - 7:00 PM (Batch B)'],
-  'Pencil Sketch': ['5:00 PM - 6:00 PM (Batch A)', '5:00 PM - 6:00 PM (Batch B)', '6:00 PM - 7:00 PM (Batch C)'],
+  'Pencil Sketch': ['5:00 PM - 6:00 PM (Batch A)', '6:00 PM - 7:00 PM (Batch B)'],
   'Calligraphy': ['10:00 AM - 11:00 AM'],
   'Guitar': ['8:00 AM - 9:00 AM'],
   'Bharat Natyam': ['11:00 AM - 12:00 PM'],
