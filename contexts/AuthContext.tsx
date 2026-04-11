@@ -12,7 +12,7 @@ interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (username: string, password: string) => Promise<{ twoFactorRequired: boolean; email?: string }>;
+    login: (username: string, password: string) => Promise<{ twoFactorRequired: boolean; email?: string; user?: User }>;
     verify2FA: (email: string, otpCode: string) => Promise<void>;
     setup2FA: () => Promise<{ qrCode: string; secret: string }>;
     disable2FA: (otpCode: string, userId?: number) => Promise<void>;
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 sessionStorage.setItem('access_token', access);
                 sessionStorage.setItem('refresh_token', refresh);
                 setUser(userData);
-                return { twoFactorRequired: false };
+                return { twoFactorRequired: false, user: userData };
             } else {
                 throw new Error('Login failed');
             }

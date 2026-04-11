@@ -1,273 +1,251 @@
 """
 Utility for generating itemized fee receipts as PDFs.
-New A4 Portrait format as per 2026 design.
+Standard A5 Landscape format (210mm x 148.5mm) with blue rounded border.
+Unified design used across Registration and Dashboard.
 """
 
 import os
-from reportlab.lib.pagesizes import A5
+from io import BytesIO
+from decimal import Decimal
+from django.conf import settings
+from django.utils import timezone
+from reportlab.lib.pagesizes import A5, landscape
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.units import mm
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+from reportlab.lib.units import cm, mm
 from reportlab.lib.colors import HexColor, white, black, grey
 from reportlab.pdfgen import canvas
-from io import BytesIO
-from datetime import datetime
-from django.conf import settings
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
-class ReceiptCanvas(canvas.Canvas):
+class ReceiptCanvasWithBorder(canvas.Canvas):
+    """Custom canvas that draws a rounded border and logo watermark on every page."""
     def __init__(self, *args, **kwargs):
         canvas.Canvas.__init__(self, *args, **kwargs)
 
     def showPage(self):
-        self.draw_background()
+        self._draw_page_decoration()
         canvas.Canvas.showPage(self)
 
     def save(self):
-        self.draw_background()
+        self._draw_page_decoration()
         canvas.Canvas.save(self)
 
-    def draw_background(self):
-        from reportlab.lib.pagesizes import A5
-        from reportlab.lib.colors import HexColor
-        page_w, page_h = A5  # 148 x 210 mm (portrait)
-        self.saveState()
-        
-        # Rounded border
+    def _draw_page_decoration(self):
+        page_w, page_h = landscape(A5) # 210 x 148.5 mm
         margin = 6 * mm
-        self.setStrokeColor(HexColor('#4F46E5'))
-        self.setLineWidth(1.0)
-        self.roundRect(margin, margin, page_w - 2*margin, page_h - 2*margin,
-                       radius=5*mm, stroke=1, fill=0)
 
-        # 1. Logo (Top Left inside border)
+        # Rounded border
+        self.saveState()
+        self.setStrokeColor(HexColor('#4F46E5')) # Balkanjibari Indigo
+        self.setLineWidth(1.2)
+        self.roundRect(margin, margin, page_w - 2 * margin, page_h - 2 * margin, 
+                       radius=5 * mm, stroke=1, fill=0)
+        self.restoreState()
+
+        # Watermark logo in centre
         logo_path = os.path.join(settings.BASE_DIR, 'apps', 'payments', 'static', 'images', 'logo.png')
-        if os.path.exists(logo_path):
-            logo_size = 25 * mm
-            self.drawImage(logo_path, 15*mm, page_h - 15*mm - logo_size,
-                           width=logo_size, height=logo_size, mask='auto', preserveAspectRatio=True)
-        
-        # 2. Header Text
-        self.setFillColor(black)
-        self.setFont("Helvetica-Bold", 18)
-        self.drawString(43*mm, page_h - 22*mm, "BALKAN-JI-BARI")
-        
-        self.setFont("Helvetica", 9)
-        self.drawString(43*mm, page_h - 29*mm, "Mill Road, Nadiad - 387 001.")
-        
-        self.setFont("Helvetica-Bold", 12)
-        self.drawRightString(page_w - 12*mm, page_h - 20*mm, "Summer Camp 2026")
-        
-        self.setFont("Helvetica-Bold", 14)
-        self.drawRightString(page_w - 12*mm, page_h - 32*mm, "Official Fee Receipt")
-        
-        # 3. Logo Watermark (Large Center)
         if os.path.exists(logo_path):
             self.saveState()
             self.setFillAlpha(0.04)
-            watermark_size = 70 * mm
-            self.drawImage(logo_path, (page_w - watermark_size)/2, (page_h - watermark_size)/2,
-                           width=watermark_size, height=watermark_size, mask='auto')
+            wm_size = 70 * mm
+            self.drawImage(logo_path,
+                           (page_w - wm_size) / 2,
+                           (page_h - wm_size) / 2,
+                           width=wm_size, height=wm_size,
+                           mask='auto', preserveAspectRatio=True)
             self.restoreState()
-            
-        self.restoreState()
 
+def generate_receipt_pdf(payment=None, student=None, order_id=None):
+    """
+    Standardized design for the entire Balkanjibari system.
+    Can generate for a single payment OR a consolidated student registration (order_id).
+    """
+    if payment:
+        enrollment = getattr(payment, 'enrollment', None)
+        student = student or (getattr(enrollment, 'student', None) if enrollment else None)
+        payments = [payment]
+        enrollments = [enrollment] if enrollment else []
+    elif student and order_id:
+        from apps.payments.models import Payment
+        payments = list(Payment.objects.filter(enrollment__student=student, razorpay_order_id=order_id, status='SUCCESS'))
+        enrollments = [p.enrollment for p in payments]
+    elif student:
+        # Fallback for just student
+        enrollments = list(student.enrollments.filter(is_deleted=False))
+        payments = []
+    else:
+        return _generate_minimal_receipt_pdf()
 
-def generate_itemized_receipt_pdf(payment, enrollments_with_fees=None):
-    """
-    Generate an itemized fee receipt PDF in A5 Landscape format.
-    """
-    student = payment.enrollment.student
     buffer = BytesIO()
-    
-    # Document margins
-    pagesize = A5  # 148 x 210 mm
+    pagesize = landscape(A5)
     doc = SimpleDocTemplate(
-        buffer, 
-        pagesize=pagesize, 
-        rightMargin=15*mm, 
-        leftMargin=15*mm, 
-        topMargin=55*mm, 
-        bottomMargin=20*mm,
-        title='Fee Receipt'
+        buffer,
+        pagesize=pagesize,
+        rightMargin=1.0 * cm,
+        leftMargin=1.0 * cm,
+        topMargin=0.7 * cm,
+        bottomMargin=0.6 * cm,
+        title=f"Receipt_{student.student_id if student else 'Fee'}"
     )
-    
+
     styles = getSampleStyleSheet()
-    
-    bold_style = ParagraphStyle('Bold', parent=styles['Normal'], fontSize=11, fontName='Helvetica-Bold')
-    normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontSize=11, fontName='Helvetica')
+    story = []
 
-    elements = []
-    
-    # --- Info Section ---
-    receipt_no = payment.receipt_number or "PENDING"
-    payment_date = getattr(payment, 'payment_date', None) or datetime.now().date()
-    date_str = payment_date.strftime('%d-%m-%Y')
-    
-    student_name = getattr(student, 'name', 'N/A').upper()
-    student_id = getattr(student, 'student_id', 'N/A')
-    
-    # Boxed Info Section
-    info_data = [
-        [Paragraph(f"<b>Student Name :</b> {student_name}", normal_style), 
-         Paragraph(f"<b>Receipt No :</b> {receipt_no}", normal_style)],
-        [Paragraph(f"<b>Student ID :</b> {student_id}", normal_style), 
-         Paragraph(f"<b>Date :</b> {date_str}", normal_style)]
+    # ---- Color palette ----
+    indigo = HexColor('#4F46E5')
+    dark = HexColor('#0F172A')
+    slate = HexColor('#475569')
+    light_slate = HexColor('#F8FAFC')
+    green = HexColor('#16A34A')
+
+    # Header section
+    logo_path = os.path.join(settings.BASE_DIR, 'apps', 'payments', 'static', 'images', 'logo.png')
+    logo_img = None
+    if os.path.exists(logo_path):
+        logo_img = Image(logo_path, width=2.0 * cm, height=2.0 * cm)
+
+    h_title_style = ParagraphStyle('HTitle', fontSize=20, fontName='Helvetica-Bold',
+                                   textColor=indigo, alignment=TA_CENTER, leading=22)
+    h_sub_style = ParagraphStyle('HSub', fontSize=8.5, fontName='Helvetica-Bold',
+                                 textColor=dark, alignment=TA_CENTER, leading=10)
+    h_addr_style = ParagraphStyle('HAddr', fontSize=7, fontName='Helvetica',
+                                  textColor=slate, alignment=TA_CENTER, leading=9)
+
+    header_text = [
+        Paragraph("BALKANJI NI BARI", h_title_style),
+        Paragraph("SUMMER CAMP 2026  ·  NADIAD", h_sub_style),
+        Paragraph("Mill Road, Nadiad - 387 001. Gujarat, India.", h_addr_style),
     ]
-    
-    info_table = Table(info_data, colWidths=[100*mm, 80*mm])
-    info_table.setStyle(TableStyle([
-        ('BOX', (0,0), (-1,-1), 0.5, black),
-        ('GRID', (0,0), (-1,-1), 0.1, grey),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('LEFTPADDING', (0,0), (-1,-1), 8),
-        ('TOPPADDING', (0,0), (-1,-1), 8),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 8),
-    ]))
-    elements.append(info_table)
-    elements.append(Spacer(1, 4*mm))
-    
-    # --- Fee Table ---
-    # Header: Sr., Description, Batch Time, Amount
-    table_header = [
-        [Paragraph("Sr.", bold_style), Paragraph("Description", bold_style), Paragraph("Batch Time", bold_style), Paragraph("Amount", bold_style)]
-    ]
-    
-    table_data = []
-    total_amount = 0
-    
-    if not enrollments_with_fees:
-        enrollments_with_fees = [{
-            'enrollment': payment.enrollment,
-            'subject_fee': payment.amount,
-            'library_fee': 0
-        }]
 
-    for i, item in enumerate(enrollments_with_fees, 1):
-        enr = item['enrollment']
-        subj_fee = float(item.get('subject_fee', 0) or 0)
-        lib_fee = float(item.get('library_fee', 0) or 0)
-        
-        subj_name = enr.subject.name if enr.subject else "Activity Fee"
-        batch = enr.batch_time or "N/A"
-        
-        table_data.append([i, Paragraph(subj_name, normal_style), batch, f"₹ {subj_fee:,.0f}"])
-        total_amount += subj_fee
-        
-        if lib_fee > 0:
-            table_data.append(["", Paragraph("Library Fee", normal_style), "", f"₹ {lib_fee:,.0f}"])
-            total_amount += lib_fee
-
-    # Fill empty space
-    while len(table_data) < 6:
-        table_data.append(["", "", "", ""])
-
-    # Total Row
-    total_row = ["Status :", f"PAID via {payment.payment_mode}", Paragraph("Total Paid", bold_style), Paragraph(f"₹ {total_amount:,.0f}", bold_style)]
-    
-    full_table_data = table_header + table_data + [total_row]
-
-    fee_table = Table(full_table_data, colWidths=[15*mm, 85*mm, 45*mm, 35*mm], repeatRows=1)
-    fee_table.setStyle(TableStyle([
-        # Header
-        ('BACKGROUND', (0, 0), (-1, 0), HexColor("#F9FAFB")),
-        ('GRID', (0, 0), (-1, -1), 0.5, black),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+    header_table = Table([[logo_img or "", header_text, logo_img or ""]],
+                         colWidths=[2.4 * cm, 14.2 * cm, 2.4 * cm])
+    header_table.setStyle(TableStyle([
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        # Body
-        ('ALIGN', (3, 1), (3, -1), 'RIGHT'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 10),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        # Total Row
-        ('SPAN', (2, -1), (2, -1)), # Total label
-        ('BACKGROUND', (0, -1), (-1, -1), HexColor("#F3F4F6")),
-        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
     ]))
-    elements.append(fee_table)
-    
-    # --- Footer ---
-    elements.append(Spacer(1, 15*mm))
-    
-    footer_cols = [
-        [
-            Paragraph("Authorized Signatory", bold_style),
-            Spacer(1, 15*mm),
-            Paragraph("_______________________", normal_style),
-            Spacer(1, 2*mm),
-            Paragraph("Balkanji Ni Bari, Nadiad", ParagraphStyle('Sub', fontSize=9, textColor=grey))
-        ],
-        [
-            Paragraph("President :", bold_style),
-            Spacer(1, 2*mm),
-            # In a real system, we'd add the sig image here
-        ]
+    story.append(header_table)
+    story.append(Spacer(1, 0.15 * cm))
+
+    # Fee Receipt Title Bar
+    title_style = ParagraphStyle('Title', fontSize=11, fontName='Helvetica-Bold',
+                                 textColor=dark, alignment=TA_CENTER)
+    title_table = Table([[Paragraph("OFFICIAL FEE RECEIPT", title_style)]],
+                        colWidths=[19 * cm])
+    title_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), light_slate),
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+    ]))
+    story.append(title_table)
+    story.append(Spacer(1, 0.2 * cm))
+
+    # Student Details
+    lbl_s = ParagraphStyle('Label', fontSize=8, fontName='Helvetica-Bold', textColor=slate)
+    val_s = ParagraphStyle('Value', fontSize=8.5, fontName='Helvetica-Bold', textColor=dark)
+
+    receipt_date = timezone.now().strftime('%d %B %Y')
+    if payment:
+        receipt_no = payment.receipt_number or f"REC-{payment.id:04d}"
+        pay_mode = payment.payment_mode
+    elif order_id:
+        receipt_no = f"REG-2026-{student.id:04d}"
+        pay_mode = "ONLINE"
+    else:
+        receipt_no = "N/A"
+        pay_mode = "N/A"
+
+    col1 = [
+        [Paragraph('<b>Student Name:</b>', lbl_s), Paragraph(student.name.upper() if student else 'N/A', val_s)],
+        [Paragraph('<b>Student ID:</b>', lbl_s), Paragraph(student.student_id if student else 'N/A', val_s)],
+        [Paragraph('<b>Mobile:</b>', lbl_s), Paragraph(student.phone if student else '—', val_s)],
     ]
-    
-    # Foot table for signatures
-    foot_table = Table(footer_cols, colWidths=[100*mm, 80*mm])
-    foot_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
-        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-    ]))
-    elements.append(foot_table)
-    
-    # Add signature image overlay if exists
-    sig_path = os.path.join(settings.BASE_DIR, 'apps', 'payments', 'static', 'images', 'pres_sig_final.png')
-    if os.path.exists(sig_path):
-        # We use canvas directly for precise positioning of signature
-        pass # Will handly nicely in doc.build if needed, or just let users sign manually
+    col2 = [
+        [Paragraph('<b>Receipt No:</b>', lbl_s), Paragraph(receipt_no, val_s)],
+        [Paragraph('<b>Date:</b>', lbl_s), Paragraph(receipt_date, val_s)],
+        [Paragraph('<b>Payment Mode:</b>', lbl_s), Paragraph(pay_mode, val_s)],
+    ]
 
-    elements.append(Spacer(1, 10*mm))
-    elements.append(Paragraph("This is a computer-generated receipt and does not require a physical signature.", 
-                             ParagraphStyle('Note', fontSize=8, alignment=1, textColor=grey)))
+    t1 = Table(col1, colWidths=[2.6 * cm, 6.9 * cm])
+    t1.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP'), ('BOTTOMPADDING', (0, 0), (-1, -1), 2)]))
+    t2 = Table(col2, colWidths=[2.6 * cm, 6.9 * cm])
+    t2.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP'), ('BOTTOMPADDING', (0, 0), (-1, -1), 2)]))
 
-    # Build PDF
-    doc.build(
-        elements,
-        canvasmaker=ReceiptCanvas
-    )
-    
-    pdf_content = buffer.getvalue()
-    buffer.close()
-    return pdf_content
+    story.append(Table([[t1, t2]], colWidths=[9.5 * cm, 9.5 * cm]))
+    story.append(Spacer(1, 0.15 * cm))
 
-def generate_receipt_pdf(payment):
-    """
-    Generate a full-itemized receipt for a student based on a specific payment.
-    """
-    enrollment = getattr(payment, 'enrollment', None)
-    student = getattr(enrollment, 'student', None) if enrollment else None
+    # Enrollments Table
+    fee_data = [['#', 'Subject', 'Batch Time', 'SubFee', 'LibFee', 'Total']]
+    grand_total = 0
     
-    if not student:
-        return generate_itemized_receipt_pdf(payment, [])
+    # Match payments to enrollments if we have both
+    items = []
+    if payment and enrollment:
+        items = [(enrollment, payment.amount)]
+    elif student and order_id:
+        # Show all enrollments linked to this order
+        for p in payments:
+            items.append((p.enrollment, p.amount))
+    else:
+        for enr in enrollments:
+            items.append((enr, enr.total_fee))
 
-    try:
-        active_enrollments = list(student.enrollments.filter(is_deleted=False, status='ACTIVE'))
-    except Exception:
-        active_enrollments = [enrollment] if enrollment else []
-    
-    payment_enrollment = enrollment
-    if payment_enrollment not in active_enrollments:
-        active_enrollments.append(payment_enrollment)
-    
-    enrollments_with_fees = []
-    for enr in active_enrollments:
-        if enr.id == payment_enrollment.id:
-            fee = getattr(payment, 'amount', 0)
-        else:
-            continue
-            
-        include_library_fee = getattr(enr, 'include_library_fee', False)
-        lib_fee = 10 if include_library_fee and enr.id == payment_enrollment.id else 0
+    for i, (enr, amount) in enumerate(items, 1):
+        sub_fee = float(enr.total_fee) - (10.0 if enr.include_library_fee else 0)
+        lib_fee = 10.0 if enr.include_library_fee else 0
+        total = float(amount)
+        grand_total += total
         
-        enrollments_with_fees.append({
-            'enrollment': enr,
-            'subject_fee': fee,
-            'library_fee': lib_fee
-        })
-    
-    return generate_itemized_receipt_pdf(payment, enrollments_with_fees)
+        fee_data.append([
+            str(i),
+            enr.subject.name if enr.subject else "Activity",
+            enr.batch_time or "N/A",
+            f"Rs.{sub_fee:,.0f}",
+            f"Rs.{lib_fee:,.0f}",
+            f"Rs.{total:,.0f}",
+        ])
+
+    fee_table = Table(fee_data, colWidths=[0.7 * cm, 6.5 * cm, 4.0 * cm, 2.3 * cm, 2.3 * cm, 2.7 * cm])
+    fee_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), indigo),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('ALIGN', (3, 0), (-1, -1), 'RIGHT'),
+        ('ALIGN', (0, 0), (2, -1), 'LEFT'),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ('GRID', (0, 0), (-1, -1), 0.4, HexColor('#CBD5E1')),
+    ]))
+    story.append(fee_table)
+    story.append(Spacer(1, 0.2 * cm))
+
+    # Payment Status
+    status_s = ParagraphStyle('PS', fontSize=9, fontName='Helvetica-Bold', textColor=green)
+    display_status = payment.get_status_display() if payment else "PAID"
+    story.append(Paragraph(f"✅  PAYMENT STATUS: {display_status}", status_s))
+    story.append(Spacer(1, 0.1 * cm))
+
+    notice_style = ParagraphStyle('Notice', fontSize=7, fontName='Helvetica-Oblique',
+                                  textColor=slate, alignment=TA_CENTER)
+    story.append(Paragraph("This is a computer-generated receipt and does not require a physical signature.", notice_style))
+    story.append(Spacer(1, 0.1 * cm))
+
+    footer_style = ParagraphStyle('Footer', fontSize=6.5, fontName='Helvetica',
+                                  textColor=slate, alignment=TA_CENTER)
+    story.append(Paragraph("Balkanji Ni Bari | Nadiad, Gujarat | Summer Camp Activities 2026", footer_style))
+
+    doc.build(story, canvasmaker=ReceiptCanvasWithBorder)
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
+    return pdf_bytes
+
+def _generate_minimal_receipt_pdf():
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=landscape(A5))
+    c.drawString(20, 100, "Fee Receipt")
+    c.save()
+    return buffer.getvalue()

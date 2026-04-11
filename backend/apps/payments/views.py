@@ -193,46 +193,47 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='download_receipt')
     def download_receipt(self, request, pk=None):
-        """Download receipt as PDF for successful payments."""
+        """Download receipt as PDF for successful payments (Optimized for Cloudinary)."""
         payment = self.get_object()
         if payment.status != 'SUCCESS':
-            # Try to heal it if it's a cash/cheque payment
             if payment.payment_mode in ['CASH', 'CHEQUE']:
                 payment.status = 'SUCCESS'
                 payment.save()
             else:
                 return Response({
                     'success': False,
-                    'error': {'message': f'Receipt is not available for payment status: {payment.status}.'}
+                    'error': {'message': f'Receipt is not available for status: {payment.status}.'}
                 }, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            # Check if we already have a stored receipt
+            # 1. Permanent Storage Check (Cloudinary)
             if payment.receipt_pdf:
-                # If it's a Cloudinary/URL based storage, we can redirect or just serve the content
-                from django.http import HttpResponseRedirect
                 try:
+                    from django.http import HttpResponseRedirect
                     return HttpResponseRedirect(payment.receipt_pdf.url)
                 except Exception:
-                    # If URL retrieval fails, regenerate it below
-                    pass
+                    pass # Fallback to generation if URL fails
 
+            # 2. Unified Design Generation
+            from utils.receipts import generate_receipt_pdf
             pdf_content = generate_receipt_pdf(payment)
-            filename = f"Receipt_{payment.receipt_number}.pdf"
+            filename = f"Receipt_{payment.receipt_number or payment.id}.pdf"
             
-            # Try to save the newly generated PDF to persistent storage, but don't crash if it fails
+            # 3. Persist to Cloudinary
             try:
                 from django.core.files.base import ContentFile
                 payment.receipt_pdf.save(filename, ContentFile(pdf_content), save=True)
+                # Redirect to the newly saved Cloudinary URL
+                from django.http import HttpResponseRedirect
+                return HttpResponseRedirect(payment.receipt_pdf.url)
             except Exception as storage_err:
-                # Log but continue - Serving the PDF is more important than storing it
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Failed to save receipt to storage: {str(storage_err)}")
-            
-            response = HttpResponse(pdf_content, content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
-            return response
+                # Fallback: Serve the raw PDF content if storage fails
+                response = HttpResponse(pdf_content, content_type='application/pdf')
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                return response
+
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': f'Generation Error: {str(e)}'}}, status=500)
         except Exception as e:
             import traceback
             error_trace = traceback.format_exc()

@@ -515,7 +515,7 @@ Your fee receipt is attached to this email as a PDF."""
     # Generate the fee receipt PDF
     pdf_bytes = None
     try:
-        from utils.registration_receipt import generate_receipt_pdf
+        from utils.receipts import generate_receipt_pdf
         # Extract order_id from enrolled payments
         from apps.payments.models import Payment
         latest_payment = Payment.objects.filter(
@@ -523,9 +523,20 @@ Your fee receipt is attached to this email as a PDF."""
             status='SUCCESS'
         ).order_by('-payment_date').first()
         order_id = latest_payment.razorpay_order_id if latest_payment else None
-        pdf_bytes = generate_receipt_pdf(student, order_id)
+        
+        pdf_bytes = generate_receipt_pdf(student=student, order_id=order_id)
+        
+        # PERSISTENCE: Save to the payment record in Cloudinary so it's ready for the dashboard
+        if pdf_bytes and latest_payment and not latest_payment.receipt_pdf:
+            try:
+                from django.core.files.base import ContentFile
+                filename = f"Registration_Receipt_{student.student_id}.pdf"
+                latest_payment.receipt_pdf.save(filename, ContentFile(pdf_bytes), save=True)
+                print(f"[CLOUD] Saved registration receipt to Cloudinary for {student.student_id}")
+            except Exception as e:
+                print(f"[CLOUD] Error saving to Cloudinary: {e}")
     except Exception as e:
-        print(f"[EMAIL] Could not generate receipt PDF for attachment: {e}")
+        print(f"[PDF] Could not generate receipt PDF for attachment: {e}")
 
     try:
         email = EmailMessage(
@@ -568,17 +579,13 @@ def download_registration_receipt(request):
     except Exception:
         return Response({'error': 'Invalid or expired token.'}, status=400)
 
-    # Generate PDF
-    from utils.registration_receipt import generate_receipt_pdf
-    pdf_bytes = generate_receipt_pdf(student, order_id)
+    # Generate PDF using unified utility
+    from utils.receipts import generate_receipt_pdf
+    pdf_bytes = generate_receipt_pdf(student=student, order_id=order_id)
 
     # Build filename
     safe_name = ''.join(c if c.isalnum() else '_' for c in student.name)
-    subject_names = '_'.join(
-        e.subject.name[:5].upper()
-        for e in student.enrollments.filter(is_deleted=False)[:2]
-    )
-    filename = f"{safe_name}_{student.student_id}_{subject_names}.pdf"
+    filename = f"Receipt_{safe_name}_{student.student_id}.pdf"
 
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'

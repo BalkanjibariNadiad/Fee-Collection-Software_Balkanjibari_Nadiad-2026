@@ -174,145 +174,88 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
             'success': False,
             'message': 'Please use the refund action to delete enrollments.'
         }, status=status.HTTP_403_FORBIDDEN)
-
     @action(detail=True, methods=['get'], url_path='download-id-card')
     def download_id_card(self, request, pk=None):
-        """Generate and download a student ID card PDF for this enrollment."""
-        # Persistent logging for debugging
-        try:
-            with open('incoming_debug.log', 'a') as f:
-                f.write(f"DEBUG: download_id_card called for pk={pk} at {request.path}\n")
-        except:
-            pass
-            
-        print(f"DEBUG: download_id_card called for pk={pk}")
-        try:
-            enrollment = self.get_object()
-            print(f"DEBUG: Found enrollment {enrollment.id} for student {enrollment.student.name}")
-        except Exception as e:
-            print(f"DEBUG: Enrollment get_object failed for pk={pk}: {str(e)}")
-            try:
-                with open('incoming_debug.log', 'a') as f:
-                    f.write(f"ERROR: Enrollment get_object failed for pk={pk}: {str(e)}\n")
-            except:
-                pass
-            raise e
-        
+        """Generate/Serve student ID card PDF (Optimized for Cloudinary)."""
+        enrollment = self.get_object()
         student = enrollment.student
         
-        # Security check: Students can only download their own ID card
+        # Security check
         if request.user.role == 'STUDENT':
             user_student = getattr(request.user, 'student_profile', None)
             if not user_student or student != user_student:
-                return Response({
-                    'success': False,
-                    'error': {'message': 'Access denied.'}
-                }, status=status.HTTP_403_FORBIDDEN)
+                return Response({'success': False, 'error': {'message': 'Access denied.'}}, status=403)
         
         try:
+            # 1. Permanent Storage Check
+            if enrollment.id_card:
+                try:
+                    from django.http import HttpResponseRedirect
+                    return HttpResponseRedirect(enrollment.id_card.url)
+                except Exception:
+                    pass
+
+            # 2. Unified ID Card Generation
+            from utils.id_cards import generate_id_card_pdf
             is_provisional = enrollment.pending_amount > 0
             pdf_content = generate_id_card_pdf(enrollment, is_provisional=is_provisional)
             
-            # Save the newly generated PDF to persistent storage
+            # 3. Persist to Cloudinary
+            filename = f"ID_{student.student_id}_{enrollment.id}.pdf"
             try:
                 from django.core.files.base import ContentFile
-                prefix = "ID_PASS" if is_provisional else "ID_CARD"
-                filename = f"{prefix}_{student.student_id}_{enrollment.subject.name.replace(' ', '_')}.pdf"
                 enrollment.id_card.save(filename, ContentFile(pdf_content), save=True)
-            except Exception as e:
-                print(f"WARNING: Could not save ID card to storage: {str(e)}")
-            
-            response = HttpResponse(pdf_content, content_type='application/pdf')
-            response['Content-Disposition'] = f'inline; filename="{getattr(student, "student_id", "ID")}.pdf"'
-            
-            return response
+                from django.http import HttpResponseRedirect
+                return HttpResponseRedirect(enrollment.id_card.url)
+            except Exception:
+                # Fallback: Serve raw
+                response = HttpResponse(pdf_content, content_type='application/pdf')
+                response['Content-Disposition'] = f'inline; filename="{filename}"'
+                return response
         except Exception as e:
-            print(f"ERROR generating ID card: {str(e)}")
-            import traceback
-            try:
-                with open('incoming_debug.log', 'a') as f:
-                    f.write(f"ERROR generating ID card for pk={pk}:\n{traceback.format_exc()}\n")
-            except:
-                pass
-            return Response({
-                'success': False,
-                'error': {'message': f'Failed to generate ID card: {str(e)}'}
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
 
     @action(detail=True, methods=['get'], url_path='download-receipt')
     def download_receipt(self, request, pk=None):
-        """Find the latest successful payment for this enrollment and download its receipt."""
-        # Diagnostic logging
-        try:
-            with open('incoming_debug.log', 'a') as f:
-                f.write(f"DEBUG: download_receipt(enrollment) called for pk={pk} at {request.path}\n")
-        except:
-            pass
-            
-        try:
-            enrollment = self.get_object()
-        except Exception as e:
-            return Response({
-                'success': False,
-                'error': {'message': f'Enrollment not found: {str(e)}'}
-            }, status=status.HTTP_404_NOT_FOUND)
+        """Standardized Receipt Download via Cloudinary."""
+        enrollment = self.get_object()
         
         # Security check
         if request.user.role == 'STUDENT':
             user_student = getattr(request.user, 'student_profile', None)
             if not user_student or enrollment.student != user_student:
-                return Response({
-                    'success': False,
-                    'error': {'message': 'Access denied.'}
-                }, status=status.HTTP_403_FORBIDDEN)
+                return Response({'success': False, 'error': {'message': 'Access denied.'}}, status=403)
         
-        # Find the latest payment (any status) to try and heal it
-        payment = enrollment.payments.order_by('-payment_date', '-created_at').first()
-        
+        # Find the latest successful payment
+        payment = enrollment.payments.filter(status='SUCCESS').order_by('-created_at').first()
         if not payment:
-            return Response({
-                'success': False,
-                'error': {'message': 'No payment record found for this enrollment.'}
-            }, status=status.HTTP_404_NOT_FOUND)
-            
-        if payment.status != 'SUCCESS':
-            # Try to heal it if it's a cash/cheque payment
-            if payment.payment_mode in ['CASH', 'CHEQUE']:
+            # Try to find a pending one to heal (Cash/Cheque)
+            payment = enrollment.payments.filter(payment_mode__in=['CASH', 'CHEQUE']).first()
+            if payment:
                 payment.status = 'SUCCESS'
                 payment.save()
             else:
-                return Response({
-                    'success': False,
-                    'error': {'message': f'Receipt is not available for payment status: {payment.status}.'}
-                }, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'success': False, 'error': {'message': 'No successful payment found.'}}, status=404)
             
+        # 1. Storage Check
+        if payment.receipt_pdf:
+            try:
+                from django.http import HttpResponseRedirect
+                return HttpResponseRedirect(payment.receipt_pdf.url)
+            except Exception:
+                pass
+
+        # 2. Unified Receipt Generation
         from utils.receipts import generate_receipt_pdf
         try:
             pdf_content = generate_receipt_pdf(payment)
+            filename = f"Receipt_{payment.receipt_number or payment.id}.pdf"
             
-            # Attempt to save to storage if not already there, but don't crash if it fails
-            try:
-                if not payment.receipt_pdf:
-                    from django.core.files.base import ContentFile
-                    filename = f"Receipt_{payment.receipt_number}.pdf"
-                    payment.receipt_pdf.save(filename, ContentFile(pdf_content), save=True)
-            except Exception as save_err:
-                print(f"WARNING: Could not save receipt to storage: {str(save_err)}")
-
-            response = HttpResponse(pdf_content, content_type='application/pdf')
-            filename = f"Receipt_{payment.receipt_number}.pdf"
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
-            return response
+            # 3. Store and Redirect
+            from django.core.files.base import ContentFile
+            payment.receipt_pdf.save(filename, ContentFile(pdf_content), save=True)
+            from django.http import HttpResponseRedirect
+            return HttpResponseRedirect(payment.receipt_pdf.url)
         except Exception as e:
-            import traceback
-            error_trace = traceback.format_exc()
-            print(f"ERROR generating receipt: {str(e)}\n{error_trace}")
-            try:
-                with open('incoming_debug.log', 'a') as f:
-                    f.write(f"ERROR generating receipt for enrollment pk={pk}:\n{error_trace}\n")
-            except:
-                pass
-            return Response({
-                'success': False,
-                'error': {'message': f'Failed to generate receipt: {str(e)}'}
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+

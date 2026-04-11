@@ -48,19 +48,11 @@ export default function LoginPage() {
         return
       }
 
-      // --- ROLE-BASED REDIRECTION (v3.2) ---
-      // Get the freshly authenticated user from the login result or context
-      // Note: useAuth's login method updates the internal user state
-      const apiClient = (await import('@/lib/api/client')).default;
-      const { data: userResponse } = await apiClient.get('/api/v1/auth/me/');
-      const role = userResponse.data.role;
-
-      if (role === 'STUDENT') {
+      if (result.user?.role === 'STUDENT') {
         router.push('/dashboard')
       } else {
         router.push('/admin')
       }
-      // -------------------------------------
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your credentials.')
     } finally {

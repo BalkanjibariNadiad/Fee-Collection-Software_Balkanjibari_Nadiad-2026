@@ -11,7 +11,6 @@ from decouple import config
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = [
     '*',
-    'api.balkanjibari.org',
     'balkanjibari.org',
     'balkanji-backend-ai5a.onrender.com',
     'balkanji-backend.onrender.com',
@@ -67,7 +66,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # CSRF Trusted Origins
 CSRF_TRUSTED_ORIGINS = [
-    'https://api.balkanjibari.org',
     'https://balkanjibari.org',
     'https://www.balkanjibari.org',
     'https://balkanji-bari-dashboard.vercel.app',
