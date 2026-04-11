@@ -99,7 +99,7 @@ def _calculate_age(dob) -> int | None:
 def _return_registration_success(student, user, order_id):
     """Unified success response for new and resumed registrations."""
     # Find active enrollments and payments for this order
-    enrollments = Enrollment.objects.filter(student=student, payment__razorpay_order_id=order_id).distinct()
+    enrollments = Enrollment.objects.filter(student=student, payments__razorpay_order_id=order_id).distinct()
     payments = Payment.objects.filter(razorpay_order_id=order_id, enrollment__student=student)
     
     total_amount = sum(e.total_fee for e in enrollments)
