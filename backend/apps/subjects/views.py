@@ -16,7 +16,13 @@ class SubjectViewSet(viewsets.ModelViewSet):
     ViewSet for Subject CRUD operations.
     """
     
-    queryset = Subject.objects.filter(is_deleted=False, is_active=True).prefetch_related('fee_structures')
+    from django.db.models import Count, Q
+    queryset = Subject.objects.filter(is_deleted=False, is_active=True).annotate(
+        enrolled_count_annotated=Count(
+            'enrollments',
+            filter=Q(enrollments__is_deleted=False, enrollments__status='ACTIVE')
+        )
+    ).prefetch_related('fee_structures')
     
     def get_permissions(self):
         """Allow public access to list and retrieve actions."""

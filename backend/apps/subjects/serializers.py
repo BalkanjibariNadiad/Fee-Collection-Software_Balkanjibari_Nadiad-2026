@@ -30,8 +30,8 @@ class SubjectSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at']
     
     def get_enrolled_count(self, obj):
-        """Calculate the number of active enrollments for this subject."""
-        return obj.enrollments.filter(is_deleted=False, status='ACTIVE').count()
+        """Calculate the number of active enrollments using annotated value if available."""
+        return getattr(obj, 'enrolled_count_annotated', 0)
     
     def get_current_fee(self, obj):
         """Get the current active fee structure."""
