@@ -17,10 +17,10 @@ export default function RequestAcceptancePage() {
     try {
       setLoading(true)
       // Fetch only pending confirmation payments for CASH method
-      const response = await paymentsApi.getAll({ 
+      const response = await paymentsApi.getAll({
         status: 'PENDING_CONFIRMATION',
-        payment_method: 'CASH'
-      }) as any
+        payment_mode: 'CASH'
+      } as any) as any
       setRequests(response.results || response.data || [])
     } catch (err) {
       console.error('Failed to fetch requests:', err)
@@ -41,19 +41,19 @@ export default function RequestAcceptancePage() {
     try {
       setProcessingId(paymentId)
       notifyInfo('Confirming payment and generating documents...')
-      
-      const response = await paymentsApi.confirm(paymentId) as any
-      
+
+      const response = await paymentsApi.confirmPayment(paymentId) as any
+
       if (response.success) {
         notifySuccess('Payment confirmed successfully!')
-        
+
         // Auto-open documents if available in the new API response
         const { receipt_url, id_card_url } = response.data || {}
-        
+
         if (receipt_url) {
           window.open(receipt_url, '_blank')
         }
-        
+
         // Wait a small bit before opening second tab to bypass some popup blockers
         if (id_card_url) {
           setTimeout(() => {
@@ -72,10 +72,12 @@ export default function RequestAcceptancePage() {
     }
   }
 
-  const filteredRequests = requests.filter(req => 
-    req.enrollment?.student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    req.enrollment?.student?.student_id?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredRequests = requests.filter(req => {
+    const studentName = req.enrollment?.student?.name?.toLowerCase() || ''
+    const studentId = req.enrollment?.student?.student_id?.toLowerCase() || ''
+    const searchLow = searchTerm.toLowerCase()
+    return studentName.includes(searchLow) || studentId.includes(searchLow)
+  })
 
   return (
     <div className="space-y-6">
@@ -90,10 +92,10 @@ export default function RequestAcceptancePage() {
             <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Accept cash payments and generate documents</p>
           </div>
         </div>
-        <button 
-           onClick={fetchRequests} 
-           disabled={loading}
-           className="h-10 px-4 rounded-xl border border-slate-200 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-colors flex items-center gap-2"
+        <button
+          onClick={fetchRequests}
+          disabled={loading}
+          className="h-10 px-4 rounded-xl border border-slate-200 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-colors flex items-center gap-2"
         >
           {loading ? <Loader2 className="animate-spin" size={14} /> : <Search size={14} />}
           Refresh
@@ -102,21 +104,21 @@ export default function RequestAcceptancePage() {
 
       {/* Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <div className="card-standard p-6 border-l-4 border-indigo-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pending Responses</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white font-poppins">{requests.length}</p>
-         </div>
-         <div className="card-standard p-6 border-l-4 border-emerald-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ready for Print</p>
-            <p className="text-2xl font-black text-emerald-600 font-poppins">{requests.length} Students</p>
-         </div>
-          <div className="card-standard p-6 border-l-4 border-emerald-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 font-inter">Cashier Status</p>
-            <div className="flex items-center gap-2 mt-1">
-               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-               <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-poppins">Online</p>
-            </div>
-         </div>
+        <div className="card-standard p-6 border-l-4 border-indigo-500">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pending Responses</p>
+          <p className="text-2xl font-black text-slate-900 dark:text-white font-poppins">{requests.length}</p>
+        </div>
+        <div className="card-standard p-6 border-l-4 border-emerald-500">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ready for Print</p>
+          <p className="text-2xl font-black text-emerald-600 font-poppins">{requests.length} Students</p>
+        </div>
+        <div className="card-standard p-6 border-l-4 border-emerald-500">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 font-inter">Cashier Status</p>
+          <div className="flex items-center gap-2 mt-1">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+            <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-poppins">Online</p>
+          </div>
+        </div>
       </div>
 
       {/* Main Table */}
@@ -124,9 +126,9 @@ export default function RequestAcceptancePage() {
         <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input 
-              type="text" 
-              placeholder="Filter by Student Name or ID..." 
+            <input
+              type="text"
+              placeholder="Filter by Student Name or ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -180,7 +182,7 @@ export default function RequestAcceptancePage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                       <p className="text-xs font-medium text-slate-500">{new Date(req.payment_date).toLocaleDateString()}</p>
+                      <p className="text-xs font-medium text-slate-500">{new Date(req.payment_date).toLocaleDateString()}</p>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button
@@ -206,13 +208,13 @@ export default function RequestAcceptancePage() {
 
       {/* Info Alert */}
       <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-2xl p-4 flex gap-3">
-         <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
-            <Printer size={20} />
-         </div>
-         <div>
-            <p className="text-sm font-bold text-amber-900 dark:text-amber-400">Automatic Printing Tip</p>
-            <p className="text-xs text-amber-700 dark:text-amber-500/80 mt-0.5">Upon confirmation, the fee receipt and ID card will open in separate tabs. Please ensure popups are enabled for this domain.</p>
-         </div>
+        <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+          <Printer size={20} />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-amber-900 dark:text-amber-400">Automatic Printing Tip</p>
+          <p className="text-xs text-amber-700 dark:text-amber-500/80 mt-0.5">Upon confirmation, the fee receipt and ID card will open in separate tabs. Please ensure popups are enabled for this domain.</p>
+        </div>
       </div>
     </div>
   )

@@ -7,7 +7,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import ProfileSettings from '@/components/ProfileSettings'
-import NotificationBell from '@/components/NotificationBell'
 import { API_BASE_URL, getMediaUrl } from '@/lib/api/client'
 import { useAuth } from '@/contexts/AuthContext'
 interface TopNavbarProps {
@@ -56,7 +55,6 @@ export default function TopNavbar({ onLogout, onMenuToggle, userName, userRole, 
 
 
       <div className="flex items-center gap-2 sm:gap-4">
-        <NotificationBell />
         
         {/* User Info - Direct Modal Access */}
         <button 
