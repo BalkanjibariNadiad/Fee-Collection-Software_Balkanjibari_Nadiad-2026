@@ -5,14 +5,16 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, CheckCircle, AlertCircle, Plus, Trash2, Loader2, Lock, Download, BookOpen, CreditCard, ShieldCheck as LucideShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 
-const DEFAULT_BACKEND_URL = 'https://fee-management-software-balkanjibari.onrender.com'
+const DEFAULT_BACKEND_URL = 'https://balkanji-backend.onrender.com'
 let API_BASE = process.env.NEXT_PUBLIC_API_URL || DEFAULT_BACKEND_URL
 
-// Use relative /api unless explicitly overridden by an external env var
+// --- DYNAMIC BACKEND FIX (v2.5) ---
 if (typeof window !== 'undefined' && (!process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL === '/')) {
-  // If we are on vercel and NEXT_PUBLIC_API_URL is missing, use the Render hardcoded link
-  API_BASE = DEFAULT_BACKEND_URL
+  if (window.location.hostname.includes('vercel.app')) {
+    API_BASE = DEFAULT_BACKEND_URL;
+  }
 }
+// ----------------------------------
 
 interface Subject {
   id: number
@@ -91,7 +93,20 @@ function loadRazorpayScript(): Promise<boolean> {
 
 export default function RegisterPage() {
   const router = useRouter()
-  const [subjects, setSubjects] = useState<Subject[]>([])
+  const [subjects, setSubjects] = useState<Subject[]>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = sessionStorage.getItem('balkanji_subjects_cache')
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached)
+          return Array.isArray(parsed) ? parsed : []
+        } catch (e) {
+          console.error('[Cache] Failed to parse subjects:', e)
+        }
+      }
+    }
+    return []
+  })
   const [isLoading, setIsLoading] = useState(false)
   const [isPaymentLoading, setIsPaymentLoading] = useState(false)
   const [selectedSubjects, setSelectedSubjects] = useState<SelectedSubject[]>([
@@ -139,18 +154,38 @@ export default function RegisterPage() {
 
   const [isSubjectsLoading, setIsSubjectsLoading] = useState(true)
 
-  // Fetch subjects on mount
-  const fetchSubjects = useCallback(() => {
-    setIsSubjectsLoading(true)
-    fetch(`${API_BASE}/api/v1/subjects/`)
-      .then(r => r.json())
-      .then(data => {
-        const list = data?.data || (Array.isArray(data) ? data : data?.results || [])
-        setSubjects(Array.isArray(list) ? [...list].sort((a, b) => a.name.localeCompare(b.name)) : [])
-      })
-      .catch((err) => console.error('Failed to fetch subjects:', err))
-      .finally(() => setIsSubjectsLoading(false))
-  }, [])
+  const fetchSubjects = useCallback(async () => {
+    try {
+      setIsSubjectsLoading(true)
+      const fetchUrl = `${API_BASE}/api/v1/subjects/`
+      console.log(`[DEBUG] Fetching subjects from: ${fetchUrl}`)
+      
+      const response = await fetch(fetchUrl)
+      if (!response.ok) {
+        console.error(`[ERROR] Fetch failed with status: ${response.status}`)
+        throw new Error('Failed to fetch subjects')
+      }
+      const result = await response.json()
+      console.log(`[DEBUG] Subjects result:`, result)
+      
+      // Handle various response structures (prioritize result.data for this backend)
+      const list = result.data || result.results || (Array.isArray(result) ? result : [])
+      const sortedList = [...list].sort((a, b) => a.name.localeCompare(b.name))
+      
+      setSubjects(sortedList)
+      
+      // Update cache permanently for this session
+      if (sortedList.length > 0) {
+        sessionStorage.setItem('balkanji_subjects_cache', JSON.stringify(sortedList))
+      }
+    } catch (error) {
+      console.error('Error fetching subjects:', error)
+      // Auto-retry once after 3 seconds (Cold start protection)
+      setTimeout(() => fetchSubjects(), 3000)
+    } finally {
+      setIsSubjectsLoading(false)
+    }
+  }, [API_BASE])
 
   useEffect(() => {
     fetchSubjects()

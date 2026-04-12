@@ -65,7 +65,7 @@ def seed_subjects():
             is_active=True,
             defaults={
                 "fee_amount": Decimal(item["fee"]),
-                "effective_from": date(2026, 5, 1)
+                "effective_from": date(2026, 1, 1)
             }
         )
         

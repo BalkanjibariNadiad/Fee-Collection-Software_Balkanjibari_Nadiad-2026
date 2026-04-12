@@ -88,9 +88,7 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
           <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest font-inter">Filter Global Data:</h3>
           <div className="flex flex-wrap gap-2">
             {[
-              { id: 'ALL', label: 'All Activities' },
               { id: 'SUMMER_CAMP', label: 'Summer Camp' },
-              { id: 'YEAR_ROUND', label: 'Year-Round' },
             ].map((bt) => (
               <button
                 key={bt.id}
@@ -105,12 +103,10 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
             ))}
           </div>
         </div>
-        {activityType !== 'ALL' && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1 font-inter">
-            <Info size={12} className="text-indigo-500" />
-            Reports will be filtered to show only {activityType === 'SUMMER_CAMP' ? 'Summer Camp' : 'Year-Round'} data
-          </p>
-        )}
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1 font-inter">
+          <Info size={12} className="text-indigo-500" />
+          Reports are strictly filtered for Summer Camp 2026 data
+        </p>
       </div>
 
       {/* Quick Generate Section */}

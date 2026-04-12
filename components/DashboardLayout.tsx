@@ -29,11 +29,21 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({
   currentPage,
-  setCurrentPage,
+  setCurrentPage: originalSetCurrentPage,
   userRole,
 }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isSwitching, setIsSwitching] = useState(false)
   const { logout, user } = useAuth()
+
+  // Wrapped setCurrentPage to handle transitions
+  const setCurrentPage = (page: string) => {
+    if (page === currentPage) return
+    setIsSwitching(true)
+    originalSetCurrentPage(page)
+    // Small timeout to allow the new component to mount and show its own skeletons/loading states
+    setTimeout(() => setIsSwitching(false), 300)
+  }
 
   // Initialize sidebar state on mount - only on client
   useEffect(() => {
@@ -135,8 +145,12 @@ export default function DashboardLayout({
           isSidebarOpen={sidebarOpen}
         />
         <main className="flex-1 overflow-y-auto no-scrollbar scrolling-touch relative z-10 transition-all duration-500">
-          <div className="page-container">
-            {renderPage()}
+          <div className={`page-container transition-opacity duration-300 ${isSwitching ? 'opacity-0' : 'opacity-100'}`}>
+            {isSwitching ? (
+              <div className="p-8">
+                 <SkeletonTable rows={10} />
+              </div>
+            ) : renderPage()}
           </div>
         </main>
       </div>

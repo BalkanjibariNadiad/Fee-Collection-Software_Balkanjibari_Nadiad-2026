@@ -1,12 +1,38 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Plus, Edit2, Trash2, Search, AlertCircle, CreditCard, Download, Loader2, User } from 'lucide-react'
+import { Plus, Edit2, Trash2, Search, AlertCircle, CreditCard, Download, Loader2, User, BookOpen } from 'lucide-react'
 import { studentsApi, subjectsApi, enrollmentsApi, paymentsApi, Student, CreateStudentData } from '@/lib/api'
 import { API_BASE_URL, getMediaUrl } from '@/lib/api/client'
 import { useNotifications } from '@/hooks/useNotifications'
 import StudentProfileView from './StudentProfileView'
 import { SkeletonTable } from '@/components/Skeleton'
+
+const SUBJECT_BATCH_TIMINGS: Record<string, string[]> = {
+  'Music': ['9:00 AM – 10:00 AM'],
+  'Tabla': ['5:00 PM – 6:00 PM'],
+  'Drum Class': ['6:00 PM – 7:00 PM'],
+  'Keyboard (Casio)': ['6:00 PM – 7:00 PM'],
+  'YouTube': ['9:00 AM – 10:00 AM'],
+  'Spoken English': ['7:00 PM – 8:00 PM'],
+  'Skating': ['Batch A: 7:00 AM – 8:00 AM', 'Batch B: 6:00 PM – 7:00 PM', 'Batch C: 7:00 PM – 8:00 PM', 'Batch D: 8:00 PM – 9:00 PM'],
+  'Badminton': ['6:00 PM – 7:00 PM'],
+  'Table Tennis': ['Batch A: 7:00 AM – 8:00 AM', 'Batch B: 6:00 PM – 7:00 PM'],
+  'Karate': ['7:00 PM – 8:00 PM'],
+  'Western Dance': ['10:00 AM – 11:00 AM'],
+  'Yogasan': ['7:00 AM – 8:00 AM'],
+  'Mehendi': ['Batch A: 5:00 PM – 6:00 PM', 'Batch B: 6:00 PM – 7:00 PM'],
+  'Pencil Sketch': ['Batch A: 5:00 PM – 6:00 PM (Ages 7–12)', 'Batch B: 6:00 PM – 7:00 PM (Ages 7–16)'],
+  'Calligraphy': ['10:00 AM – 11:00 AM'],
+  'Guitar': ['8:00 AM – 9:00 AM'],
+  'Bharat Natyam': ['11:00 AM – 12:00 PM'],
+  'Abacus and Brain Development': ['11:00 AM – 12:00 PM'],
+  'Vedic Maths': ['5:00 PM – 6:00 PM'],
+  'Kathak Dance': ['5:00 PM – 6:00 PM'],
+  'Zumba': ['6:00 PM – 7:00 PM'],
+  'Karaoke': ['10:00 AM – 11:00 AM'],
+  'Mind Power Mastery': ['8:00 AM – 9:00 AM'],
+}
 
 interface StudentsPageProps {
   userRole: 'admin' | 'staff' | 'student' | 'accountant'
@@ -62,19 +88,38 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
         }
       }
     }
-    setFormData((prev: any) => ({ ...prev, [field]: formatted }))
+    
+    setFormData((prev: any) => {
+        const newData = { ...prev, [field]: formatted }
+        
+        // Auto-calculate age if field is date_of_birth
+        if (field === 'date_of_birth' && formatted.length === 10) {
+          const [d, m, y] = formatted.split('-').map(Number)
+          if (d && m && y && y > 1900) {
+            const dob = new Date(y, m - 1, d)
+            const refDate = new Date(2026, 4, 1) // Reference May 1, 2026
+            let age = refDate.getFullYear() - dob.getFullYear()
+            const m_diff = refDate.getMonth() - dob.getMonth()
+            if (m_diff < 0 || (m_diff === 0 && refDate.getDate() < dob.getDate())) {
+              age--
+            }
+            newData.age = age
+          }
+        }
+        return newData
+    })
   }
 
   // Form state
   const [formData, setFormData] = useState<any>({
     name: '',
     date_of_birth: '',
-    age: 5,
+    age: '',
     gender: 'MALE' as 'MALE' | 'FEMALE' | 'OTHER',
     address: '',
-    area: '',
+    city: '',
+    pincode: '',
     email: '',
-    blood_group: '',
     enrollment_date: (() => {
       const today = new Date()
       const d = String(today.getDate()).padStart(2, '0')
@@ -82,9 +127,9 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
       const y = today.getFullYear()
       return `${d}-${m}-${y}`
     })(),
-    enrollments: [{ subject_id: '', batch_time: '7-8 AM', include_library_fee: true }],
+    enrollments: [{ subject_id: '', batch_time: '', include_library_fee: true }],
     photo: null as File | null,
-    payment_method: 'CASH' as 'CASH' | 'ONLINE'
+    payment_method: 'CASH'
   })
   const [availableSubjects, setAvailableSubjects] = useState<any[]>([])
   const [formLoading, setFormLoading] = useState(false)
@@ -209,8 +254,8 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
       // Clean up formData: replace empty strings with null for optional fields
       // and filter ONLY the fields the backend expects for registration
       const allowedFields = [
-        'name', 'age', 'gender', 'date_of_birth', 'parent_name', 'phone',
-        'email', 'address', 'area', 'blood_group', 'enrollment_date', 'enrollments', 'photo', 'payment_method', 'status'
+        'name', 'age', 'gender', 'date_of_birth', 'phone',
+        'email', 'address', 'city', 'pincode', 'enrollment_date', 'enrollments', 'photo', 'payment_method', 'status'
       ];
 
       const submissionData: any = {};
@@ -334,15 +379,14 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
     setEditingStudent(student)
     setFormData({
       name: student.name,
-      age: student.age || 5,
+      age: student.age || '',
       gender: student.gender || 'MALE',
       date_of_birth: formatDateForUI(student.date_of_birth || ''),
-      parent_name: student.parent_name || '',
       phone: student.phone || '',
       address: student.address,
-      area: student.area,
+      city: (student as any).city || '',
+      pincode: (student as any).pincode || '',
       email: student.email || '',
-      blood_group: student.blood_group || '',
       status: student.status || 'ACTIVE',
       enrollment_date: formatDateForUI(student.enrollment_date),
       enrollments: student.enrollments ? student.enrollments.map(e => ({
@@ -359,17 +403,22 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
     setFormData({
       name: '',
       date_of_birth: '',
-      parent_name: '',
       phone: '',
       address: '',
-      area: '',
+      city: '',
+      pincode: '',
       email: '',
-      blood_group: '',
       status: 'ACTIVE',
-      enrollment_date: new Date().toISOString().split('T')[0],
-      enrollments: [{ subject_id: '', batch_time: '7-8 AM', include_library_fee: true }],
+      enrollment_date: (() => {
+        const today = new Date()
+        const d = String(today.getDate()).padStart(2, '0')
+        const m = String(today.getMonth() + 1).padStart(2, '0')
+        const y = today.getFullYear()
+        return `${d}-${m}-${y}`
+      })(),
+      enrollments: [{ subject_id: '', batch_time: '', include_library_fee: true }],
       photo: null,
-      payment_method: 'CASH' as 'CASH' | 'ONLINE'
+      payment_method: 'CASH'
     })
     setEditingStudent(null)
     setLastCreatedId(null)
@@ -418,15 +467,16 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
 
   const handleEnrollmentChange = (index: number, field: string, value: any) => {
     const newEnrollments = [...formData.enrollments]
-
-    // If subject is being changed, auto-fill batch timing from subject data
-    if (field === 'subject_id' && value) {
-      const selectedSubject = availableSubjects.find((s: any) => s.id === parseInt(value))
-      if (selectedSubject?.default_batch_timing) {
-        newEnrollments[index] = {
-          ...newEnrollments[index],
-          subject_id: value,
-          batch_time: selectedSubject.default_batch_timing
+    
+    if (field === 'subject_id') {
+      const sub = availableSubjects.find(s => s.id === value)
+      if (sub) {
+        // Auto-select first available batch time
+        const timings = SUBJECT_BATCH_TIMINGS[sub.name] || []
+        newEnrollments[index] = { 
+          ...newEnrollments[index], 
+          [field]: value,
+          batch_time: timings.length > 0 ? timings[0] : (sub.default_batch_timing || '')
         }
       } else {
         newEnrollments[index] = { ...newEnrollments[index], [field]: value }
@@ -434,7 +484,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
     } else {
       newEnrollments[index] = { ...newEnrollments[index], [field]: value }
     }
-
+    
     setFormData({ ...formData, enrollments: newEnrollments })
   }
 
@@ -572,7 +622,6 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
               }}
             >
               <option value="">All Localities</option>
-              <option value="DHANDHUKA">Dhandhuka</option>
             </select>
             <select
               className="h-11 input-standard text-[11px] sm:text-sm font-medium uppercase tracking-wider font-inter"
@@ -598,280 +647,292 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
             {editingStudent ? 'Edit Student Record' : 'Enroll New Student'}
           </h2>
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Full Name *"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                className="w-full input-standard"
-              />
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase px-1">Enrollment Date *</label>
-                <input
-                  type="text"
-                  placeholder="DD-MM-YYYY"
-                  value={formData.enrollment_date}
-                  onChange={(e) => handleDateInput('enrollment_date', e.target.value)}
-                  required
-                  className="w-full input-standard"
-                />
-              </div>
-              {userRole !== 'accountant' && (
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold text-gray-500 uppercase px-1">Date of Birth</label>
-                  <input
-                    type="text"
-                    placeholder="DD-MM-YYYY"
-                    value={formData.date_of_birth}
-                    onChange={(e) => handleDateInput('date_of_birth', e.target.value)}
-                    className="w-full input-standard"
-                  />
+            <div className="space-y-8">
+              {/* ---- Personal Information ---- */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <User size={18} />
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">Personal Information</h3>
                 </div>
-              )}
-
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase px-1">Age (4 - 17) *</label>
-                <input
-                  type="number"
-                  placeholder="Age"
-                  min={4}
-                  max={17}
-                  value={formData.age}
-                  onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || '' })}
-                  required
-                  className="w-full input-standard"
-                />
-              </div>
-
-              {userRole !== 'accountant' && (
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold text-gray-500 uppercase px-1">Gender *</label>
-                  <select
-                    value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                    required
-                    className="w-full input-standard"
-                  >
-                    <option value="MALE">Male</option>
-                    <option value="FEMALE">Female</option>
-                    <option value="OTHER">Other</option>
-                  </select>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase px-1">Full Name *</label>
+                    <input
+                      type="text"
+                      placeholder="Enter student's full name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                      className="w-full input-standard"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase px-1">Enrollment Date *</label>
+                    <input
+                      type="text"
+                      placeholder="DD-MM-YYYY"
+                      value={formData.enrollment_date}
+                      onChange={(e) => handleDateInput('enrollment_date', e.target.value)}
+                      required
+                      className="w-full input-standard"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase px-1">Date of Birth *</label>
+                    <input
+                      type="text"
+                      placeholder="DD-MM-YYYY"
+                      value={formData.date_of_birth}
+                      onChange={(e) => handleDateInput('date_of_birth', e.target.value)}
+                      required
+                      className="w-full input-standard"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase px-1">Age (4 - 17) <span className="text-blue-500 lowercase font-normal italic">(Auto)</span></label>
+                    <input
+                      type="text"
+                      readOnly
+                      placeholder="Age"
+                      value={formData.age ? `${formData.age} Years` : 'Enter DOB'}
+                      className="w-full input-standard bg-gray-50/80 dark:bg-gray-800/50 font-bold text-blue-600 dark:text-blue-400 cursor-not-allowed"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase px-1">Gender *</label>
+                    <select
+                      value={formData.gender}
+                      onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                      required
+                      className="w-full input-standard"
+                    >
+                      <option value="MALE">Male</option>
+                      <option value="FEMALE">Female</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+                  {editingStudent && (
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-bold text-gray-500 uppercase px-1">Student Status *</label>
+                      <select
+                        value={formData.status}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                        required
+                        className="w-full input-standard text-indigo-600 font-bold"
+                      >
+                        <option value="ACTIVE">Active (Studying)</option>
+                        <option value="INACTIVE">Inactive (Left)</option>
+                        <option value="GRADUATED">Graduated</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
-              )}
-
-              {editingStudent && (
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-gray-500 uppercase px-1 font-inter">Student Status *</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    required
-                    className="w-full input-standard font-medium text-blue-600 dark:text-blue-400 font-inter"
-                  >
-                    <option value="ACTIVE">Active (Studying)</option>
-                    <option value="INACTIVE">Inactive (Left)</option>
-                    <option value="GRADUATED">Graduated</option>
-                  </select>
-                </div>
-              )}
-
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-gray-500 uppercase px-1 font-inter">Contact Number (10 Digits) *</label>
-                <div className="flex">
-                  <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
-                    +91
-                  </span>
-                  <input
-                    type="tel"
-                    placeholder="e.g. 9876543210"
-                    maxLength={10}
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
-                    required
-                    className={`flex-1 input-standard ${(formData.phone?.length || 0) > 0 && formData.phone?.length !== 10
-                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                      : ''
-                      } rounded-l-none`}
-                  />
-                </div>
-                {(formData.phone?.length || 0) > 0 && formData.phone?.length !== 10 && (
-                  <p className="text-xs text-red-500 font-medium px-1 mt-1 flex items-center gap-1">
-                    <AlertCircle size={12} /> Invalid, write correct number
-                  </p>
-                )}
               </div>
 
-              <div className="md:col-span-2 flex flex-col gap-1">
-                <label className="text-xs font-medium text-gray-500 uppercase px-1 font-inter">Student Photo</label>
-                <div className="flex items-center gap-4">
+              {/* ---- Contact Details ---- */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                    <AlertCircle size={18} />
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">Contact Details</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase px-1">Contact Number (10 Digits) *</label>
+                    <div className="flex">
+                      <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
+                        +91
+                      </span>
+                      <input
+                        type="tel"
+                        placeholder="e.g. 9876543210"
+                        maxLength={10}
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
+                        required
+                        className="flex-1 input-standard rounded-l-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase px-1">Email Address</label>
+                    <input
+                      type="email"
+                      placeholder="student@example.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full input-standard"
+                    />
+                  </div>
+                  <div className="md:col-span-2 flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase px-1">Full Address *</label>
+                    <textarea
+                      placeholder="Enter house no, street, area details..."
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      required
+                      rows={2}
+                      className="w-full input-standard resize-none py-3"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase px-1">City / Village *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Nadiad"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      required
+                      className="w-full input-standard"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase px-1">Pincode *</label>
+                    <input
+                      type="text"
+                      placeholder="6-digit pincode"
+                      maxLength={6}
+                      value={formData.pincode}
+                      onChange={(e) => setFormData({ ...formData, pincode: e.target.value.replace(/\D/g, '') })}
+                      required
+                      className="w-full input-standard"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Photos & Document Section */}
+              <div className="space-y-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-bold text-gray-500 uppercase px-1">Student Photo</label>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => setFormData({ ...formData, photo: e.target.files?.[0] || null })}
-                    className="flex-1 input-standard bg-gray-50/50"
+                    className="w-full input-standard border-dashed bg-gray-50/30"
                   />
                 </div>
               </div>
 
-              {/* Payment Method Selector - Only for new students */}
-              {!editingStudent && (
-                <div className="md:col-span-2 space-y-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 font-inter">Payment Method *</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, payment_method: 'CASH' })}
-                      className={`px-4 py-3 rounded-lg border-2 font-medium transition-all ${formData.payment_method === 'CASH'
-                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-green-400'
-                        }`}
-                    >
-                      Cash
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, payment_method: 'ONLINE' })}
-                      className={`px-4 py-3 rounded-lg border-2 font-medium transition-all ${formData.payment_method === 'ONLINE'
-                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
-                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-purple-400'
-                        }`}
-                    >
-                      Online
-                    </button>
+              {/* ---- Subject Enrollment Section ---- */}
+              <div className="space-y-6 pt-4">
+                <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                      <BookOpen size={18} />
+                    </div>
+                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">Subject Enrollment</h3>
                   </div>
-                  {formData.payment_method === 'ONLINE' && (
-                    <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded">
-                      ⚠️ For online payments, receipt and ID card will be available after payment confirmation.
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <div className="md:col-span-2 space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 font-inter">Enroll Subjects (Max 4)</label>
                   <button
                     type="button"
                     onClick={addEnrollmentField}
-                    className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-2 py-1 rounded hover:bg-blue-200"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 transition-all uppercase tracking-widest"
                   >
-                    + Add Subject
+                    <Plus size={14} /> Add Subject
                   </button>
                 </div>
 
-                {formData.enrollments.map((enr: any, index: number) => (
-                  <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-600 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Enrollment #{index + 1}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeEnrollmentField(index)}
-                        className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="flex-1">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 mb-1 block">Subject</label>
-                        <select
-                          className="w-full input-standard"
-                          value={enr.subject_id}
-                          onChange={(e) => handleEnrollmentChange(index, 'subject_id', parseInt(e.target.value))}
-                          required
-                        >
-                          <option value="">Select Subject</option>
-                          {availableSubjects.map(sub => (
-                            <option key={sub.id} value={sub.id}>
-                              {sub.name} (₹{parseFloat(sub.current_fee?.amount || '0')})
-                            </option>
-                          ))}
-                        </select>
+                <div className="space-y-4">
+                  {formData.enrollments.map((enr: any, index: number) => (
+                    <div key={index} className="relative p-6 bg-gray-50/50 dark:bg-gray-800/30 rounded-2xl border border-gray-100 dark:border-gray-700 space-y-4 group">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-black text-indigo-300 dark:text-indigo-700 uppercase tracking-[3px]">Enrollment #{index + 1}</span>
+                        {formData.enrollments.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeEnrollmentField(index)}
+                            className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </div>
-                      <div className="flex-1">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 mb-1 block">Batch Time</label>
-                        <select
-                          className="w-full input-standard"
-                          value={enr.batch_time}
-                          onChange={(e) => handleEnrollmentChange(index, 'batch_time', e.target.value)}
-                        >
-                          <option value="7-8 AM">7-8 AM (Morning)</option>
-                          <option value="8-9 AM">8-9 AM (Morning)</option>
-                          <option value="5-6 PM">5-6 PM (Evening)</option>
-                          <option value="6-7 PM">6-7 PM (Evening)</option>
-                        </select>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Subject</label>
+                          <select
+                            className="w-full input-standard bg-white dark:bg-gray-900"
+                            value={enr.subject_id}
+                            onChange={(e) => handleEnrollmentChange(index, 'subject_id', parseInt(e.target.value))}
+                            required
+                          >
+                            <option value="">Select Subject</option>
+                            {availableSubjects.map(sub => (
+                              <option key={sub.id} value={sub.id}>
+                                {sub.name} (₹{parseFloat(sub.current_fee?.amount || '0')})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Batch Time</label>
+                          <select
+                            className="w-full input-standard bg-white dark:bg-gray-900"
+                            value={enr.batch_time}
+                            onChange={(e) => handleEnrollmentChange(index, 'batch_time', e.target.value)}
+                            required
+                          >
+                            <option value="">Select Time</option>
+                            {(() => {
+                                const sub = availableSubjects.find(s => s.id === enr.subject_id)
+                                const timings = SUBJECT_BATCH_TIMINGS[sub?.name || ''] || (sub?.default_batch_timing ? [sub.default_batch_timing] : [])
+                                return timings.map(t => (
+                                    <option key={t} value={t}>{t}</option>
+                                ))
+                            })()}
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center gap-3">
+                           <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500">
+                             <BookOpen size={14} />
+                           </div>
+                           <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Include Library Fee (₹10)</span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={enr.include_library_fee || false}
+                          onChange={(e) => handleEnrollmentChange(index, 'include_library_fee', e.target.checked)}
+                          className="w-5 h-5 rounded-lg border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
                       </div>
                     </div>
-                    
-                    <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-100 dark:border-gray-600">
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Include Library Fee (₹10)</span>
-                      <input
-                        type="checkbox"
-                        checked={enr.include_library_fee || false}
-                        onChange={(e) => handleEnrollmentChange(index, 'include_library_fee', e.target.checked)}
-                        className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-                ))}
+                  ))}
 
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/40">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-4 font-bold text-blue-900 dark:text-blue-300">
-                    <span className="text-sm">Total Admission Fee:</span>
-                    <div className="flex flex-col items-start sm:items-end">
-                      <span className="text-lg">
-                        ₹{(() => {
-                          const totalSubjectFees = formData.enrollments.reduce((acc: number, enr: any) => {
-                            const sub = availableSubjects.find(s => s.id === enr.subject_id);
-                            return acc + (sub?.current_fee?.amount ? parseFloat(sub.current_fee.amount) : 0);
-                          }, 0);
-                          const libraryFee = formData.enrollments.filter((e: any) => e.include_library_fee).length * 10;
-                          return totalSubjectFees + libraryFee;
-                        })()}
-                      </span>
-                      <span className="text-[10px] font-normal italic opacity-70">
-                        (Includes subjects + library fees)
-                      </span>
+                  {/* Summary Box */}
+                  <div className="p-6 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+                    <div className="relative flex flex-col sm:flex-row justify-between items-center gap-4">
+                      <div className="text-center sm:text-left">
+                        <p className="text-[11px] font-bold text-white/60 uppercase tracking-widest mb-1">Final Summary</p>
+                        <h4 className="text-xl font-bold">Total Admission Fee</h4>
+                      </div>
+                      <div className="flex flex-col items-center sm:items-end">
+                        <span className="text-3xl font-black">
+                          ₹{(() => {
+                            const totalSubjectFees = formData.enrollments.reduce((acc: number, enr: any) => {
+                              const sub = availableSubjects.find(s => s.id === enr.subject_id);
+                              return acc + (sub?.current_fee?.amount ? parseFloat(sub.current_fee.amount) : 0);
+                            }, 0);
+                            const libraryFee = formData.enrollments.filter((e: any) => e.include_library_fee).length * 10;
+                            return totalSubjectFees + libraryFee;
+                          })()}
+                        </span>
+                        <span className="text-[11px] font-medium text-white/70 italic">
+                          (Includes subjects + library fees)
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-
-              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="Area / Locality"
-                  value={formData.area}
-                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                  className="w-full input-standard"
-                />
-                {userRole !== 'accountant' && (
-                  <select
-                    value={formData.blood_group}
-                    onChange={(e) => setFormData({ ...formData, blood_group: e.target.value })}
-                    className="w-full input-standard"
-                  >
-                    <option value="">Select Blood Group</option>
-                    <option value="A+">A+</option>
-                    <option value="A-">A-</option>
-                    <option value="B+">B+</option>
-                    <option value="B-">B-</option>
-                    <option value="AB+">AB+</option>
-                    <option value="AB-">AB-</option>
-                    <option value="O+">O+</option>
-                    <option value="O-">O-</option>
-                  </select>
-                )}
-                <textarea
-                  placeholder="Full Address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 md:col-span-2 resize-none"
-                  rows={2}
-                />
               </div>
             </div>
 

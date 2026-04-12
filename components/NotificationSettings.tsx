@@ -90,44 +90,6 @@ export default function NotificationSettings() {
                     </button>
                 </div>
 
-                {/* WhatsApp Notifications */}
-                <div className="p-6 flex items-center justify-between">
-                    <div className="flex gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-green-600">
-                            <MessageSquare size={24} />
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-gray-800 font-poppins">WhatsApp Alerts</h4>
-                            <p className="text-sm text-gray-500 font-inter">Get instant updates for payments and registration.</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => handleToggle('notify_whatsapp')}
-                        className={`w-14 h-8 rounded-full p-1 transition-colors duration-200 focus:outline-none ${preferences.notify_whatsapp ? 'bg-indigo-600' : 'bg-gray-200'}`}
-                    >
-                        <div className={`w-6 h-6 bg-white rounded-full shadow-sm transform transition-transform duration-200 ${preferences.notify_whatsapp ? 'translate-x-6' : 'translate-x-0'}`} />
-                    </button>
-                </div>
-
-                {/* SMS Notifications */}
-                <div className="p-6 flex items-center justify-between">
-                    <div className="flex gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
-                            <Phone size={24} />
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-gray-800 font-poppins">SMS Notifications</h4>
-                            <p className="text-sm text-gray-500 font-inter">Receive critical alerts via text message.</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => handleToggle('notify_sms')}
-                        className={`w-14 h-8 rounded-full p-1 transition-colors duration-200 focus:outline-none ${preferences.notify_sms ? 'bg-indigo-600' : 'bg-gray-200'}`}
-                    >
-                        <div className={`w-6 h-6 bg-white rounded-full shadow-sm transform transition-transform duration-200 ${preferences.notify_sms ? 'translate-x-6' : 'translate-x-0'}`} />
-                    </button>
-                </div>
-
                 <div className="p-6 bg-slate-50/50 dark:bg-slate-800/20">
                     <button
                         onClick={handleSave}

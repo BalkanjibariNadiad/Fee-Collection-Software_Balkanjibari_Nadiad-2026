@@ -83,8 +83,8 @@ class Enrollment(models.Model):
     )
     
     # Generated documents
-    id_card = CloudinaryField(
-        resource_type="raw",
+    id_card = models.FileField(
+        upload_to='id_cards/',
         null=True,
         blank=True,
         help_text='Stored ID card PDF'

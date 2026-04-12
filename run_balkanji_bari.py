@@ -15,6 +15,24 @@ def run_servers():
     print("  BALKANJI BARI - LOCAL SERVER STARTER")
     print("="*50 + "\n")
 
+    # 0. Clean stale caches (Prevent 404 errors)
+    print("[0/2] Cleaning stale caches...")
+    try:
+        if os.path.exists(os.path.join(root_dir, '.next')):
+            import shutil
+            shutil.rmtree(os.path.join(root_dir, '.next'))
+            print("  [OK] Cleared .next cache")
+        
+        # Clean backend pycache
+        for p in [backend_dir, os.path.join(backend_dir, 'apps')]:
+            for root, dirs, files in os.walk(p):
+                for d in dirs:
+                    if d == "__pycache__":
+                        shutil.rmtree(os.path.join(root, d))
+        print("  [OK] Cleared Python bytecode")
+    except Exception as e:
+        print(f"  [WARN] Cleanup warning: {e}")
+
     # 1. Start Backend (Django)
     print("[1/2] Starting Django Backend...")
     # Using sys.executable to ensure we use the same python environment

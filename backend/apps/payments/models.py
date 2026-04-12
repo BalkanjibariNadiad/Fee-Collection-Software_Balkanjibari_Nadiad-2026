@@ -111,8 +111,8 @@ class Payment(models.Model):
     )
     
     # Generated documents
-    receipt_pdf = CloudinaryField(
-        resource_type="raw",
+    receipt_pdf = models.FileField(
+        upload_to='receipts/',
         null=True,
         blank=True,
         help_text='Stored receipt PDF'
