@@ -9,23 +9,18 @@ import { toast } from 'sonner';
 const DEFAULT_BACKEND_URL = 'https://balkanji-backend.onrender.com';
 export let API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || DEFAULT_BACKEND_URL;
 
-// --- DYNAMIC BACKEND FIX (v3.0 - SMART DISCOVERY) ---
+// --- DYNAMIC BACKEND FIX (v3.5 - STRICT VERCEL OPTIMIZATION) ---
 if (typeof window !== 'undefined') {
   const currentHost = window.location.hostname;
   
-  // If we are on the production domain but API is pointing to '/' or itself without prefix
-  // OR if it's pointing to the frontend domain when it should be the backend
-  if (currentHost === 'balkanjibari.org' || currentHost.includes('vercel.app')) {
-    if (!process.env.NEXT_PUBLIC_API_URL || 
-        process.env.NEXT_PUBLIC_API_URL === '/' || 
-        API_BASE_URL.includes(currentHost)) {
-      
-      console.warn(`[Auto-Fix] Production environment detected on ${currentHost}. Redirecting API from ${API_BASE_URL} to fallback: ${DEFAULT_BACKEND_URL}`);
-      API_BASE_URL = DEFAULT_BACKEND_URL;
-    }
+  // Force Render Backend whenever we are on a Vercel-hosted subdomain
+  // This explicitly bypasses any custom domain issues or NEXT_PUBLIC_API_URL misconfigurations
+  if (currentHost.includes('vercel.app')) {
+    console.log(`%c Vercel Environment Detected %c Using Render Backend fallback: ${DEFAULT_BACKEND_URL} `, "background: #000; color: #fff; font-weight: bold; padding: 2px 5px;", "background: #10b981; color: #fff; padding: 2px 5px;");
+    API_BASE_URL = DEFAULT_BACKEND_URL;
   }
 }
-// ----------------------------------------------------
+// ---------------------------------------------------------------
 
 // --- DIAGNOSTIC LOGGING (v3.0) ---
 if (typeof window !== 'undefined') {

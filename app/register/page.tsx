@@ -5,16 +5,9 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, CheckCircle, AlertCircle, Plus, Trash2, Loader2, Lock, Download, BookOpen, CreditCard, ShieldCheck as LucideShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 
-const DEFAULT_BACKEND_URL = 'https://balkanji-backend.onrender.com'
-let API_BASE = process.env.NEXT_PUBLIC_API_URL || DEFAULT_BACKEND_URL
+import { API_BASE_URL } from '@/lib/api/client'
 
-// --- DYNAMIC BACKEND FIX (v2.5) ---
-if (typeof window !== 'undefined' && (!process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL === '/')) {
-  if (window.location.hostname.includes('vercel.app')) {
-    API_BASE = DEFAULT_BACKEND_URL;
-  }
-}
-// ----------------------------------
+const API_BASE = API_BASE_URL
 
 interface Subject {
   id: number
@@ -157,9 +150,11 @@ export default function RegisterPage() {
   const fetchSubjects = useCallback(async () => {
     try {
       setIsSubjectsLoading(true)
-      const fetchUrl = `${API_BASE}/api/v1/subjects/`
-      console.log(`[DEBUG] Fetching subjects from: ${fetchUrl}`)
+      const fetchUrl = `${API_BASE_URL}/api/v1/subjects/`
       
+      if (typeof window !== 'undefined') {
+        console.log(`[DEBUG] Fetching subjects from: ${fetchUrl}`)
+      }
       const response = await fetch(fetchUrl)
       if (!response.ok) {
         console.error(`[ERROR] Fetch failed with status: ${response.status}`)
