@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { TrendingUp, Users, CreditCard, AlertCircle, Plus, IndianRupee, Download, Loader2 } from 'lucide-react'
+import { TrendingUp, Users, CreditCard, AlertCircle, Plus, IndianRupee, Download, Loader2, ArrowLeft } from 'lucide-react'
 import { analyticsApi, DashboardStats, PaymentTrend, SubjectDistribution } from '@/lib/api/analytics'
 import { enrollmentsApi, paymentsApi, subjectsApi } from '@/lib/api'
 import {

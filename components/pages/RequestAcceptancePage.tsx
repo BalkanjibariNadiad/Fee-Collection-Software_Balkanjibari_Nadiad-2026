@@ -16,8 +16,11 @@ export default function RequestAcceptancePage() {
   const fetchRequests = async () => {
     try {
       setLoading(true)
-      // Fetch only pending confirmation payments
-      const response = await paymentsApi.getAll({ status: 'PENDING_CONFIRMATION' }) as any
+      // Fetch only pending confirmation payments for CASH method
+      const response = await paymentsApi.getAll({ 
+        status: 'PENDING_CONFIRMATION',
+        payment_method: 'CASH'
+      }) as any
       setRequests(response.results || response.data || [])
     } catch (err) {
       console.error('Failed to fetch requests:', err)

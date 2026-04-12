@@ -314,7 +314,7 @@ class StudentCreateSerializer(serializers.ModelSerializer):
                 if payment_method == 'ONLINE':
                     paid_amount = 0.00
                     pending_amount = total_fee
-                    payment_status = 'PENDING_CONFIRMATION'
+                    payment_status = 'CREATED'
                 elif is_staff and payment_method == 'CASH':
                     # This is the new "Counter Cash" registration
                     paid_amount = 0.00
