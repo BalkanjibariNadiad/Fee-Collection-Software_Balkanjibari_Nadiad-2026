@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { paymentsApi, enrollmentsApi, PendingFee, Payment } from '@/lib/api'
-import { Loader2, AlertCircle, CheckCircle, CreditCard, Download, FileText } from 'lucide-react'
+import { Loader2, AlertCircle, CheckCircle, CreditCard, Download, FileText, IndianRupee } from 'lucide-react'
 
 // Mocking toast notifications for simplicity as they aren't explicitly imported
 const notifySuccess = (msg: string) => console.log('SUCCESS:', msg)
@@ -210,6 +210,8 @@ export default function StudentPayments() {
     return isNaN(num) ? '₹0' : `₹${num.toLocaleString('en-IN')}`
   }
 
+  const outstandingFees = pendingFees.filter((fee) => Number(fee.pending_amount) > 0)
+
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case 'SUCCESS':
@@ -220,6 +222,35 @@ export default function StudentPayments() {
         return <span className="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-rose-100 font-inter">FAILED</span>
       default:
         return <span className="bg-slate-50 text-slate-500 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-slate-100 font-inter">{status || 'PENDING'}</span>
+    }
+  }
+
+  const getDueStatusMeta = (status?: string) => {
+    const normalized = (status || 'UNPAID').toUpperCase()
+
+    switch (normalized) {
+      case 'SUCCESS':
+      case 'PAID':
+        return {
+          label: 'PAID',
+          className: 'text-emerald-600 dark:text-emerald-400'
+        }
+      case 'PENDING_CONFIRMATION':
+      case 'PENDING':
+        return {
+          label: 'PENDING',
+          className: 'text-amber-600 dark:text-amber-400'
+        }
+      case 'FAILED':
+        return {
+          label: 'FAILED',
+          className: 'text-rose-600 dark:text-rose-400'
+        }
+      default:
+        return {
+          label: normalized,
+          className: 'text-amber-600 dark:text-amber-400'
+        }
     }
   }
 
@@ -292,7 +323,7 @@ export default function StudentPayments() {
           <h2 className="text-lg sm:text-xl font-bold text-slate-900 uppercase tracking-tight font-poppins">Outstanding Dues</h2>
         </div>
 
-        {pendingFees.length === 0 ? (
+        {outstandingFees.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 rounded-[24px] sm:rounded-[32px] p-10 sm:p-16 text-center border-dashed border-2 border-slate-100 dark:border-slate-800">
             <div className="inline-flex p-4 sm:p-5 rounded-full bg-emerald-50 text-emerald-600 mb-6 shadow-xl shadow-emerald-500/10">
               <CheckCircle size={32} className="sm:w-[44px] sm:h-[44px]" />
@@ -302,7 +333,10 @@ export default function StudentPayments() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
-            {pendingFees.map((fee) => (
+            {outstandingFees.map((fee) => {
+              const dueStatus = getDueStatusMeta(fee.payment_status)
+
+              return (
               <div key={fee.id} className="bg-white dark:bg-slate-900 rounded-[32px] p-6 sm:p-10 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/20 ring-1 ring-blue-400/10 dark:ring-blue-400/5 group">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
                   <div className="space-y-2">
@@ -326,11 +360,11 @@ export default function StudentPayments() {
                   </div>
                   <div className="text-right">
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                    <p className="text-xs font-black text-amber-600 dark:text-amber-400">UNPAID</p>
+                    <p className={`text-xs font-black ${dueStatus.className}`}>{dueStatus.label}</p>
                   </div>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         )}
       </section>

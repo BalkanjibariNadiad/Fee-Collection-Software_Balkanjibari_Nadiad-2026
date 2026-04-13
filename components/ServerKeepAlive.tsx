@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import axios from 'axios'
+import { API_BASE_URL } from '@/lib/api/client'
 
 /**
  * ServerKeepAlive Component
@@ -17,7 +18,6 @@ export default function ServerKeepAlive() {
     // Pinging every 5 minutes (300000ms) keeps it active.
     const PING_INTERVAL = 300000 
     
-    const baseUrlRaw = process.env.NEXT_PUBLIC_API_URL || ''
     const healthUrl = `/health`
 
     const pingServer = async () => {
@@ -31,7 +31,7 @@ export default function ServerKeepAlive() {
         }
       } catch (err: any) {
         if (err.code === 'ERR_NETWORK') {
-          console.error('[KeepAlive] Network Error: Could not reach the backend. Is it running at ' + baseUrlClean + '?')
+          console.error('[KeepAlive] Network Error: Could not reach the backend at ' + API_BASE_URL)
         } else if (err.code === 'ECONNABORTED') {
           console.warn('[KeepAlive] Search Timeout: Backend is very slow to respond.')
         } else {

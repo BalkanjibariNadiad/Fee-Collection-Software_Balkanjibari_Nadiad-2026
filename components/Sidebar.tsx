@@ -1,6 +1,6 @@
 'use client'
 
-import { LayoutDashboard, Users, BookOpen, LogIn, CreditCard, BarChart3, FileText, Settings, Lock, User, LogOut, X, ClipboardCheck } from 'lucide-react'
+import { LayoutDashboard, Users, BookOpen, LogIn, CreditCard, BarChart3, FileText, Settings, Lock, User, LogOut, X } from 'lucide-react'
 
 import { User as UserType } from '@/lib/api'
 
@@ -17,12 +17,10 @@ const menuItems = [
   { id: 'profile', label: 'My Profile', icon: User, roles: ['STUDENT'] },
   { id: 'subjects-fees', label: 'My Subjects & Fees', icon: BookOpen, roles: ['STUDENT'] },
   { id: 'student-payments', label: 'My Payments', icon: CreditCard, roles: ['STUDENT'] },
-  { id: 'requests', label: 'Request Acceptance', icon: ClipboardCheck, roles: ['ADMIN', 'STAFF', 'ACCOUNTANT'] },
   { id: 'students', label: 'Students', icon: Users, roles: ['ADMIN', 'STAFF', 'ACCOUNTANT'] },
   { id: 'subjects', label: 'Subjects', icon: BookOpen, roles: ['ADMIN', 'STAFF'] },
   { id: 'enrollments', label: 'Enrollments', icon: LogIn, roles: ['ADMIN', 'STAFF'] },
   { id: 'payments', label: 'Payments', icon: CreditCard, roles: ['ADMIN', 'STAFF', 'ACCOUNTANT'] },
-  { id: 'ledger', label: 'Student Ledger', icon: ClipboardCheck, roles: ['ADMIN', 'ACCOUNTANT'] },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, roles: ['ADMIN', 'STAFF', 'ACCOUNTANT'] },
   { id: 'reports', label: 'Reports', icon: FileText, roles: ['ADMIN', 'STAFF', 'ACCOUNTANT'] },
   { id: 'users', label: 'Users', icon: Lock, roles: ['ADMIN'] },

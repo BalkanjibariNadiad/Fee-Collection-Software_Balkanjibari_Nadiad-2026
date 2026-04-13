@@ -9,18 +9,29 @@ import { toast } from 'sonner';
 const DEFAULT_BACKEND_URL = 'https://balkanji-backend.onrender.com';
 export let API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || DEFAULT_BACKEND_URL;
 
-// --- DYNAMIC BACKEND FIX (v3.5 - STRICT VERCEL OPTIMIZATION) ---
+// --- DYNAMIC BACKEND FIX (v4.0 - STRICT CONNECTIVITY OVERWRITE) ---
 if (typeof window !== 'undefined') {
   const currentHost = window.location.hostname;
   
-  // Force Render Backend whenever we are on a Vercel-hosted subdomain
-  // This explicitly bypasses any custom domain issues or NEXT_PUBLIC_API_URL misconfigurations
-  if (currentHost.includes('vercel.app')) {
-    console.log(`%c Vercel Environment Detected %c Using Render Backend fallback: ${DEFAULT_BACKEND_URL} `, "background: #000; color: #fff; font-weight: bold; padding: 2px 5px;", "background: #10b981; color: #fff; padding: 2px 5px;");
-    API_BASE_URL = DEFAULT_BACKEND_URL;
+  // NEW: Priority bypass for local development
+  const isLocal = currentHost === 'localhost' || currentHost === '127.0.0.1';
+  
+  if (!isLocal) {
+    // 1. Force Render Backend whenever we are on a Vercel-hosted subdomain
+    if (currentHost.includes('vercel.app')) {
+      API_BASE_URL = DEFAULT_BACKEND_URL;
+    }
+
+    // 2. ABSOLUTE OVERWRITE: If the URL contains the "poisoned" domain, force fallback
+    if (API_BASE_URL.includes('balkanjibari.org')) {
+      console.warn(`[Auto-Heal] Poisoned domain detected (balkanjibari.org). Forcing fallback to: ${DEFAULT_BACKEND_URL}`);
+      API_BASE_URL = DEFAULT_BACKEND_URL;
+    }
+  } else {
+    console.log(`%c SYSTEM %c Local environment detected. Skipping production overwrites. `, "background: #3b82f6; color: #fff; font-weight: bold; padding: 2px 5px; border-radius: 4px 0 0 4px;", "background: #1d4ed8; color: #fff; padding: 2px 5px; border-radius: 0 4px 4px 0;");
   }
 }
-// ---------------------------------------------------------------
+// -------------------------------------------------------------------
 
 // --- DIAGNOSTIC LOGGING (v3.0) ---
 if (typeof window !== 'undefined') {

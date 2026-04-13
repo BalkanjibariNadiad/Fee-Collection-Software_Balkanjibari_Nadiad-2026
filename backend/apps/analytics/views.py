@@ -130,6 +130,320 @@ class AnalyticsViewSet(viewsets.ViewSet):
             start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         return start_date
 
+    def _build_date_wise_fee_report(self, start_date, end_date):
+        """Build date-wise fee report payload for a date range (inclusive)."""
+        base_qs = Payment.objects.filter(
+            is_deleted=False,
+            status='SUCCESS',
+            payment_date__range=(start_date, end_date)
+        )
+
+        daily_aggregates = base_qs.values('payment_date').annotate(
+            online_total=Sum('amount', filter=Q(payment_mode='ONLINE')),
+            offline_total=Sum('amount', filter=~Q(payment_mode='ONLINE')),
+            total_fees=Sum('amount')
+        ).order_by('payment_date')
+
+        by_date = {
+            item['payment_date']: {
+                'online_fees': float(item['online_total'] or 0),
+                'offline_fees': float(item['offline_total'] or 0),
+                'total_fees': float(item['total_fees'] or 0),
+            }
+            for item in daily_aggregates
+        }
+
+        previous_total = Payment.objects.filter(
+            is_deleted=False,
+            status='SUCCESS',
+            payment_date__lt=start_date
+        ).aggregate(total=Sum('amount'))['total'] or 0
+
+        running_cumulative = float(previous_total)
+        rows = []
+        current_date = start_date
+        while current_date <= end_date:
+            day_data = by_date.get(current_date, {
+                'online_fees': 0.0,
+                'offline_fees': 0.0,
+                'total_fees': 0.0,
+            })
+            running_cumulative += day_data['total_fees']
+
+            rows.append({
+                'date': current_date.strftime('%Y-%m-%d'),
+                'online_fees': day_data['online_fees'],
+                'offline_fees': day_data['offline_fees'],
+                'total_fees': day_data['total_fees'],
+                'cumulative_total': float(running_cumulative),
+            })
+            current_date += timedelta(days=1)
+
+        grand_total = sum(row['total_fees'] for row in rows)
+
+        return {
+            'start_date': start_date.strftime('%Y-%m-%d'),
+            'end_date': end_date.strftime('%Y-%m-%d'),
+            'rows': rows,
+            'grand_total': float(grand_total),
+            'final_cumulative_total': float(running_cumulative),
+        }
+
+    @action(detail=False, methods=['get'])
+    def date_wise_fee_report(self, request):
+        """Return date-wise fee collection report data for a selected date range."""
+        try:
+            start_date_str = request.query_params.get('start_date')
+            end_date_str = request.query_params.get('end_date')
+
+            if end_date_str:
+                end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            else:
+                end_date = timezone.localdate()
+
+            if start_date_str:
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            else:
+                start_date = end_date
+
+            if start_date > end_date:
+                return Response({'success': False, 'error': {'message': 'Start date cannot be after end date.'}}, status=400)
+
+            report = self._build_date_wise_fee_report(start_date, end_date)
+
+            return Response({
+                'success': True,
+                'data': report
+            })
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
+    @action(detail=False, methods=['get'])
+    def export_date_wise_fee_report_csv(self, request):
+        """Export date-wise fee report as CSV for a date range."""
+        try:
+            start_date_str = request.query_params.get('start_date')
+            end_date_str = request.query_params.get('end_date')
+
+            if end_date_str:
+                end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            else:
+                end_date = timezone.localdate()
+
+            if start_date_str:
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            else:
+                start_date = end_date
+
+            if start_date > end_date:
+                return Response({'success': False, 'error': {'message': 'Start date cannot be after end date.'}}, status=400)
+
+            report = self._build_date_wise_fee_report(start_date, end_date)
+            file_date = f"{report['start_date']}-to-{report['end_date']}"
+
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="fee-report-{file_date}.csv"'
+
+            writer = csv.writer(response)
+            writer.writerow(['Date', 'Online Fees', 'Offline Fees', 'Total Fees'])
+            for row in report['rows']:
+                writer.writerow([
+                    row['date'],
+                    f"{row['online_fees']:.2f}",
+                    f"{row['offline_fees']:.2f}",
+                    f"{row['total_fees']:.2f}",
+                ])
+            writer.writerow([])
+            writer.writerow(['Grand Total', f"{report['grand_total']:.2f}"])
+            writer.writerow(['Final Cumulative Total', f"{report['final_cumulative_total']:.2f}"])
+
+            return response
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
+    @action(detail=False, methods=['get'])
+    def export_date_wise_fee_report_pdf(self, request):
+        """Export date-wise fee report as PDF for a date range."""
+        try:
+            start_date_str = request.query_params.get('start_date')
+            end_date_str = request.query_params.get('end_date')
+
+            if end_date_str:
+                end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            else:
+                end_date = timezone.localdate()
+
+            if start_date_str:
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            else:
+                start_date = end_date
+
+            if start_date > end_date:
+                return Response({'success': False, 'error': {'message': 'Start date cannot be after end date.'}}, status=400)
+
+            report = self._build_date_wise_fee_report(start_date, end_date)
+            file_date = f"{report['start_date']}-to-{report['end_date']}"
+
+            headers = ['Date', 'Online Fees', 'Offline Fees', 'Total Fees']
+            data = []
+            for row in report['rows']:
+                data.append([
+                    row['date'],
+                    f"Rs. {row['online_fees']:,.2f}",
+                    f"Rs. {row['offline_fees']:,.2f}",
+                    f"Rs. {row['total_fees']:,.2f}",
+                ])
+            data.append([])
+            data.append(['Grand Total', '', '', f"Rs. {report['grand_total']:,.2f}"])
+            data.append(['Final Cumulative Total', '', '', f"Rs. {report['final_cumulative_total']:,.2f}"])
+
+            pdf_content = generate_pdf_report(f"Date-wise Fee Report ({report['start_date']} to {report['end_date']})", headers, data)
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="fee-report-{file_date}.pdf"'
+            return response
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
+    @action(detail=False, methods=['get'])
+    def subject_wise_daily_fee_report(self, request):
+        """Return subject-wise fee collection for a selected date."""
+        try:
+            date_str = request.query_params.get('date')
+            if date_str:
+                target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            else:
+                target_date = timezone.localdate()
+
+            subject_rows = Payment.objects.filter(
+                is_deleted=False,
+                status='SUCCESS',
+                payment_date=target_date
+            ).values(
+                'enrollment__subject__id',
+                'enrollment__subject__name'
+            ).annotate(
+                total_students=Count('enrollment__student_id', distinct=True),
+                total_fees_collected=Sum('amount')
+            ).order_by('enrollment__subject__name')
+
+            rows = [
+                {
+                    'subject_name': item['enrollment__subject__name'] or 'Unknown Subject',
+                    'total_students': int(item['total_students'] or 0),
+                    'total_fees_collected': float(item['total_fees_collected'] or 0),
+                }
+                for item in subject_rows
+            ]
+
+            grand_total = sum(row['total_fees_collected'] for row in rows)
+
+            return Response({
+                'success': True,
+                'data': {
+                    'date': target_date.strftime('%Y-%m-%d'),
+                    'rows': rows,
+                    'grand_total': float(grand_total),
+                }
+            })
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
+    @action(detail=False, methods=['get'])
+    def export_subject_wise_daily_fee_report_csv(self, request):
+        """Export subject-wise daily fee report as CSV."""
+        try:
+            date_str = request.query_params.get('date')
+            if date_str:
+                target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            else:
+                target_date = timezone.localdate()
+
+            subject_rows = Payment.objects.filter(
+                is_deleted=False,
+                status='SUCCESS',
+                payment_date=target_date
+            ).values(
+                'enrollment__subject__name'
+            ).annotate(
+                total_students=Count('enrollment__student_id', distinct=True),
+                total_fees_collected=Sum('amount')
+            ).order_by('enrollment__subject__name')
+
+            response = HttpResponse(content_type='text/csv')
+            file_date = target_date.strftime('%Y-%m-%d')
+            response['Content-Disposition'] = f'attachment; filename="subject-report-{file_date}.csv"'
+
+            writer = csv.writer(response)
+            writer.writerow(['Subject Name', 'Total Students', 'Total Fees Collected'])
+
+            grand_total = 0
+            if not subject_rows:
+                writer.writerow(['No records found', 0, '0.00'])
+            else:
+                for item in subject_rows:
+                    total_fees = float(item['total_fees_collected'] or 0)
+                    grand_total += total_fees
+                    writer.writerow([
+                        item['enrollment__subject__name'] or 'Unknown Subject',
+                        int(item['total_students'] or 0),
+                        f"{total_fees:.2f}",
+                    ])
+
+            writer.writerow([])
+            writer.writerow(['Grand Total', '', f"{grand_total:.2f}"])
+
+            return response
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
+    @action(detail=False, methods=['get'])
+    def export_subject_wise_daily_fee_report_pdf(self, request):
+        """Export subject-wise daily fee report as PDF."""
+        try:
+            date_str = request.query_params.get('date')
+            if date_str:
+                target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            else:
+                target_date = timezone.localdate()
+
+            subject_rows = Payment.objects.filter(
+                is_deleted=False,
+                status='SUCCESS',
+                payment_date=target_date
+            ).values(
+                'enrollment__subject__name'
+            ).annotate(
+                total_students=Count('enrollment__student_id', distinct=True),
+                total_fees_collected=Sum('amount')
+            ).order_by('enrollment__subject__name')
+
+            headers = ['Subject Name', 'Total Students', 'Total Fees Collected']
+            data = []
+            grand_total = 0
+
+            if not subject_rows:
+                data.append(['No records found', '0', 'Rs. 0.00'])
+            else:
+                for item in subject_rows:
+                    total_fees = float(item['total_fees_collected'] or 0)
+                    grand_total += total_fees
+                    data.append([
+                        item['enrollment__subject__name'] or 'Unknown Subject',
+                        str(int(item['total_students'] or 0)),
+                        f"Rs. {total_fees:,.2f}",
+                    ])
+
+            data.append([])
+            data.append(['Grand Total', '', f"Rs. {grand_total:,.2f}"])
+
+            file_date = target_date.strftime('%Y-%m-%d')
+            pdf_content = generate_pdf_report(f"Subject-wise Daily Fee Report ({file_date})", headers, data)
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="subject-report-{file_date}.pdf"'
+            return response
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
     @action(detail=False, methods=['get'])
     def dashboard_stats(self, request):
         """

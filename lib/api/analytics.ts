@@ -34,6 +34,34 @@ export interface PaymentStatusDistribution {
     color: string;
 }
 
+export interface DateWiseFeeReportRow {
+    date: string;
+    online_fees: number;
+    offline_fees: number;
+    total_fees: number;
+    cumulative_total: number;
+}
+
+export interface DateWiseFeeReport {
+    start_date: string;
+    end_date: string;
+    rows: DateWiseFeeReportRow[];
+    grand_total: number;
+    final_cumulative_total: number;
+}
+
+export interface SubjectWiseDailyFeeReportRow {
+    subject_name: string;
+    total_students: number;
+    total_fees_collected: number;
+}
+
+export interface SubjectWiseDailyFeeReport {
+    date: string;
+    rows: SubjectWiseDailyFeeReportRow[];
+    grand_total: number;
+}
+
 export const analyticsApi = {
     /**
      * Get high-level dashboard stats
@@ -133,6 +161,34 @@ export const analyticsApi = {
 
     exportTimeIntervalReportPdf: async (start_hour: number, end_hour: number) =>
         analyticsApi.downloadFile('/api/v1/analytics/export_time_interval_report_pdf/', 'timing_report.pdf', { start_hour, end_hour }),
+
+    getDateWiseFeeReport: async (start_date: string, end_date: string): Promise<ApiResponse<DateWiseFeeReport>> => {
+        const response = await apiClient.get<ApiResponse<DateWiseFeeReport>>(
+            '/api/v1/analytics/date_wise_fee_report/',
+            { params: { start_date, end_date } }
+        );
+        return response.data;
+    },
+
+    exportDateWiseFeeReportCsv: async (start_date: string, end_date: string) =>
+        analyticsApi.downloadFile('/api/v1/analytics/export_date_wise_fee_report_csv/', `fee-report-${start_date}-to-${end_date}.csv`, { start_date, end_date }),
+
+    exportDateWiseFeeReportPdf: async (start_date: string, end_date: string) =>
+        analyticsApi.downloadFile('/api/v1/analytics/export_date_wise_fee_report_pdf/', `fee-report-${start_date}-to-${end_date}.pdf`, { start_date, end_date }),
+
+    getSubjectWiseDailyFeeReport: async (date: string): Promise<ApiResponse<SubjectWiseDailyFeeReport>> => {
+        const response = await apiClient.get<ApiResponse<SubjectWiseDailyFeeReport>>(
+            '/api/v1/analytics/subject_wise_daily_fee_report/',
+            { params: { date } }
+        );
+        return response.data;
+    },
+
+    exportSubjectWiseDailyFeeReportCsv: async (date: string) =>
+        analyticsApi.downloadFile('/api/v1/analytics/export_subject_wise_daily_fee_report_csv/', `subject-report-${date}.csv`, { date }),
+
+    exportSubjectWiseDailyFeeReportPdf: async (date: string) =>
+        analyticsApi.downloadFile('/api/v1/analytics/export_subject_wise_daily_fee_report_pdf/', `subject-report-${date}.pdf`, { date }),
 
     /**
      * Get statistics for the current student

@@ -7,6 +7,7 @@ import {
   CartesianGrid, XAxis, YAxis, LineChart, Line, BarChart, Bar, Legend 
 } from 'recharts'
 import {
+  analyticsApi,
   PaymentTrend,
   SubjectDistribution,
   PaymentStatusDistribution,
@@ -59,10 +60,15 @@ export default function AnalyticsPage() {
         analyticsApi.getPaymentStatusDistribution(selectedPeriod, startDate, endDate)
       ])
 
-      if (statsRes.success) setStats(statsRes.data)
-      if (trendsRes.success) setPaymentTrends(trendsRes.data)
-      if (subjectsRes.success) setSubjectData(subjectsRes.data)
-      if (statusRes.success) setPaymentStatusData(statusRes.data)
+      const statsData = (statsRes as any)?.data || statsRes
+      const trendsData = (trendsRes as any)?.data || trendsRes
+      const subjectsData = (subjectsRes as any)?.data || subjectsRes
+      const statusData = (statusRes as any)?.data || statusRes
+
+      setStats(statsData || null)
+      setPaymentTrends(Array.isArray(trendsData) ? trendsData : [])
+      setSubjectData(Array.isArray(subjectsData) ? subjectsData : [])
+      setPaymentStatusData(Array.isArray(statusData) ? statusData : [])
 
     } catch (error) {
       console.error('Failed to fetch analytics:', error)

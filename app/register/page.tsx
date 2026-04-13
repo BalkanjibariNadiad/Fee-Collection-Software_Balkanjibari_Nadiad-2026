@@ -86,20 +86,8 @@ function loadRazorpayScript(): Promise<boolean> {
 
 export default function RegisterPage() {
   const router = useRouter()
-  const [subjects, setSubjects] = useState<Subject[]>(() => {
-    if (typeof window !== 'undefined') {
-      const cached = sessionStorage.getItem('balkanji_subjects_cache')
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached)
-          return Array.isArray(parsed) ? parsed : []
-        } catch (e) {
-          console.error('[Cache] Failed to parse subjects:', e)
-        }
-      }
-    }
-    return []
-  })
+  const [subjects, setSubjects] = useState<Subject[]>([])
+  const [isMounted, setIsMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isPaymentLoading, setIsPaymentLoading] = useState(false)
   const [selectedSubjects, setSelectedSubjects] = useState<SelectedSubject[]>([
@@ -112,6 +100,21 @@ export default function RegisterPage() {
   const [currentIST, setCurrentIST] = useState('')
 
   useEffect(() => {
+    setIsMounted(true)
+    
+    // Attempt to load from cache
+    if (typeof window !== 'undefined') {
+      const cached = sessionStorage.getItem('balkanji_subjects_cache')
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached)
+          if (Array.isArray(parsed)) setSubjects(parsed)
+        } catch (e) {
+          console.error('[Cache] Load failed:', e)
+        }
+      }
+    }
+
     const t = new Date()
     setTodayDisplay(`${String(t.getDate()).padStart(2, '0')}-${String(t.getMonth() + 1).padStart(2, '0')}-${t.getFullYear()}`)
     
@@ -600,14 +603,13 @@ export default function RegisterPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
-  // ===================== REGISTRATION FORM =====================
   const anyIneligible = selectedSubjects.some(s => {
-    const subData = subjects.find(x => x.id === s.subject_id)
-    return !checkAgeEligibility(form.age, subData?.age_limit).eligible
-  })
+    const subData = subjects.find(x => x.id === s.subject_id);
+    return !checkAgeEligibility(form.age, subData?.age_limit).eligible;
+  });
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-2 sm:py-6 px-3 sm:px-4 transition-colors">
@@ -790,9 +792,10 @@ export default function RegisterPage() {
 
 
 
-            {/* ---- Subject Selection ---- */}
-            <div>
-              <h2 className={sectionTitle}>Subject Enrollment</h2>
+            {/* ---- Subject Selection - Client Guarded ---- */}
+            {isMounted && (
+              <div>
+                <h2 className={sectionTitle}>Subject Enrollment</h2>
               
               {/* Template Download Button */}
               <div className="mb-4 bg-blue-50 dark:bg-blue-950/30 p-3 rounded-xl border border-blue-100 dark:border-blue-900/30 flex items-center justify-between">
@@ -978,6 +981,7 @@ export default function RegisterPage() {
                 </div>
               )}
             </div>
+            )}
 
             {/* ---- Pay Now Button ---- */}
             <div className="mt-8 space-y-4">

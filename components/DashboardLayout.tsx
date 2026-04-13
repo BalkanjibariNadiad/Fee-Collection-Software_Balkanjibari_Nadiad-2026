@@ -18,8 +18,7 @@ import StudentProfile from './pages/StudentProfile'
 import StudentSubjectsAndFees from './pages/StudentSubjectsAndFees'
 import StudentPayments from './pages/StudentPayments'
 import AccountantDashboard from '@/components/pages/AccountantDashboard'
-import StudentLedgerPage from '@/components/pages/StudentLedgerPage'
-import RequestAcceptancePage from '@/components/pages/RequestAcceptancePage'
+import { SkeletonTable } from '@/components/Skeleton'
 
 interface DashboardLayoutProps {
   currentPage: string
@@ -68,9 +67,7 @@ export default function DashboardLayout({
       case 'student-payments':
         if (userRole === 'student') return <StudentPayments />
         return <DashboardPage setCurrentPage={setCurrentPage} userRole={userRole} />
-      case 'requests':
-        if (userRole === 'student') return <StudentDashboard setCurrentPage={setCurrentPage} />
-        return <RequestAcceptancePage />
+
       case 'students':
         if (userRole === 'student') return <StudentDashboard setCurrentPage={setCurrentPage} />
         if (userRole === 'staff' && !user?.can_view_students) return <div className="p-8 text-center font-bold text-slate-400">Access Denied</div>
@@ -88,8 +85,7 @@ export default function DashboardLayout({
         if (userRole === 'staff' && !user?.can_view_payments) return <div className="p-8 text-center font-bold text-slate-400">Access Denied</div>
         return <PaymentsPage userRole={userRole} canEdit={user?.role === 'ADMIN' || user?.role === 'ACCOUNTANT' || user?.can_view_payments} />
       case 'ledger':
-        if (userRole === 'student') return <StudentDashboard setCurrentPage={setCurrentPage} />
-        return <StudentLedgerPage userRole={userRole} />
+        return <DashboardPage setCurrentPage={setCurrentPage} userRole={userRole} />
       case 'analytics':
         if (userRole === 'student') return <StudentDashboard setCurrentPage={setCurrentPage} />
         if (userRole === 'staff' && !user?.can_view_analytics) return <div className="p-8 text-center font-bold text-slate-400">Access Denied</div>

@@ -43,12 +43,47 @@ export default function PaymentsPage({ userRole, canEdit }: PaymentsPageProps) {
 
   const [paymentStats, setPaymentStats] = useState<{ total_paid: number; total_pending: number } | null>(null)
 
+  const fetchAccurateOutstanding = async (): Promise<number> => {
+    try {
+      let page = 1
+      let totalPages = 1
+      let totalOutstanding = 0
+
+      while (page <= totalPages) {
+        const response = await enrollmentsApi.getAll({ page, page_size: 200 })
+        const enrollmentsPage = Array.isArray(response?.results)
+          ? response.results
+          : Array.isArray(response)
+            ? response
+            : []
+
+        totalOutstanding += enrollmentsPage.reduce((sum: number, enr: any) => {
+          const pending = Number(enr?.pending_amount || 0)
+          return sum + (pending > 0 ? pending : 0)
+        }, 0)
+
+        totalPages = Number(response?.total_pages || 1)
+
+        if (Array.isArray(response)) {
+          break
+        }
+
+        page += 1
+      }
+
+      return totalOutstanding
+    } catch (error) {
+      console.error('Failed to compute accurate outstanding from enrollments:', error)
+      return -1
+    }
+  }
+
   // Fetch payments
   const fetchPayments = async () => {
     try {
       setLoading(true)
       setError('')
-      const [res, statsRes] = await Promise.all([
+      const [res, statsRes, accurateOutstanding] = await Promise.all([
         paymentsApi.getAll({
           page: currentPage,
           page_size: 20,
@@ -57,14 +92,21 @@ export default function PaymentsPage({ userRole, canEdit }: PaymentsPageProps) {
           start_date: startDate || undefined,
           end_date: endDate || undefined,
         }),
-        paymentsApi.getStats()
+        paymentsApi.getStats(),
+        fetchAccurateOutstanding()
       ])
 
-      setPayments(res.results)
-      setTotalPages(res.total_pages)
-      setTotalCount(res.count)
-      // @ts-ignore
-      setPaymentStats(statsRes.data || statsRes)
+      setPayments(Array.isArray(res?.results) ? res.results : [])
+      setTotalPages(Number(res?.total_pages || 1))
+      setTotalCount(Number(res?.count || 0))
+
+      const stats = (statsRes as any)?.data || statsRes
+      setPaymentStats({
+        total_paid: Number(stats?.total_paid || 0),
+        total_pending: accurateOutstanding >= 0
+          ? Number(accurateOutstanding)
+          : Number(stats?.total_pending || 0),
+      })
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Failed to fetch payments')
     } finally {

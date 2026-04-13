@@ -23,7 +23,7 @@ interface StudentStats {
   total_paid: number
   total_pending: number
   enrolled_subjects: Array<{
-    subject: Subject
+    subject?: Subject | null
     subject_description?: string
     enrollment_id: string
     status: string
@@ -145,9 +145,10 @@ export default function StudentSubjectsAndFees({ setCurrentPage }: StudentSubjec
       {/* Enrolled Subjects Detailed List */}
       <div className="space-y-6">
         {stats.enrolled_subjects && stats.enrolled_subjects.length > 0 ? (
-          stats.enrolled_subjects.map((enr, idx) => {
+          stats.enrolled_subjects.filter(Boolean).map((enr, idx) => {
             const libraryFee = enr.include_library_fee ? 10 : 0;
             const registrationFee = enr.total_fee - libraryFee;
+            const subjectName = enr?.subject?.name || (enr as any)?.subject_name || 'Unknown Subject';
             
             return (
               <div key={idx} className="bg-white dark:bg-slate-900 rounded-[32px] p-6 sm:p-10 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/20 ring-1 ring-blue-400/10 dark:ring-blue-400/5 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/5 group">
@@ -159,7 +160,7 @@ export default function StudentSubjectsAndFees({ setCurrentPage }: StudentSubjec
                             <BookOpen size={24} />
                         </div>
                         <div>
-                            <h3 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight font-poppins">{enr.subject.name}</h3>
+                            <h3 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight font-poppins">{subjectName}</h3>
                             <div className="flex items-center gap-2 mt-1">
                                 <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest font-inter">{enr.enrollment_id}</span>
                                 <span className="w-1 h-1 rounded-full bg-slate-300"></span>

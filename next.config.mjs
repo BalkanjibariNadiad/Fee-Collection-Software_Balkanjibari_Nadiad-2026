@@ -6,6 +6,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  /*
   async rewrites() {
     return [
       {
@@ -18,6 +19,7 @@ const nextConfig = {
       },
     ]
   },
+  */
 }
 
 export default nextConfig

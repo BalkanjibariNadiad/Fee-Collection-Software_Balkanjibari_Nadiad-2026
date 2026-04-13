@@ -295,14 +295,14 @@ export default function AccountantDashboard({ setCurrentPage }: AccountantDashbo
                         </button>
 
                         <button
-                            onClick={() => setCurrentPage('ledger')}
+                            onClick={() => setCurrentPage('analytics')}
                             className="flex items-center justify-between p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-all active:scale-[0.98]"
                         >
                             <div className="flex items-center gap-3">
                                 <FileText className="text-emerald-600" />
                                 <div className="text-left">
-                                    <p className="font-bold text-sm font-poppins">Student Fee Ledger</p>
-                                    <p className="text-xs text-muted-foreground font-medium font-inter">View chronological financial history</p>
+                                    <p className="font-bold text-sm font-poppins">Analytics Overview</p>
+                                    <p className="text-xs text-muted-foreground font-medium font-inter">Review trends, dues and collection health</p>
                                 </div>
                             </div>
                             <ArrowUpRight size={16} className="text-emerald-400" />
