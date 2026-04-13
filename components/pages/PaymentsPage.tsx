@@ -181,7 +181,15 @@ export default function PaymentsPage({ userRole, canEdit }: PaymentsPageProps) {
 
     try {
       setLoading(true)
-      await paymentsApi.confirmPayment(id)
+      const response = await paymentsApi.confirmPayment(id)
+      const enrollmentId = Number((response as any)?.data?.enrollment_id)
+      const paymentId = Number((response as any)?.data?.payment_id || id)
+
+      await Promise.all([
+        paymentsApi.openReceiptInNewTab(paymentId),
+        enrollmentId ? enrollmentsApi.openIdCardInNewTab(enrollmentId) : Promise.resolve(),
+      ])
+
       fetchPayments()
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Failed to confirm payment')

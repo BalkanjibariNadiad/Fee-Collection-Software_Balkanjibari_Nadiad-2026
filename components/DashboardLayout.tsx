@@ -11,6 +11,7 @@ import EnrollmentsPage from './pages/EnrollmentsPage'
 import PaymentsPage from './pages/PaymentsPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import ReportsPage from './pages/ReportsPage'
+import RequestAcceptancePage from './pages/RequestAcceptancePage'
 import UserRolesPage from './pages/UserRolesPage'
 import SettingsPage from './pages/SettingsPage'
 import StudentDashboard from './pages/StudentDashboard'
@@ -94,6 +95,9 @@ export default function DashboardLayout({
         if (userRole === 'student') return <StudentDashboard setCurrentPage={setCurrentPage} />
         if (userRole === 'staff' && !user?.can_view_reports) return <div className="p-8 text-center font-bold text-slate-400">Access Denied</div>
         return <ReportsPage userRole={userRole} />
+      case 'request-acceptance':
+        if (userRole === 'student') return <StudentDashboard setCurrentPage={setCurrentPage} />
+        return <RequestAcceptancePage userRole={userRole} />
       case 'users':
         if (userRole !== 'admin') {
           if (userRole === 'staff' && user?.can_view_users) return <UserRolesPage />

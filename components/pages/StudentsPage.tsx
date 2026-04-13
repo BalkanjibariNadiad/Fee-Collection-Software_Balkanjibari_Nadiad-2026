@@ -296,7 +296,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
         console.log('DEBUG: Submitting student data:', submissionData);
         result = await studentsApi.create(submissionData)
         console.log('DEBUG: Save result:', result);
-        notifySuccess('Student created successfully')
+        notifySuccess('Registration Successful')
         // Store for receipt/id card printing
         if (result.data) {
           const studentId = result.data.id;
@@ -315,7 +315,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
               username: result.data.login_username,
               password: result.data.login_password_hint
             });
-            notifySuccess('Registration submitted. Please wait for cashier confirmation.');
+            notifySuccess('Registration Successful. Fees are pending in cash mode.');
           } else {
             // For ONLINE payments, just notify user
             notifyInfo('Student created. Receipt and ID card will be available after payment confirmation.');
@@ -505,6 +505,17 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
     setFormData({ ...formData, enrollments: newEnrollments })
   }
 
+  const getEnrollmentFeeBreakdown = (enr: any) => {
+    const subject = availableSubjects.find((s: any) => s.id === enr.subject_id)
+    const subjectFee = parseFloat(subject?.current_fee?.amount || '0')
+    const libraryFee = enr.include_library_fee ? 10 : 0
+    return {
+      subjectFee,
+      libraryFee,
+      totalFee: subjectFee + libraryFee,
+    }
+  }
+
   const getStatusColor = (status: string) => {
     const s = (status || '').toLowerCase()
     if (s.includes('paid') || s.includes('full') || s.includes('active')) {
@@ -559,8 +570,8 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                  <Plus className="rotate-45" size={32} />
               </div>
               <div className="flex-1 text-center md:text-left">
-                 <h2 className="text-xl font-black text-slate-900 dark:text-white font-poppins mb-1 uppercase tracking-tight">Registration Submitted!</h2>
-                 <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Application for <b>{submittedCredentials.studentId}</b> is now pending cashier confirmation.</p>
+                 <h2 className="text-xl font-black text-slate-900 dark:text-white font-poppins mb-1 uppercase tracking-tight">Registration Successful</h2>
+                 <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Student account <b>{submittedCredentials.studentId}</b> created. Fees are currently pending in cash mode.</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full md:w-auto">
                  <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-emerald-100 shadow-sm">
@@ -644,7 +655,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
       {showForm && (
         <div ref={formRef} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[24px] p-6 shadow-xl scroll-mt-20">
           <h2 className="h2 mb-6">
-            {editingStudent ? 'Edit Student Record' : 'Enroll New Student'}
+            {editingStudent ? 'Edit Student Record' : 'New Student Registration'}
           </h2>
           <form onSubmit={handleSubmit}>
             <div className="space-y-8">
@@ -889,6 +900,26 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                           </select>
                         </div>
                       </div>
+
+                      {enr.subject_id && (() => {
+                        const fees = getEnrollmentFeeBreakdown(enr)
+                        return (
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="p-3 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Subject Fees</p>
+                              <p className="text-sm font-bold text-slate-900 dark:text-white">Rs. {fees.subjectFee.toLocaleString()}</p>
+                            </div>
+                            <div className="p-3 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Library Fee</p>
+                              <p className="text-sm font-bold text-slate-900 dark:text-white">Rs. {fees.libraryFee.toLocaleString()}</p>
+                            </div>
+                            <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800">
+                              <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Total Fees</p>
+                              <p className="text-sm font-bold text-indigo-700 dark:text-indigo-300">Rs. {fees.totalFee.toLocaleString()}</p>
+                            </div>
+                          </div>
+                        )
+                      })()}
                       
                       <div className="flex items-center justify-between bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
                         <div className="flex items-center gap-3">
@@ -942,33 +973,14 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                 disabled={formLoading}
                 className="btn-standard btn-font flex-1 bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-500/20 uppercase tracking-widest text-xs"
               >
-                {formLoading ? 'Saving...' : editingStudent ? 'Update Student' : 'Save Details'}
+                {formLoading ? 'Saving...' : editingStudent ? 'Update Student' : 'Proceed Payment by Cash'}
               </button>
 
               {lastCreatedId && (
                 <>
-                  {lastPaymentMethod !== 'ONLINE' ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handlePrintReceipt}
-                        className="btn-standard bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
-                      >
-                        <Download size={18} /> Print Receipt
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handlePrintICard}
-                        className="btn-standard bg-amber-600 text-white shadow-lg shadow-amber-500/20"
-                      >
-                        <CreditCard size={18} /> Print ID Card
-                      </button>
-                    </>
-                  ) : (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-lg text-sm font-medium border border-blue-100 dark:border-blue-800">
-                      Online Payment Pending - Documents available after confirmation
-                    </div>
-                  )}
+                  <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-lg text-sm font-medium border border-blue-100 dark:border-blue-800">
+                    Registration saved with CASH (Pending). Use Request Acceptance to confirm cash and generate receipt + ID card.
+                  </div>
                 </>
               )}
 

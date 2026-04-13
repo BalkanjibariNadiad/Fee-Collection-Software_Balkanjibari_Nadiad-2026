@@ -21,6 +21,7 @@ const menuItems = [
   { id: 'subjects', label: 'Subjects', icon: BookOpen, roles: ['ADMIN', 'STAFF'] },
   { id: 'enrollments', label: 'Enrollments', icon: LogIn, roles: ['ADMIN', 'STAFF'] },
   { id: 'payments', label: 'Payments', icon: CreditCard, roles: ['ADMIN', 'STAFF', 'ACCOUNTANT'] },
+  { id: 'request-acceptance', label: 'Request Acceptance', icon: CreditCard, roles: ['ADMIN', 'STAFF', 'ACCOUNTANT'] },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, roles: ['ADMIN', 'STAFF', 'ACCOUNTANT'] },
   { id: 'reports', label: 'Reports', icon: FileText, roles: ['ADMIN', 'STAFF', 'ACCOUNTANT'] },
   { id: 'users', label: 'Users', icon: Lock, roles: ['ADMIN'] },

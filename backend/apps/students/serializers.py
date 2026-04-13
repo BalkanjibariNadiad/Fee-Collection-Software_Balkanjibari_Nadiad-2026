@@ -7,6 +7,38 @@ from .models import Student
 from apps.authentication.models import User
 
 
+def _send_offline_registration_email(student):
+    """Send offline registration acknowledgement with login credentials when email is available."""
+    if not student.email:
+        return
+
+    try:
+        from django.core.mail import EmailMessage
+        from django.conf import settings
+
+        message = f"""Registration Successful
+Student ID: {student.student_id}
+Username: {student.login_username}
+Password: {student.login_password_hint}
+Payment Mode: CASH (Pending)
+Payment Status: UNPAID
+
+Your application has been submitted from the office desk.
+Please visit the fee counter to complete the cash payment.
+"""
+
+        email = EmailMessage(
+            subject='Balkanji Bari Registration Submitted - Fees Pending',
+            body=message.strip(),
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'info@balkanjibari.org'),
+            to=[student.email],
+        )
+        email.send(fail_silently=True)
+    except Exception:
+        # Email issues must not block registration.
+        pass
+
+
 class StudentSimpleSerializer(serializers.ModelSerializer):
     """Simple serializer for Student model to be used in nested lists."""
     class Meta:
@@ -219,6 +251,7 @@ class StudentCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Create student, auto-generate user account, and create enrollments with fee logic."""
         import json
+        import threading
         from django.contrib.auth import get_user_model
         from apps.enrollments.models import Enrollment
         from apps.subjects.models import Subject
@@ -238,6 +271,15 @@ class StudentCreateSerializer(serializers.ModelSerializer):
         # Remove payment_method from validated_data
         validated_data.pop('payment_method', None)
         
+        # Prevent duplicate creation for the same active student profile.
+        duplicate_exists = Student.objects.filter(
+            is_deleted=False,
+            phone=validated_data.get('phone'),
+            name__iexact=validated_data.get('name', '').strip()
+        ).exists()
+        if duplicate_exists:
+            raise serializers.ValidationError({'phone': 'A student with this name and phone already exists.'})
+
         # Create the student
         print(f"DEBUG: Creating student with data: {validated_data}")
         try:
@@ -361,6 +403,16 @@ class StudentCreateSerializer(serializers.ModelSerializer):
         
         # Refresh and return to ensure all relationships are updated for serialization
         student.refresh_from_db()
+
+        # Email credentials and pending-fees status for office offline registrations.
+        if payment_method == 'CASH':
+            try:
+                email_thread = threading.Thread(target=_send_offline_registration_email, args=(student,))
+                email_thread.daemon = True
+                email_thread.start()
+            except Exception:
+                pass
+
         return student
 
 

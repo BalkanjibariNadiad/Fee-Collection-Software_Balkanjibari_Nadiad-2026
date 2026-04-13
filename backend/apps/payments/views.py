@@ -6,6 +6,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
+import logging
 
 import csv
 from .models import Payment
@@ -21,6 +22,8 @@ except ImportError:
     original_get_student_pending_fees = None
 
 from apps.students.utils import get_or_repair_student
+
+logger = logging.getLogger(__name__)
 
 class PaymentViewSet(viewsets.ModelViewSet):
     """
@@ -177,6 +180,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
         
         # Update payment
         payment.status = 'SUCCESS'
+        payment.payment_mode = 'CASH'
+        payment.payment_date = timezone.now().date()
         payment.recorded_by = request.user
         payment.save() # receipt_number generated here on success
         
@@ -215,6 +220,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
             'message': f'Payment {payment.payment_id} confirmed.',
             'data': {
                 **PaymentSerializer(payment).data,
+                'payment_id': payment.id,
+                'enrollment_id': payment.enrollment_id,
                 'receipt_url': receipt_url,
                 'id_card_url': id_card_url
             }
