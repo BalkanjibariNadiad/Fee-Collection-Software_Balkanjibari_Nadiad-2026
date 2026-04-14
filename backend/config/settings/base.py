@@ -196,7 +196,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Media files storage - Use Cloudinary if credentials are provided
-CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default='dvkfuevyw')
+CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default='dkjznnmaw')
 if CLOUDINARY_CLOUD_NAME:
 # Cloudinary config is handled automatically by django-cloudinary-storage via CLOUDINARY_STORAGE
     CLOUDINARY_STORAGE = {

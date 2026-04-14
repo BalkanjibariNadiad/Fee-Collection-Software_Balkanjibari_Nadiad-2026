@@ -63,9 +63,22 @@ def generate_receipt_pdf(payment=None, student=None, order_id=None):
         payments = list(Payment.objects.filter(enrollment__student=student, razorpay_order_id=order_id, status='SUCCESS'))
         enrollments = [p.enrollment for p in payments]
     elif student:
-        # Fallback for just student
-        enrollments = list(student.enrollments.filter(is_deleted=False))
-        payments = []
+        # Student-level consolidated receipt: include latest successful payment per enrollment.
+        from apps.payments.models import Payment
+        latest_successful_by_enrollment = {}
+        successful_payments = Payment.objects.filter(
+            enrollment__student=student,
+            enrollment__is_deleted=False,
+            is_deleted=False,
+            status='SUCCESS',
+        ).select_related('enrollment__subject').order_by('enrollment_id', '-created_at')
+
+        for paid in successful_payments:
+            if paid.enrollment_id not in latest_successful_by_enrollment:
+                latest_successful_by_enrollment[paid.enrollment_id] = paid
+
+        payments = list(latest_successful_by_enrollment.values())
+        enrollments = [p.enrollment for p in payments]
     else:
         return _generate_minimal_receipt_pdf()
 
@@ -181,6 +194,10 @@ def generate_receipt_pdf(payment=None, student=None, order_id=None):
         items = [(enrollment, payment.amount)]
     elif student and order_id:
         # Show all enrollments linked to this order
+        for p in payments:
+            items.append((p.enrollment, p.amount))
+    elif payments:
+        # Show one row per paid enrollment in consolidated mode.
         for p in payments:
             items.append((p.enrollment, p.amount))
     else:

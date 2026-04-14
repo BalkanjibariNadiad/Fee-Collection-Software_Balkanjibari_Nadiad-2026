@@ -3,6 +3,7 @@ Serializers for Student model.
 """
 
 from rest_framework import serializers
+from django.conf import settings
 from .models import Student
 from apps.authentication.models import User
 
@@ -73,6 +74,9 @@ class StudentSerializer(serializers.ModelSerializer):
             return None
         
         try:
+            if hasattr(obj.photo, 'url') and obj.photo.url:
+                return obj.photo.url
+
             import re
             # 1. Standardize raw value as string
             clean_path = str(obj.photo)
@@ -96,8 +100,9 @@ class StudentSerializer(serializers.ModelSerializer):
                         clean_path = new_path
                         changed = True
             
-            # 3. Construct clean HTTPS URL
-            return f"https://res.cloudinary.com/dvkfuevyw/image/upload/{clean_path}"
+            # 3. Construct clean HTTPS URL using configured Cloudinary cloud
+            cloud_name = getattr(settings, 'CLOUDINARY_CLOUD_NAME', 'dkjznnmaw')
+            return f"https://res.cloudinary.com/{cloud_name}/image/upload/{clean_path}"
         except Exception as e:
             print(f"DEBUG: Photo URL resolution error: {str(e)}")
             return None
@@ -644,6 +649,9 @@ class StudentRegistrationRequestSerializer(serializers.ModelSerializer):
         if not obj.photo:
             return None
         try:
+            if hasattr(obj.photo, 'url') and obj.photo.url:
+                return obj.photo.url
+
             import re
             clean_path = str(obj.photo)
             if not clean_path or clean_path == 'None':
@@ -664,7 +672,8 @@ class StudentRegistrationRequestSerializer(serializers.ModelSerializer):
                         clean_path = new_path
                         changed = True
             
-            return f"https://res.cloudinary.com/dvkfuevyw/image/upload/{clean_path}"
+            cloud_name = getattr(settings, 'CLOUDINARY_CLOUD_NAME', 'dkjznnmaw')
+            return f"https://res.cloudinary.com/{cloud_name}/image/upload/{clean_path}"
         except Exception:
             return None
 
@@ -690,6 +699,9 @@ class StudentRegistrationRequestAdminSerializer(serializers.ModelSerializer):
         if not obj.photo:
             return None
         try:
+            if hasattr(obj.photo, 'url') and obj.photo.url:
+                return obj.photo.url
+
             import re
             clean_path = str(obj.photo)
             if not clean_path or clean_path == 'None':
@@ -710,7 +722,8 @@ class StudentRegistrationRequestAdminSerializer(serializers.ModelSerializer):
                         clean_path = new_path
                         changed = True
             
-            return f"https://res.cloudinary.com/dvkfuevyw/image/upload/{clean_path}"
+            cloud_name = getattr(settings, 'CLOUDINARY_CLOUD_NAME', 'dkjznnmaw')
+            return f"https://res.cloudinary.com/{cloud_name}/image/upload/{clean_path}"
         except Exception:
             return None
 

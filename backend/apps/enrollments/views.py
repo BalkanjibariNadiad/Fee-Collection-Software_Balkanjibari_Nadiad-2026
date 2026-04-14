@@ -176,7 +176,7 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
         }, status=status.HTTP_403_FORBIDDEN)
     @action(detail=True, methods=['get'], url_path='download-id-card')
     def download_id_card(self, request, pk=None):
-        """Generate/Serve student ID card PDF (Optimized for Cloudinary)."""
+        """Generate/serve student ID card PDF directly from backend response."""
         enrollment = self.get_object()
         student = enrollment.student
         
@@ -187,11 +187,15 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
                 return Response({'success': False, 'error': {'message': 'Access denied.'}}, status=403)
         
         try:
-            # 1. Permanent Storage Check
+            # 1. Serve stored file directly if available
             if enrollment.id_card:
                 try:
-                    from django.http import HttpResponseRedirect
-                    return HttpResponseRedirect(enrollment.id_card.url)
+                    enrollment.id_card.open('rb')
+                    stored_content = enrollment.id_card.read()
+                    enrollment.id_card.close()
+                    response = HttpResponse(stored_content, content_type='application/pdf')
+                    response['Content-Disposition'] = f'inline; filename="ID_{student.student_id}_{enrollment.id}.pdf"'
+                    return response
                 except Exception:
                     pass
 
@@ -205,8 +209,9 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
             try:
                 from django.core.files.base import ContentFile
                 enrollment.id_card.save(filename, ContentFile(pdf_content), save=True)
-                from django.http import HttpResponseRedirect
-                return HttpResponseRedirect(enrollment.id_card.url)
+                response = HttpResponse(pdf_content, content_type='application/pdf')
+                response['Content-Disposition'] = f'inline; filename="{filename}"'
+                return response
             except Exception:
                 # Fallback: Serve raw
                 response = HttpResponse(pdf_content, content_type='application/pdf')
@@ -217,7 +222,7 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='download-receipt')
     def download_receipt(self, request, pk=None):
-        """Standardized Receipt Download via Cloudinary."""
+        """Standardized receipt download served directly by backend."""
         enrollment = self.get_object()
         
         # Security check
@@ -237,11 +242,15 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
             else:
                 return Response({'success': False, 'error': {'message': 'No successful payment found.'}}, status=404)
             
-        # 1. Storage Check
+        # 1. Serve stored file directly if available
         if payment.receipt_pdf:
             try:
-                from django.http import HttpResponseRedirect
-                return HttpResponseRedirect(payment.receipt_pdf.url)
+                payment.receipt_pdf.open('rb')
+                stored_content = payment.receipt_pdf.read()
+                payment.receipt_pdf.close()
+                response = HttpResponse(stored_content, content_type='application/pdf')
+                response['Content-Disposition'] = f'inline; filename="Receipt_{payment.receipt_number or payment.id}.pdf"'
+                return response
             except Exception:
                 pass
 
@@ -251,11 +260,12 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
             pdf_content = generate_receipt_pdf(payment)
             filename = f"Receipt_{payment.receipt_number or payment.id}.pdf"
             
-            # 3. Store and Redirect
+            # 3. Store and serve directly
             from django.core.files.base import ContentFile
             payment.receipt_pdf.save(filename, ContentFile(pdf_content), save=True)
-            from django.http import HttpResponseRedirect
-            return HttpResponseRedirect(payment.receipt_pdf.url)
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="{filename}"'
+            return response
         except Exception as e:
             return Response({'success': False, 'error': {'message': str(e)}}, status=500)
 

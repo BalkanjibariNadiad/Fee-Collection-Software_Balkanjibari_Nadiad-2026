@@ -169,8 +169,13 @@ class PaymentViewSet(viewsets.ModelViewSet):
     def confirm_payment(self, request, pk=None):
         """Admin/Staff confirming an offline payment request."""
         payment = self.get_object()
-        
-        if payment.status != 'PENDING_CONFIRMATION':
+
+        allowed_statuses = {'PENDING_CONFIRMATION'}
+        # Backward compatibility: older cash requests may be stored as CREATED.
+        if payment.payment_mode == 'CASH':
+            allowed_statuses.add('CREATED')
+
+        if payment.status not in allowed_statuses:
             return Response({
                 'success': False,
                 'error': {'message': f'Cannot confirm payment with status {payment.status}.'}
@@ -190,29 +195,28 @@ class PaymentViewSet(viewsets.ModelViewSet):
         enrollment.pending_amount -= payment.amount
         enrollment.save()
         
-        # --- NEW: Automated Document Generation for Counter Workflow ---
+        # Automated document generation for counter workflow.
         receipt_url = None
         id_card_url = None
         
         try:
-            # 1. Generate Receipt
             from utils.receipts import generate_receipt_pdf
             from django.core.files.base import ContentFile
-            
-            pdf_content = generate_receipt_pdf(payment)
-            filename = f"Receipt_{payment.receipt_number}.pdf"
+
+            # Generate one consolidated receipt for the student with subject-wise rows.
+            pdf_content = generate_receipt_pdf(student=enrollment.student)
+            filename = f"Receipt_{payment.receipt_number}_Consolidated.pdf"
             payment.receipt_pdf.save(filename, ContentFile(pdf_content), save=True)
             receipt_url = payment.receipt_pdf.url
-            
-            # 2. Generate ID Card
+
             from utils.id_cards import generate_id_card_pdf
             card_content = generate_id_card_pdf(enrollment)
             card_filename = f"ID_Card_{enrollment.enrollment_id}.pdf"
             enrollment.id_card.save(card_filename, ContentFile(card_content), save=True)
             id_card_url = enrollment.id_card.url
-            
+
         except Exception as e:
-            # log the error but don't fail the confirmation
+            # Do not block payment confirmation if document generation fails.
             logger.error(f"Failed to auto-generate docs during confirm: {str(e)}")
         
         return Response({
@@ -223,13 +227,14 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 'payment_id': payment.id,
                 'enrollment_id': payment.enrollment_id,
                 'receipt_url': receipt_url,
-                'id_card_url': id_card_url
+                'id_card_url': id_card_url,
+                'receipt_type': 'CONSOLIDATED'
             }
         })
 
     @action(detail=True, methods=['get'], url_path='download_receipt')
     def download_receipt(self, request, pk=None):
-        """Download receipt as PDF for successful payments (Optimized for Cloudinary)."""
+        """Download receipt as PDF served directly by backend."""
         payment = self.get_object()
         if payment.status != 'SUCCESS':
             if payment.payment_mode in ['CASH', 'CHEQUE']:
@@ -242,30 +247,34 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 }, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            # 1. Permanent Storage Check (Cloudinary)
+            # 1. Serve stored receipt directly if available
             if payment.receipt_pdf:
                 try:
-                    from django.http import HttpResponseRedirect
-                    return HttpResponseRedirect(payment.receipt_pdf.url)
+                    payment.receipt_pdf.open('rb')
+                    stored_content = payment.receipt_pdf.read()
+                    payment.receipt_pdf.close()
+                    response = HttpResponse(stored_content, content_type='application/pdf')
+                    response['Content-Disposition'] = f'inline; filename="Receipt_{payment.receipt_number or payment.id}.pdf"'
+                    return response
                 except Exception:
-                    pass # Fallback to generation if URL fails
+                    pass
 
             # 2. Unified Design Generation
             from utils.receipts import generate_receipt_pdf
             pdf_content = generate_receipt_pdf(payment)
             filename = f"Receipt_{payment.receipt_number or payment.id}.pdf"
             
-            # 3. Persist to Cloudinary
+            # 3. Persist and serve directly
             try:
                 from django.core.files.base import ContentFile
                 payment.receipt_pdf.save(filename, ContentFile(pdf_content), save=True)
-                # Redirect to the newly saved Cloudinary URL
-                from django.http import HttpResponseRedirect
-                return HttpResponseRedirect(payment.receipt_pdf.url)
+                response = HttpResponse(pdf_content, content_type='application/pdf')
+                response['Content-Disposition'] = f'inline; filename="{filename}"'
+                return response
             except Exception as storage_err:
                 # Fallback: Serve the raw PDF content if storage fails
                 response = HttpResponse(pdf_content, content_type='application/pdf')
-                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                response['Content-Disposition'] = f'inline; filename="{filename}"'
                 return response
 
         except Exception as e:
