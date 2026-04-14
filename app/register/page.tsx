@@ -486,9 +486,10 @@ export default function RegisterPage() {
     student_id: string,
     payment_ids: number[]
   ) => {
+    let verifyTimeout: ReturnType<typeof setTimeout> | undefined
     try {
       const verifyController = new AbortController()
-      const verifyTimeout = setTimeout(() => verifyController.abort(), 45000)
+      verifyTimeout = setTimeout(() => verifyController.abort(), 120000)
 
       const verifyRes = await fetch(`${API_BASE}/api/v1/students/confirm-registration-payment/`, {
         method: 'POST',
@@ -502,8 +503,20 @@ export default function RegisterPage() {
           payment_ids,
         }),
       })
-      clearTimeout(verifyTimeout)
-      const verifyData = await verifyRes.json()
+      if (verifyTimeout) clearTimeout(verifyTimeout)
+
+      const rawBody = await verifyRes.text()
+      let verifyData: any = {}
+      try {
+        verifyData = rawBody ? JSON.parse(rawBody) : {}
+      } catch {
+        verifyData = { success: false, error: rawBody || 'Invalid server response.' }
+      }
+
+      if (!verifyRes.ok) {
+        toast.error(verifyData?.error || verifyData?.message || 'Payment verification failed. Please contact the office.')
+        return
+      }
 
       if (verifyData.success) {
         setSuccessData(verifyData)
@@ -517,6 +530,7 @@ export default function RegisterPage() {
         toast.error('Payment was received but verification failed. Please contact the office with your payment ID.')
       }
     } finally {
+      if (verifyTimeout) clearTimeout(verifyTimeout)
       setIsPaymentLoading(false)
     }
   }

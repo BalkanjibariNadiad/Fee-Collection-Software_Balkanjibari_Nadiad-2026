@@ -14,6 +14,7 @@ import hashlib
 import secrets
 import string
 import time
+import threading
 from decimal import Decimal
 from django.db import OperationalError
 
@@ -496,10 +497,14 @@ def confirm_registration_payment(request):
         f"{student.student_id}:{razorpay_order_id}".encode()
     ).decode()
 
-    # Send confirmation email inline for reliability.
-    # Daemon threads may be terminated early by production worker restarts.
+    # Send confirmation email asynchronously so payment verification returns fast.
     try:
-        _send_registration_email(student, enrolled_subjects, receipt_token)
+        email_thread = threading.Thread(
+            target=_send_registration_email,
+            args=(student, enrolled_subjects, receipt_token),
+            daemon=False,
+        )
+        email_thread.start()
     except Exception as e:
         print(f"[EMAIL] Failed to send registration confirmation: {e}")
 

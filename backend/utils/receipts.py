@@ -18,42 +18,35 @@ from reportlab.lib.colors import HexColor, white, black, grey
 from reportlab.pdfgen import canvas
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
-class ReceiptCanvasWithBorder(canvas.Canvas):
-    """Custom canvas that draws a rounded border and logo watermark on every page."""
-    def __init__(self, *args, **kwargs):
-        canvas.Canvas.__init__(self, *args, **kwargs)
+def _draw_page_decoration(canv, doc):
+    """Draw rounded border and watermark on each page without creating blank trailing pages."""
+    page_w, page_h = landscape(A5)
+    margin = 6 * mm
 
-    def showPage(self):
-        self._draw_page_decoration()
-        canvas.Canvas.showPage(self)
+    # Rounded border
+    canv.saveState()
+    canv.setStrokeColor(HexColor('#4F46E5'))
+    canv.setLineWidth(1.2)
+    canv.roundRect(margin, margin, page_w - 2 * margin, page_h - 2 * margin,
+                   radius=5 * mm, stroke=1, fill=0)
+    canv.restoreState()
 
-    def save(self):
-        canvas.Canvas.save(self)
-
-    def _draw_page_decoration(self):
-        page_w, page_h = landscape(A5) # 210 x 148.5 mm
-        margin = 6 * mm
-
-        # Rounded border
-        self.saveState()
-        self.setStrokeColor(HexColor('#4F46E5')) # Balkanjibari Indigo
-        self.setLineWidth(1.2)
-        self.roundRect(margin, margin, page_w - 2 * margin, page_h - 2 * margin, 
-                       radius=5 * mm, stroke=1, fill=0)
-        self.restoreState()
-
-        # Watermark logo in centre
-        logo_path = os.path.join(settings.BASE_DIR, 'apps', 'payments', 'static', 'images', 'logo.png')
-        if os.path.exists(logo_path):
-            self.saveState()
-            self.setFillAlpha(0.04)
-            wm_size = 70 * mm
-            self.drawImage(logo_path,
-                           (page_w - wm_size) / 2,
-                           (page_h - wm_size) / 2,
-                           width=wm_size, height=wm_size,
-                           mask='auto', preserveAspectRatio=True)
-            self.restoreState()
+    # Watermark logo in centre
+    logo_path = os.path.join(settings.BASE_DIR, 'apps', 'payments', 'static', 'images', 'logo.png')
+    if os.path.exists(logo_path):
+        canv.saveState()
+        canv.setFillAlpha(0.04)
+        wm_size = 70 * mm
+        canv.drawImage(
+            logo_path,
+            (page_w - wm_size) / 2,
+            (page_h - wm_size) / 2,
+            width=wm_size,
+            height=wm_size,
+            mask='auto',
+            preserveAspectRatio=True,
+        )
+        canv.restoreState()
 
 def generate_receipt_pdf(payment=None, student=None, order_id=None):
     """
@@ -251,7 +244,7 @@ def generate_receipt_pdf(payment=None, student=None, order_id=None):
                                   textColor=slate, alignment=TA_CENTER)
     story.append(Paragraph("Balkanji Ni Bari | Nadiad, Gujarat | Summer Camp Activities 2026", footer_style))
 
-    doc.build(story, canvasmaker=ReceiptCanvasWithBorder)
+    doc.build(story, onFirstPage=_draw_page_decoration, onLaterPages=_draw_page_decoration)
     pdf_bytes = buffer.getvalue()
     buffer.close()
     return pdf_bytes
