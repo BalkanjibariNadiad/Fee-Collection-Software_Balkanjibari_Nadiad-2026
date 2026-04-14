@@ -15,6 +15,7 @@ import secrets
 import string
 import time
 import threading
+import logging
 from decimal import Decimal
 from django.db import OperationalError
 
@@ -40,6 +41,7 @@ from apps.payments.models import Payment
 from apps.subjects.models import Subject
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 RAZORPAY_KEY_ID = getattr(settings, 'RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = getattr(settings, 'RAZORPAY_KEY_SECRET', '')
@@ -469,6 +471,12 @@ def confirm_registration_payment(request):
             status='CREATED'
         )
 
+    if not payments_updated.exists():
+        return Response({
+            'success': False,
+            'error': 'No pending payments found for this order. Please retry or contact support.'
+        }, status=400)
+
     enrolled_subjects = []
     for payment in payments_updated:
         payment.razorpay_payment_id = razorpay_payment_id or 'test_pay_confirmed'
@@ -506,7 +514,7 @@ def confirm_registration_payment(request):
         )
         email_thread.start()
     except Exception as e:
-        print(f"[EMAIL] Failed to send registration confirmation: {e}")
+        logger.exception("Failed to start registration confirmation email thread for student_id=%s", student.student_id)
 
     return Response({
         'success': True,
@@ -537,6 +545,7 @@ Username:   {student.login_username}
 Password:   {student.login_password_hint}
 Subjects: {subjects_text}
 Thanks for enrolling in Summer Camp 2026!
+Receipt Link: {receipt_link}
 
 Your fee receipt is attached to this email as a PDF."""
 
@@ -569,11 +578,11 @@ Your fee receipt is attached to this email as a PDF."""
                 from django.core.files.base import ContentFile
                 filename = f"Registration_Receipt_{student.student_id}.pdf"
                 latest_payment.receipt_pdf.save(filename, ContentFile(pdf_bytes), save=True)
-                print(f"[CLOUD] Saved registration receipt to Cloudinary for {student.student_id}")
+                logger.info("Saved registration receipt to Cloudinary for student_id=%s", student.student_id)
             except Exception as e:
-                print(f"[CLOUD] Error saving to Cloudinary: {e}")
+                logger.exception("Error saving registration receipt to Cloudinary for student_id=%s", student.student_id)
     except Exception as e:
-        print(f"[PDF] Could not generate receipt PDF for attachment: {e}")
+        logger.exception("Could not generate receipt PDF for email attachment for student_id=%s", student.student_id)
 
     try:
         email = EmailMessage(
@@ -590,9 +599,9 @@ Your fee receipt is attached to this email as a PDF."""
             email.attach(filename, pdf_bytes, 'application/pdf')
 
         email.send(fail_silently=False)
-        print(f"[EMAIL] Confirmation with receipt PDF sent to {student.email}")
+        logger.info("Registration confirmation email sent for student_id=%s", student.student_id)
     except Exception as e:
-        print(f"[EMAIL] Error: {e}")
+        logger.exception("Registration confirmation email failed for student_id=%s", student.student_id)
         # Log error but don't crash registration if smtp fails
         pass 
 
