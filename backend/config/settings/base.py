@@ -12,8 +12,18 @@ import dj_database_url
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+
+def _strip_wrapping_quotes(value: str) -> str:
+    """Normalize env values that may include accidental wrapping quotes."""
+    if not isinstance(value, str):
+        return value
+    trimmed = value.strip()
+    if len(trimmed) >= 2 and trimmed[0] == trimmed[-1] and trimmed[0] in {'"', "'"}:
+        return trimmed[1:-1]
+    return trimmed
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-mvp-dev-key-change-in-production-12345')
+SECRET_KEY = _strip_wrapping_quotes(config('SECRET_KEY', default='django-insecure-mvp-dev-key-change-in-production-12345'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
@@ -196,7 +206,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Media files storage - Use Cloudinary if credentials are provided
-CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default='dvkfuevyw')
+CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default='dkjznnmaw')
 if CLOUDINARY_CLOUD_NAME:
 # Cloudinary config is handled automatically by django-cloudinary-storage via CLOUDINARY_STORAGE
     CLOUDINARY_STORAGE = {
@@ -368,15 +378,15 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
 
 # Email Configuration
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.hostinger.com')
+EMAIL_BACKEND = _strip_wrapping_quotes(config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend'))
+EMAIL_HOST = _strip_wrapping_quotes(config('EMAIL_HOST', default='smtp.hostinger.com'))
 EMAIL_PORT = config('EMAIL_PORT', default=465, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool)
 EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='info@balkanjibari.org')
+EMAIL_HOST_USER = _strip_wrapping_quotes(config('EMAIL_HOST_USER', default=''))
+EMAIL_HOST_PASSWORD = _strip_wrapping_quotes(config('EMAIL_HOST_PASSWORD', default=''))
+DEFAULT_FROM_EMAIL = _strip_wrapping_quotes(config('DEFAULT_FROM_EMAIL', default='info@balkanjibari.org'))
 
 # Logging Configuration (Simplified for MVP)
 LOGGING = {

@@ -35,8 +35,8 @@ Your application has been submitted from the office desk.
 Please visit the fee counter to complete the cash payment.
 """
 
-        # Use a short timeout and silent backend connection failure so registration never blocks.
-        connection = mail.get_connection(fail_silently=True, timeout=email_timeout)
+        # Use a short timeout so registration never blocks on SMTP.
+        connection = mail.get_connection(fail_silently=False, timeout=email_timeout)
 
         email = EmailMessage(
             subject='Balkanji Bari Registration Submitted - Fees Pending',
@@ -45,7 +45,18 @@ Please visit the fee counter to complete the cash payment.
             to=[student.email],
             connection=connection,
         )
-        sent_count = email.send(fail_silently=True)
+        sent_count = email.send(fail_silently=False)
+        if not sent_count:
+            logger.warning(
+                'Offline registration email not sent (sent_count=0) for student_id=%s, recipient=%s, host=%s, port=%s, tls=%s, ssl=%s, user_set=%s',
+                student.student_id,
+                student.email,
+                getattr(settings, 'EMAIL_HOST', ''),
+                getattr(settings, 'EMAIL_PORT', ''),
+                getattr(settings, 'EMAIL_USE_TLS', False),
+                getattr(settings, 'EMAIL_USE_SSL', False),
+                bool(getattr(settings, 'EMAIL_HOST_USER', '')),
+            )
         logger.info(
             'Offline registration email send attempted for student_id=%s, recipient=%s, sent_count=%s, timeout=%ss',
             student.student_id,
