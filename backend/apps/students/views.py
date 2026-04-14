@@ -6,6 +6,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.db import transaction
 from django.db.models import Q, Sum, Count, Case, When, Value, IntegerField
 from django.contrib.auth import get_user_model
 from decimal import Decimal
@@ -30,6 +31,8 @@ class StudentViewSet(viewsets.ModelViewSet):
     """
     ViewSet for Student CRUD operations.
     """
+    # Avoid URL collisions where custom action paths can be treated as <pk>.
+    lookup_value_regex = r'\d+'
     queryset = Student.objects.filter(is_deleted=False)
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
@@ -285,6 +288,59 @@ class StudentViewSet(viewsets.ModelViewSet):
             'success': True,
             'data': serializer.data
         }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], url_path='register-offline')
+    @transaction.atomic
+    def register_offline(self, request):
+        """Alias endpoint for admin/staff offline student registration."""
+        if request.user.role not in ['ADMIN', 'STAFF', 'ACCOUNTANT']:
+            return Response({
+                'success': False,
+                'error': {'message': 'Only staff/admin/accountant can register offline students.'}
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        payload = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
+        payload['payment_method'] = 'CASH'
+
+        serializer = StudentCreateSerializer(data=payload, context={'request': request})
+        if not serializer.is_valid():
+            return Response({'success': False, 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        student = serializer.save()
+
+        from apps.payments.models import Payment
+        pending_requests = Payment.objects.filter(
+            enrollment__student=student,
+            payment_mode='CASH',
+            status__in=['PENDING_CONFIRMATION', 'CREATED'],
+            is_deleted=False,
+        ).select_related('enrollment__subject')
+
+        request_rows = [
+            {
+                'request_id': pay.id,
+                'student_id': student.student_id,
+                'student_name': student.name,
+                'subject': pay.enrollment.subject.name if pay.enrollment.subject else 'N/A',
+                'total_fees': float(pay.amount),
+                'status': 'PENDING',
+                'created_at': pay.created_at,
+            }
+            for pay in pending_requests
+        ]
+
+        return Response({
+            'success': True,
+            'message': 'Student Registered Successfully',
+            'data': {
+                **StudentSerializer(student).data,
+                'username': student.login_username,
+                'password': student.login_password_hint,
+                'payment_status': 'PENDING',
+                'payment_mode': 'CASH',
+                'request_entries': request_rows,
+            }
+        }, status=status.HTTP_201_CREATED)
 
 
 class StudentRegistrationRequestViewSet(viewsets.ModelViewSet):

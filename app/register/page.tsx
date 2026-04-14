@@ -192,6 +192,7 @@ export default function RegisterPage() {
   })
 
   const [isSubjectsLoading, setIsSubjectsLoading] = useState(true)
+  const normalizedEmail = form.email.trim()
 
   const fetchSubjects = useCallback(async () => {
     try {
@@ -379,8 +380,8 @@ export default function RegisterPage() {
     if (!form.gender) return 'Gender selection is required.'
     if (!form.phone.trim()) return 'Mobile number is required.'
     if (!/^\d{10}$/.test(form.phone)) return 'Please enter a valid 10-digit mobile number.'
-    // Email is now optional, but validate format if provided
-    if (form.email && !/\S+@\S+\.\S+/.test(form.email)) return 'Please enter a valid email address format.'
+    if (!normalizedEmail) return 'Email address is required to send your login credentials.'
+    if (!/\S+@\S+\.\S+/.test(normalizedEmail)) return 'Please enter a valid email address format.'
     if (!form.address.trim()) return 'Full address is required.'
     if (!form.city.trim()) return 'City/Village name is required.'
     if (!/^\d{6}$/.test(form.pincode)) return 'Please enter a valid 6-digit pincode.'
@@ -406,7 +407,7 @@ export default function RegisterPage() {
       fd.append('age', form.age)
       fd.append('gender', form.gender)
       fd.append('phone', form.phone.trim())
-      fd.append('email', form.email.trim())
+      fd.append('email', normalizedEmail)
       fd.append('address', form.address.trim())
       fd.append('city', form.city.trim())
       fd.append('pincode', form.pincode)
@@ -457,7 +458,7 @@ export default function RegisterPage() {
         order_id: order_id,
         prefill: {
           name: form.name,
-          email: form.email,
+          email: normalizedEmail,
           contact: form.phone,
         },
         theme: { color: '#4F46E5' },
@@ -657,8 +658,8 @@ export default function RegisterPage() {
                 <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 italic">
                   <p className="text-slate-600 dark:text-slate-400 font-medium max-w-sm mx-auto">
                     Your enrollment for Summer Camp 2026 has been successfully processed. 
-                    {form.email ? (
-                      <>A confirmation mail has been sent to <strong>{form.email}</strong></>
+                    {normalizedEmail ? (
+                      <>A confirmation mail is being sent to <strong>{normalizedEmail}</strong></>
                     ) : (
                       <>Login details have been sent to your phone number <strong>{form.phone}</strong> via SMS.</>
                     )}
