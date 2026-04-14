@@ -3,15 +3,19 @@ Serializers for Student model.
 """
 
 from rest_framework import serializers
-from django.conf import settings
+import logging
 from .models import Student
 from apps.authentication.models import User
+
+
+logger = logging.getLogger(__name__)
 
 
 def _send_offline_registration_email(student):
     """Send offline registration acknowledgement with login credentials when email is available."""
     if not student.email:
-        return
+        logger.info('Offline registration email skipped: no email for student_id=%s', student.student_id)
+        return False
 
     try:
         from django.core.mail import EmailMessage
@@ -34,10 +38,18 @@ Please visit the fee counter to complete the cash payment.
             from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'info@balkanjibari.org'),
             to=[student.email],
         )
-        email.send(fail_silently=True)
+        sent_count = email.send(fail_silently=False)
+        logger.info(
+            'Offline registration email send attempted for student_id=%s, recipient=%s, sent_count=%s',
+            student.student_id,
+            student.email,
+            sent_count,
+        )
+        return bool(sent_count)
     except Exception:
         # Email issues must not block registration.
-        pass
+        logger.exception('Offline registration email failed for student_id=%s, recipient=%s', student.student_id, student.email)
+        return False
 
 
 class StudentSimpleSerializer(serializers.ModelSerializer):
@@ -74,9 +86,6 @@ class StudentSerializer(serializers.ModelSerializer):
             return None
         
         try:
-            if hasattr(obj.photo, 'url') and obj.photo.url:
-                return obj.photo.url
-
             import re
             # 1. Standardize raw value as string
             clean_path = str(obj.photo)
@@ -100,9 +109,8 @@ class StudentSerializer(serializers.ModelSerializer):
                         clean_path = new_path
                         changed = True
             
-            # 3. Construct clean HTTPS URL using configured Cloudinary cloud
-            cloud_name = getattr(settings, 'CLOUDINARY_CLOUD_NAME', 'dkjznnmaw')
-            return f"https://res.cloudinary.com/{cloud_name}/image/upload/{clean_path}"
+            # 3. Construct clean HTTPS URL
+            return f"https://res.cloudinary.com/dvkfuevyw/image/upload/{clean_path}"
         except Exception as e:
             print(f"DEBUG: Photo URL resolution error: {str(e)}")
             return None
@@ -256,7 +264,6 @@ class StudentCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Create student, auto-generate user account, and create enrollments with fee logic."""
         import json
-        import threading
         from django.contrib.auth import get_user_model
         from apps.enrollments.models import Enrollment
         from apps.subjects.models import Subject
@@ -412,11 +419,9 @@ class StudentCreateSerializer(serializers.ModelSerializer):
         # Email credentials and pending-fees status for office offline registrations.
         if payment_method == 'CASH':
             try:
-                email_thread = threading.Thread(target=_send_offline_registration_email, args=(student,))
-                email_thread.daemon = True
-                email_thread.start()
+                _send_offline_registration_email(student)
             except Exception:
-                pass
+                logger.exception('Unexpected offline email send wrapper failure for student_id=%s', student.student_id)
 
         return student
 
@@ -649,9 +654,6 @@ class StudentRegistrationRequestSerializer(serializers.ModelSerializer):
         if not obj.photo:
             return None
         try:
-            if hasattr(obj.photo, 'url') and obj.photo.url:
-                return obj.photo.url
-
             import re
             clean_path = str(obj.photo)
             if not clean_path or clean_path == 'None':
@@ -672,8 +674,7 @@ class StudentRegistrationRequestSerializer(serializers.ModelSerializer):
                         clean_path = new_path
                         changed = True
             
-            cloud_name = getattr(settings, 'CLOUDINARY_CLOUD_NAME', 'dkjznnmaw')
-            return f"https://res.cloudinary.com/{cloud_name}/image/upload/{clean_path}"
+            return f"https://res.cloudinary.com/dvkfuevyw/image/upload/{clean_path}"
         except Exception:
             return None
 
@@ -699,9 +700,6 @@ class StudentRegistrationRequestAdminSerializer(serializers.ModelSerializer):
         if not obj.photo:
             return None
         try:
-            if hasattr(obj.photo, 'url') and obj.photo.url:
-                return obj.photo.url
-
             import re
             clean_path = str(obj.photo)
             if not clean_path or clean_path == 'None':
@@ -722,8 +720,7 @@ class StudentRegistrationRequestAdminSerializer(serializers.ModelSerializer):
                         clean_path = new_path
                         changed = True
             
-            cloud_name = getattr(settings, 'CLOUDINARY_CLOUD_NAME', 'dkjznnmaw')
-            return f"https://res.cloudinary.com/{cloud_name}/image/upload/{clean_path}"
+            return f"https://res.cloudinary.com/dvkfuevyw/image/upload/{clean_path}"
         except Exception:
             return None
 
