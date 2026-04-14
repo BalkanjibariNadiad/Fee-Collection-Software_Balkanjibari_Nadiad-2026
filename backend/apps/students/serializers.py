@@ -18,8 +18,11 @@ def _send_offline_registration_email(student):
         return False
 
     try:
+        from django.core import mail
         from django.core.mail import EmailMessage
         from django.conf import settings
+
+        email_timeout = int(getattr(settings, 'EMAIL_TIMEOUT', 10) or 10)
 
         message = f"""Registration Successful
 Student ID: {student.student_id}
@@ -32,23 +35,32 @@ Your application has been submitted from the office desk.
 Please visit the fee counter to complete the cash payment.
 """
 
+        # Use a short timeout and silent backend connection failure so registration never blocks.
+        connection = mail.get_connection(fail_silently=True, timeout=email_timeout)
+
         email = EmailMessage(
             subject='Balkanji Bari Registration Submitted - Fees Pending',
             body=message.strip(),
             from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'info@balkanjibari.org'),
             to=[student.email],
+            connection=connection,
         )
-        sent_count = email.send(fail_silently=False)
+        sent_count = email.send(fail_silently=True)
         logger.info(
-            'Offline registration email send attempted for student_id=%s, recipient=%s, sent_count=%s',
+            'Offline registration email send attempted for student_id=%s, recipient=%s, sent_count=%s, timeout=%ss',
             student.student_id,
             student.email,
             sent_count,
+            email_timeout,
         )
         return bool(sent_count)
     except Exception:
         # Email issues must not block registration.
         logger.exception('Offline registration email failed for student_id=%s, recipient=%s', student.student_id, student.email)
+        return False
+    except BaseException:
+        # Gunicorn worker abort surfaces as SystemExit (not Exception). Do not block registration flow.
+        logger.exception('Offline registration email aborted for student_id=%s, recipient=%s', student.student_id, student.email)
         return False
 
 

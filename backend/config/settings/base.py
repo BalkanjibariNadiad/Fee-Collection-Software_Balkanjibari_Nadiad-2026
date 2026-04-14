@@ -196,7 +196,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Media files storage - Use Cloudinary if credentials are provided
-CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default='dkjznnmaw')
+CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default='dvkfuevyw')
 if CLOUDINARY_CLOUD_NAME:
 # Cloudinary config is handled automatically by django-cloudinary-storage via CLOUDINARY_STORAGE
     CLOUDINARY_STORAGE = {
@@ -373,6 +373,7 @@ EMAIL_HOST = config('EMAIL_HOST', default='smtp.hostinger.com')
 EMAIL_PORT = config('EMAIL_PORT', default=465, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool)
+EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='info@balkanjibari.org')
