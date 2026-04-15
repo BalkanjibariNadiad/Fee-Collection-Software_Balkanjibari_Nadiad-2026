@@ -8,6 +8,7 @@ from . import views
 from .razorpay_views import (
     create_razorpay_order,
     verify_razorpay_payment,
+    sync_razorpay_payments,
     get_student_pending_fees
 )
 from .views_accountant import AccountantDashboardView, FeeLedgerViewSet
@@ -22,6 +23,7 @@ urlpatterns = [
     # Razorpay endpoints
     path('razorpay/create-order/', create_razorpay_order, name='razorpay-create-order'),
     path('razorpay/verify/', verify_razorpay_payment, name='razorpay-verify'),
+    path('razorpay/sync-payments/', sync_razorpay_payments, name='razorpay-sync-payments'),
     path('student/pending-fees/', get_student_pending_fees, name='student-pending-fees'),
     
     # Accountant dashboard

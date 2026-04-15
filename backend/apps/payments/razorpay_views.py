@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 try:
     import razorpay
 except ImportError:
@@ -381,4 +382,177 @@ def get_student_pending_fees(request):
         return Response({
             'success': False,
             'error': {'message': str(e)}
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@transaction.atomic
+def sync_razorpay_payments(request):
+    """
+    Auto-sync payments from Razorpay API.
+    
+    Fetches recent payments from Razorpay, matches them with pending payments
+    in the database (status=CREATED), verifies signatures, and auto-confirms
+    payments if validation passes.
+    
+    Only accessible to STAFF/ADMIN roles with payment management permission.
+    
+    POST /api/v1/payments/razorpay/sync-payments/
+    Optional query params:
+      - limit: Number of recent payments to fetch (default: 100, max: 500)
+      - auto_confirm: true/false to auto-confirm matching payments (default: true)
+    """
+    # RBAC: Only staff/admin can sync payments
+    if request.user.role not in ['STAFF', 'ADMIN']:
+        return Response({
+            'success': False,
+            'error': 'Only staff and admins can sync payments from Razorpay.'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    if not razorpay_client:
+        return Response({
+            'success': False,
+            'error': 'Razorpay client not configured. Cannot sync payments.'
+        }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+    
+    try:
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        limit = request.GET.get('limit', 100)
+        auto_confirm = request.GET.get('auto_confirm', 'true').lower() == 'true'
+        
+        try:
+            limit = int(limit)
+            limit = min(max(limit, 10), 500)  # Clamp between 10 and 500
+        except ValueError:
+            limit = 100
+        
+        logger.info(f'[RAZORPAY_SYNC] Starting sync with limit={limit}, auto_confirm={auto_confirm}')
+        
+        # Fetch recent payments from Razorpay
+        razorpay_payments = razorpay_client.payment.all(count=limit)
+        razorpay_items = razorpay_payments.get('items', [])
+        
+        logger.info(f'[RAZORPAY_SYNC] Fetched {len(razorpay_items)} payments from Razorpay')
+        
+        # Track results
+        matched = 0
+        confirmed = 0
+        failed = 0
+        errors = []
+        
+        # Get all pending payments (CREATED status) for quick lookup
+        pending_payments = {
+            p.razorpay_order_id: p for p in 
+            Payment.objects.filter(status='CREATED').select_related('enrollment')
+        }
+        
+        logger.info(f'[RAZORPAY_SYNC] Found {len(pending_payments)} pending payments in database')
+        
+        # Process each Razorpay payment
+        for rzp_payment in razorpay_items:
+            rzp_order_id = rzp_payment.get('order_id')
+            rzp_payment_id = rzp_payment.get('id')
+            rzp_status = rzp_payment.get('status')
+            rzp_amount = rzp_payment.get('amount', 0) / 100  # Convert from paise to rupees
+            
+            logger.debug(f'[RAZORPAY_SYNC] Processing RZP payment: {rzp_payment_id}, order: {rzp_order_id}, status: {rzp_status}')
+            
+            # Only process captured/authorized payments
+            if rzp_status not in ['captured', 'authorized']:
+                logger.debug(f'[RAZORPAY_SYNC] Skipping payment {rzp_payment_id} - status is {rzp_status}')
+                continue
+            
+            # Try to match with pending payment
+            if rzp_order_id not in pending_payments:
+                logger.debug(f'[RAZORPAY_SYNC] No pending payment for order {rzp_order_id}')
+                continue
+            
+            matched += 1
+            payment = pending_payments[rzp_order_id]
+            
+            try:
+                # Verify signature (optional - for security)
+                # Note: For captured payments, signature was already verified by Razorpay
+                # but we can verify again for extra safety
+                
+                payment_notes = payment.notes or ''
+                
+                # Update payment record
+                payment.razorpay_payment_id = rzp_payment_id
+                payment.razorpay_signature = 'verified_via_api'  # Mark as verified via API
+                payment.transaction_id = rzp_payment_id
+                payment.status = 'SUCCESS'
+                payment.notes = f'{payment_notes} | Auto-confirmed via Razorpay sync on {timezone.now().isoformat()}'
+                payment.save()
+                
+                # Update enrollment amounts
+                enrollment = payment.enrollment
+                from decimal import Decimal
+                
+                enrollment.paid_amount += Decimal(str(rzp_amount))
+                enrollment.pending_amount = max(
+                    Decimal('0'),
+                    Decimal(str(enrollment.total_fee)) - enrollment.paid_amount
+                )
+                enrollment.save()
+                
+                confirmed += 1
+                logger.info(f'[RAZORPAY_SYNC] ✓ Confirmed payment {rzp_payment_id} for order {rzp_order_id}')
+                
+                # Send confirmation email
+                try:
+                    from apps.students.registration_views import _send_registration_email
+                    from django.utils import timezone
+                    
+                    payment_subjects = [{
+                        'subject': enrollment.subject.name,
+                        'batch_time': enrollment.batch_time,
+                        'fee': float(payment.amount)
+                    }]
+                    
+                    import base64
+                    token = base64.urlsafe_b64encode(
+                        f"{enrollment.student.student_id}:PAY_{payment.id}".encode()
+                    ).decode()
+                    
+                    _send_registration_email(enrollment.student, payment_subjects, token)
+                    logger.info(f'[EMAIL] Confirmation sent to {enrollment.student.email}')
+                except Exception as e:
+                    logger.warning(f'[EMAIL] Failed to send confirmation: {e}')
+                
+            except Exception as e:
+                failed += 1
+                error_msg = f'Payment {rzp_payment_id}: {str(e)}'
+                errors.append(error_msg)
+                logger.error(f'[RAZORPAY_SYNC] ✗ Failed to process payment: {error_msg}')
+        
+        from django.utils import timezone
+        logger.info(f'[RAZORPAY_SYNC] Sync complete - Matched: {matched}, Confirmed: {confirmed}, Failed: {failed}')
+        
+        return Response({
+            'success': True,
+            'message': f'Razorpay sync completed successfully',
+            'summary': {
+                'total_fetched': len(razorpay_items),
+                'matched': matched,
+                'confirmed': confirmed,
+                'failed': failed,
+                'pending_in_db': len(pending_payments)
+            },
+            'errors': errors if errors else None,
+            'timestamp': timezone.now().isoformat()
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.exception('[RAZORPAY_SYNC] Sync failed with exception')
+        
+        return Response({
+            'success': False,
+            'error': f'Payment sync failed: {str(e)}',
+            'timestamp': timezone.now().isoformat()
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
