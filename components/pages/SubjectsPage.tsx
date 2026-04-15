@@ -11,8 +11,6 @@ interface Subject {
   category: string
   activity_type: string
   instructor_name: string
-  default_batch_timing?: string
-  timing_schedule?: string
   current_fee: {
     amount: string
     duration: string
@@ -34,11 +32,6 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
   const [showForm, setShowForm] = useState(false)
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null)
 
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalCount, setTotalCount] = useState(0)
-
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -46,14 +39,13 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
     instructor_name: '',
     fee_amount: 0,
     fee_duration: '1_MONTH',
-    default_batch_timing: '7:00 AM - 8:00 AM',
-    timing_schedule: '',
+    default_batch_timing: '7-8 AM',
     activity_type: 'SUMMER_CAMP',
     max_seats: 50
   })
   const [formLoading, setFormLoading] = useState(false)
 
-  const canAdd = userRole === 'admin' || userRole === 'staff' || userRole === 'accountant'
+  const canAdd = userRole === 'admin' || (userRole === 'staff' && canEdit)
   const canDelete = userRole === 'admin'
 
   // Fetch subjects
@@ -61,13 +53,8 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
     try {
       setLoading(true)
       setError('')
-      const response = await subjectsApi.getAll({ page: currentPage, page_size: 20 })
-      const subjectsData = response.data || (Array.isArray(response) ? response : [])
-      setSubjects(subjectsData)
-      
-      // Set pagination info
-      setTotalPages(response?.total_pages || Math.ceil(subjectsData.length / 20) || 1)
-      setTotalCount(response?.count || subjectsData.length || 0)
+      const response = await subjectsApi.getAll()
+      setSubjects(response.data)
     } catch (err: any) {
       setError(err.message || 'Failed to load subjects')
     } finally {
@@ -77,7 +64,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
 
   useEffect(() => {
     fetchSubjects()
-  }, [currentPage])
+  }, [])
 
   const resetForm = () => {
     setFormData({
@@ -87,8 +74,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
       instructor_name: '',
       fee_amount: 0,
       fee_duration: '1_MONTH',
-      default_batch_timing: '7:00 AM - 8:00 AM',
-      timing_schedule: '',
+      default_batch_timing: '7-8 AM',
       activity_type: 'SUMMER_CAMP',
       max_seats: 50
     })
@@ -111,19 +97,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
       resetForm()
     } catch (err: any) {
       console.error(err)
-      const responseData = err?.response?.data
-      let detailedMessage = err?.response?.data?.error?.message
-
-      if (!detailedMessage && responseData && typeof responseData === 'object') {
-        detailedMessage = Object.entries(responseData)
-          .map(([field, value]) => {
-            const normalized = Array.isArray(value) ? value.join(', ') : String(value)
-            return `${field}: ${normalized}`
-          })
-          .join(' | ')
-      }
-
-      setError(detailedMessage || 'Failed to save subject. Ensure all fields are valid.')
+      setError(err.response?.data?.error?.message || 'Failed to save subject. Ensure all fields are valid.')
     } finally {
       setFormLoading(false)
     }
@@ -138,8 +112,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
       instructor_name: subject.instructor_name || '',
       fee_amount: parseFloat(subject.current_fee?.amount || '0'),
       fee_duration: subject.current_fee?.duration || '1_MONTH',
-      default_batch_timing: subject.default_batch_timing || '7:00 AM - 8:00 AM',
-      timing_schedule: subject.timing_schedule || '',
+      default_batch_timing: subject.default_batch_timing || '7-8 AM',
       activity_type: subject.activity_type || 'SUMMER_CAMP',
       max_seats: subject.max_seats || 50
     })
@@ -180,61 +153,12 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
               setEditingSubject(null)
               resetForm()
             }}
-            className="btn-standard transition-all hover:scale-105 active:scale-95 bg-indigo-600 text-white flex items-center gap-2 px-5 py-2.5 rounded-xl font-poppins font-bold text-sm shadow-lg shadow-indigo-500/20"
+            className="btn-standard"
           >
             <Plus size={18} />
             <span>Add Subject</span>
           </button>
         )}
-      </div>
-      
-      {/* ---- Subjects Overview (Schedule View) ---- */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-          <h3 className="font-poppins font-bold text-slate-800 text-sm uppercase tracking-wider flex items-center gap-2">
-            <BookOpen size={16} className="text-indigo-600" /> Summer Camp Subject Schedule
-          </h3>
-          <button 
-            onClick={() => fetchSubjects()}
-            className="flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-black text-slate-500 transition-all uppercase"
-          >
-            <Plus size={10} className="rotate-45" /> Refresh Data
-          </button>
-        </div>
-        <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="sticky top-0 bg-slate-50 z-10">
-              <tr className="border-b border-slate-200">
-                <th className="px-4 py-2 text-[11px] font-black text-slate-400 uppercase">Subject</th>
-                <th className="px-4 py-2 text-[11px] font-black text-slate-400 uppercase">Batch Time</th>
-                <th className="px-4 py-2 text-[11px] font-black text-slate-400 uppercase text-center">Fee</th>
-                <th className="px-4 py-2 text-[11px] font-black text-slate-400 uppercase text-right">Availability</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {subjects.filter((s: any) => s.activity_type === 'SUMMER_CAMP').map((s: any) => {
-                const isFull = s.enrolled_count >= s.max_seats
-                const fee = s.current_fee ? s.current_fee.amount : s.monthly_fee || '0'
-                return (
-                  <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-4 py-3 text-[13px] font-bold text-slate-700">{s.name}</td>
-                    <td className="px-4 py-3 text-[12px] text-slate-500">{s.default_batch_timing}</td>
-                    <td className="px-4 py-3 text-[13px] font-black text-indigo-600 text-center">₹{parseFloat(fee).toFixed(0)}</td>
-                    <td className="px-4 py-3 text-right">
-                      {isFull ? (
-                        <span className="px-2 py-0.5 bg-rose-500 text-white text-[9px] font-black rounded uppercase">FULL</span>
-                      ) : (
-                        <span className="text-[11px] font-bold text-emerald-500">
-                          {s.max_seats - (s.enrolled_count || 0)} / {s.max_seats} LEFT
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
       </div>
 
       {/* Error Display */}
@@ -271,7 +195,6 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                   className="w-full input-standard h-10 text-[11px] font-medium font-inter"
                   required
                 >
-                  <option value="EDUCATION">Education</option>
                   <option value="MUSIC">Music</option>
                   <option value="ART">Art</option>
                   <option value="SPORTS">Sports</option>
@@ -320,6 +243,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                   required
                 >
                   <option value="SUMMER_CAMP">Summer Camp</option>
+                  <option value="YEAR_ROUND">Year-Round</option>
                 </select>
               </div>
               <div>
@@ -333,27 +257,6 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                   min="1"
                 />
               </div>
-              <div>
-                <label className="block text-[9px] font-medium text-gray-400 uppercase mb-0.5 ml-1 font-inter">Default Batch Time *</label>
-                <input
-                  type="text"
-                  value={formData.default_batch_timing}
-                  onChange={(e) => setFormData({ ...formData, default_batch_timing: e.target.value })}
-                  className="w-full input-standard h-10 text-[11px] font-medium font-inter"
-                  required
-                  placeholder="e.g. 11:00 AM - 12:00 PM"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-[9px] font-medium text-gray-400 uppercase mb-0.5 ml-1 font-inter">All Batch Timings</label>
-              <textarea
-                value={formData.timing_schedule}
-                onChange={(e) => setFormData({ ...formData, timing_schedule: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl bg-white/40 dark:bg-black/10 border border-white/20 dark:border-white/5 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 dark:text-white text-[11px] font-medium font-inter resize-none shadow-inner"
-                rows={2}
-                placeholder="Use | to separate timings. Example: Batch A: 7:00 AM - 8:00 AM | Batch B: 6:00 PM - 7:00 PM"
-              />
             </div>
             <div>
               <label className="block text-[9px] font-medium text-gray-400 uppercase mb-0.5 ml-1 font-inter">Description</label>
@@ -390,31 +293,21 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
       )}
 
       {/* Subjects Grid */}
-      <div className="space-y-4">
-        {/* Page Info Header */}
-        {!loading && subjects.length > 0 && totalPages > 1 && (
-          <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl">
-            <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 uppercase tracking-widest">
-              📚 Page {currentPage} of {totalPages} • Showing {((currentPage - 1) * 20) + 1}-{Math.min(currentPage * 20, totalCount)} of {totalCount} subjects
-            </p>
+      {subjects.length === 0 ? (
+        <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div className="w-20 h-20 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+            <BookOpen className="text-gray-300" size={32} />
           </div>
-        )}
-        
-        {subjects.length === 0 ? (
-          <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
-            <div className="w-20 h-20 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BookOpen className="text-gray-300" size={32} />
-            </div>
-            <p className="text-gray-500 font-medium font-inter uppercase tracking-widest text-xs">No subjects found</p>
-            <p className="text-gray-400 text-sm mt-1 font-inter">Get started by creating a new subject.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {subjects.map((subject: any) => (
-              <div
-                key={subject.id}
-                className="group relative bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-indigo-200/50 transition-all duration-300 ring-1 ring-slate-900/[0.02]"
-              >
+          <p className="text-gray-500 font-medium font-inter uppercase tracking-widest text-xs">No subjects found</p>
+          <p className="text-gray-400 text-sm mt-1 font-inter">Get started by creating a new subject.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          {subjects.map((subject: any) => (
+            <div
+              key={subject.id}
+              className="group relative bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-indigo-200/50 transition-all duration-300 ring-1 ring-slate-900/[0.02]"
+            >
               <div className="p-4 sm:p-5">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1 min-w-0">
@@ -501,73 +394,6 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
             </div>
           ))}
         </div>
-
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
-            <div className="flex-1">
-              <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-                Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalCount)} of {totalCount} subjects
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                Page {currentPage} of {totalPages}
-              </p>
-            </div>
-            
-            <div className="flex gap-2 items-center">
-              {/* Previous Button */}
-              <button
-                onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed font-medium text-sm uppercase tracking-widest active:scale-95"
-                title="Previous page"
-              >
-                ← Prev
-              </button>
-
-              {/* Page Numbers - Show 3 pages max */}
-              <div className="flex gap-1">
-                {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 2) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 1) {
-                    pageNum = totalPages - 2 + i;
-                  } else {
-                    pageNum = currentPage - 1 + i;
-                  }
-                  
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`w-10 h-10 rounded-lg font-bold text-sm transition-all active:scale-95 ${
-                        currentPage === pageNum
-                          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                      }`}
-                      title={`Go to page ${pageNum}`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Next Button */}
-              <button
-                onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed font-medium text-sm uppercase tracking-widest active:scale-95"
-                title="Next page"
-              >
-                Next →
-              </button>
-            </div>
-          </div>
-        )}
       )}
     </div>
   )
