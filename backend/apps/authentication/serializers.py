@@ -75,12 +75,18 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError('Must include username and password.')
         
         request = self.context.get('request')
+        user = None
         
-        # OPTIMIZED: Single query path using Django's authenticate (most efficient)
-        # Tries username first, then falls back to email matching
-        user = authenticate(request=request, username=username_or_email, password=password)
+        # Try standard Django authentication first (most efficient)
+        try:
+            user = authenticate(request=request, username=username_or_email, password=password)
+            if user:
+                print(f"[DEBUG] Login successful via standard authentication for {user.username}")
+        except Exception as e:
+            print(f"[DEBUG] Standard auth error: {e}")
+            user = None
         
-        # Fallback: Try email authentication with single optimized query
+        # Fallback: Try email authentication if username failed
         if not user:
             from .models import User
             try:
@@ -89,20 +95,17 @@ class LoginSerializer(serializers.Serializer):
                     email__iexact=username_or_email
                 )
                 # Verify password manually
-                if not user.check_password(password):
-                    user = None
-                    print(f"[DEBUG] Password mismatch for email {username_or_email}")
-                else:
+                if user.check_password(password):
                     print(f"[DEBUG] Login successful via email authentication for {user.username}")
+                else:
+                    print(f"[DEBUG] Password mismatch for email {username_or_email}")
+                    user = None
             except User.DoesNotExist:
                 print(f"[DEBUG] User not found with email {username_or_email}")
                 user = None
-        else:
-            # If authenticate() found the user, ensure student_profile is loaded
-            # to avoid extra queries when UserSerializer accesses it
-            if user:
-                user = User.objects.select_related('student_profile').get(pk=user.pk)
-                print(f"[DEBUG] Login successful via standard authentication for {user.username}")
+            except Exception as e:
+                print(f"[DEBUG] Email auth error: {e}")
+                user = None
 
         if user:
             if not user.is_active:

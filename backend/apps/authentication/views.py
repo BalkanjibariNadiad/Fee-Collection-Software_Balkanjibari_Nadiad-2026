@@ -31,37 +31,66 @@ def login_view(request):
     Login endpoint with JWT token generation.
     Rate limited to 30 requests per minute per IP.
     """
-    serializer = LoginSerializer(data=request.data, context={'request': request})
-    if not serializer.is_valid():
-        print(f"[DIAGNOSTIC] Login Validation Failed: {serializer.errors}")
+    try:
+        serializer = LoginSerializer(data=request.data, context={'request': request})
+        if not serializer.is_valid():
+            print(f"[DIAGNOSTIC] Login Validation Failed: {serializer.errors}")
+            return Response({
+                'success': False,
+                'error': {'message': 'Invalid username or password.', 'details': serializer.errors}
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        user = serializer.validated_data.get('user')
+        if not user:
+            return Response({
+                'success': False,
+                'error': {'message': 'User not found or invalid credentials.'}
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Prefetch student_profile if not already loaded
+        if not hasattr(user, '_student_profile_prefetched'):
+            try:
+                # Force a fresh query with select_related for serializer efficiency
+                user = User.objects.select_related('student_profile').get(pk=user.pk)
+            except User.DoesNotExist:
+                return Response({
+                    'success': False,
+                    'error': {'message': 'User session expired or invalid.'}
+                }, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                print(f"[ERROR] Failed to prefetch student_profile: {e}")
+                # Continue with user as-is, UserSerializer will handle missing profile
+        
+        # Generate JWT tokens
+        refresh = JWT_RefreshToken.for_user(user)
+        access = refresh.access_token
+        
+        # Store refresh token in database for blacklisting
+        RefreshToken.objects.create(
+            user=user,
+            token=str(refresh),
+            expires_at=timezone.now() + timedelta(days=7)
+        )
+        
+        response = Response({
+            'success': True,
+            'data': {
+                'access': str(access),
+                'refresh': str(refresh),
+                'user': UserSerializer(user).data
+            }
+        }, status=status.HTTP_200_OK)
+        response['X-API-Version'] = '3.0.0-STRICT'
+        return response
+    
+    except Exception as e:
+        print(f"[ERROR] Login endpoint error: {e}")
+        import traceback
+        traceback.print_exc()
         return Response({
             'success': False,
-            'error': {'message': 'Invalid username or password.', 'details': serializer.errors}
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
-    user = serializer.validated_data['user']
-    
-    # Generate JWT tokens
-    refresh = JWT_RefreshToken.for_user(user)
-    access = refresh.access_token
-    
-    # Store refresh token in database for blacklisting
-    RefreshToken.objects.create(
-        user=user,
-        token=str(refresh),
-        expires_at=timezone.now() + timedelta(days=7)
-    )
-    
-    response = Response({
-        'success': True,
-        'data': {
-            'access': str(access),
-            'refresh': str(refresh),
-            'user': UserSerializer(user).data
-        }
-    }, status=status.HTTP_200_OK)
-    response['X-API-Version'] = '3.0.0-STRICT'
-    return response
+            'error': {'message': 'An error occurred during login. Please try again.'}
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
