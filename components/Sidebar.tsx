@@ -3,6 +3,7 @@
 import { LayoutDashboard, Users, BookOpen, LogIn, CreditCard, BarChart3, FileText, Settings, Lock, User, LogOut, X } from 'lucide-react'
 
 import { User as UserType } from '@/lib/api'
+import { usePagePrefetch } from '@/hooks/usePagePrefetch'
 
 interface SidebarProps {
   currentPage: string
@@ -42,6 +43,7 @@ const menuItems = [
 
 export default function Sidebar({ currentPage, setCurrentPage, user, isOpen, onLogout }: SidebarProps) {
   const userRole = user?.role || 'STUDENT'
+  const { prefetchOnHover } = usePagePrefetch()
   
   const visibleItems = menuItems.filter(item => {
     // Basic role check
@@ -83,6 +85,7 @@ export default function Sidebar({ currentPage, setCurrentPage, user, isOpen, onL
             <button
               key={item.id}
               onClick={() => setCurrentPage(item.id)}
+              onMouseEnter={() => prefetchOnHover(item.id)}
               className={`w-full h-11 flex items-center gap-3 px-4 rounded-xl transition-all duration-200 ${isActive
                 ? 'bg-indigo-600 text-white shadow-md'
                 : 'text-slate-600 hover:bg-slate-50'

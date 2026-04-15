@@ -6,6 +6,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  swcMinify: true,
+  productionBrowserSourceMaps: false,
+  compress: true,
   /*
   async rewrites() {
     return [

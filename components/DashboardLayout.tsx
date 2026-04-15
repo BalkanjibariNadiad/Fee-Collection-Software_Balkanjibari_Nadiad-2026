@@ -1,25 +1,28 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import Sidebar from './Sidebar'
 import TopNavbar from './TopNavbar'
-import DashboardPage from './pages/DashboardPage'
-import StudentsPage from './pages/StudentsPage'
-import SubjectsPage from './pages/SubjectsPage'
-import EnrollmentsPage from './pages/EnrollmentsPage'
-import PaymentsPage from './pages/PaymentsPage'
-import AnalyticsPage from './pages/AnalyticsPage'
-import ReportsPage from './pages/ReportsPage'
-import RequestAcceptancePage from './pages/RequestAcceptancePage'
-import UserRolesPage from './pages/UserRolesPage'
-import SettingsPage from './pages/SettingsPage'
-import StudentDashboard from './pages/StudentDashboard'
-import StudentProfile from './pages/StudentProfile'
-import StudentSubjectsAndFees from './pages/StudentSubjectsAndFees'
-import StudentPayments from './pages/StudentPayments'
-import AccountantDashboard from '@/components/pages/AccountantDashboard'
 import { SkeletonTable } from '@/components/Skeleton'
+import { setupPagePrefetching } from '@/lib/pagePreloader'
+
+// Lazy load page components for better performance
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const StudentsPage = lazy(() => import('./pages/StudentsPage'))
+const SubjectsPage = lazy(() => import('./pages/SubjectsPage'))
+const EnrollmentsPage = lazy(() => import('./pages/EnrollmentsPage'))
+const PaymentsPage = lazy(() => import('./pages/PaymentsPage'))
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'))
+const ReportsPage = lazy(() => import('./pages/ReportsPage'))
+const RequestAcceptancePage = lazy(() => import('./pages/RequestAcceptancePage'))
+const UserRolesPage = lazy(() => import('./pages/UserRolesPage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const StudentDashboard = lazy(() => import('./pages/StudentDashboard'))
+const StudentProfile = lazy(() => import('./pages/StudentProfile'))
+const StudentSubjectsAndFees = lazy(() => import('./pages/StudentSubjectsAndFees'))
+const StudentPayments = lazy(() => import('./pages/StudentPayments'))
+const AccountantDashboard = lazy(() => import('./pages/AccountantDashboard'))
 
 interface DashboardLayoutProps {
   currentPage: string
@@ -50,7 +53,10 @@ export default function DashboardLayout({
     if (window.innerWidth >= 1024) {
       setSidebarOpen(true)
     }
-  }, [])
+    
+    // Prefetch pages in background when idle for faster navigation
+    setupPagePrefetching(user?.id)
+  }, [user?.id])
 
   const renderPage = () => {
     switch (currentPage) {
@@ -147,11 +153,13 @@ export default function DashboardLayout({
         />
         <main className="flex-1 overflow-y-auto no-scrollbar scrolling-touch relative z-10 transition-all duration-500">
           <div className={`page-container transition-opacity duration-300 ${isSwitching ? 'opacity-0' : 'opacity-100'}`}>
-            {isSwitching ? (
-              <div className="p-8">
-                 <SkeletonTable rows={10} />
-              </div>
-            ) : renderPage()}
+            <Suspense fallback={<div className="p-8"><SkeletonTable rows={10} /></div>}>
+              {isSwitching ? (
+                <div className="p-8">
+                   <SkeletonTable rows={10} />
+                </div>
+              ) : renderPage()}
+            </Suspense>
           </div>
         </main>
       </div>
