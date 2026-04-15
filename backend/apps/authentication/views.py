@@ -179,17 +179,31 @@ def current_user_view(request):
     Get current authenticated user details.
     Optimized with select_related to avoid N+1 queries.
     """
-    # OPTIMIZATION: Refetch user with student_profile prefetched
-    # This ensures UserSerializer.get_photo() doesn't trigger extra queries
-    user = User.objects.select_related('student_profile').get(pk=request.user.pk)
-    
-    serializer = UserSerializer(user)
-    response = Response({
-        'success': True,
-        'data': serializer.data
-    }, status=status.HTTP_200_OK)
-    response['X-API-Version'] = '3.0.0-STRICT'
-    return response
+    try:
+        # OPTIMIZATION: Refetch user with student_profile prefetched
+        # This ensures UserSerializer.get_photo() doesn't trigger extra queries
+        user = User.objects.select_related('student_profile').get(pk=request.user.pk)
+        
+        serializer = UserSerializer(user)
+        response = Response({
+            'success': True,
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+        response['X-API-Version'] = '3.0.0-STRICT'
+        return response
+    except User.DoesNotExist:
+        return Response({
+            'success': False,
+            'error': 'User not found.'
+        }, status=status.HTTP_401_UNAUTHORIZED)
+    except Exception as e:
+        print(f"[ERROR] current_user_view error: {e}")
+        import traceback
+        traceback.print_exc()
+        return Response({
+            'success': False,
+            'error': 'Failed to fetch user details.'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
