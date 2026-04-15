@@ -815,11 +815,11 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                     </div>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-[11px] font-bold text-gray-500 uppercase px-1">Email Address</label>
-                    {/* Email is required for all registrations. The same email can be used for multiple student registrations. */}
+                    <label className="text-[11px] font-bold text-gray-500 uppercase px-1">Email Address <span className="text-gray-400">(Optional)</span></label>
+                    {/* Email is optional. If provided, it can be used for multiple student registrations. */}
                     <input
                       type="email"
-                      placeholder="student@example.com (can be shared across registrations)"
+                      placeholder="student@example.com (optional - can be shared across registrations)"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full input-standard"
