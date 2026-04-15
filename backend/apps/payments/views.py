@@ -69,7 +69,8 @@ def _confirm_offline_cash_payment(payment: Payment, confirmed_by):
 
         # Consolidated receipt supports multiple selected subjects row-wise for student.
         receipt_content = generate_receipt_pdf(student=enrollment.student)
-        receipt_filename = f"Receipt_{payment.receipt_number}_Consolidated.pdf"
+        student_code = str(getattr(enrollment.student, 'student_id', payment.id) or payment.id).lower()
+        receipt_filename = f"receipt_{student_code}.pdf"
         payment.receipt_pdf.save(receipt_filename, ContentFile(receipt_content), save=True)
         receipt_url = payment.receipt_pdf.url
 
@@ -264,6 +265,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
     def download_receipt(self, request, pk=None):
         """Download receipt as PDF served directly by backend."""
         payment = self.get_object()
+        student_code = str(getattr(payment.enrollment.student, 'student_id', payment.id) or payment.id).lower()
+        filename = f"receipt_{student_code}.pdf"
         if payment.status != 'SUCCESS':
             if payment.payment_mode in ['CASH', 'CHEQUE']:
                 payment.status = 'SUCCESS'
@@ -282,7 +285,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
                     stored_content = payment.receipt_pdf.read()
                     payment.receipt_pdf.close()
                     response = HttpResponse(stored_content, content_type='application/pdf')
-                    response['Content-Disposition'] = f'inline; filename="Receipt_{payment.receipt_number or payment.id}.pdf"'
+                    response['Content-Disposition'] = f'inline; filename="{filename}"'
                     return response
                 except Exception:
                     pass
@@ -290,7 +293,6 @@ class PaymentViewSet(viewsets.ModelViewSet):
             # 2. Unified Design Generation
             from utils.receipts import generate_receipt_pdf
             pdf_content = generate_receipt_pdf(payment)
-            filename = f"Receipt_{payment.receipt_number or payment.id}.pdf"
             
             # 3. Persist and serve directly
             try:

@@ -241,6 +241,9 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
                 payment.save()
             else:
                 return Response({'success': False, 'error': {'message': 'No successful payment found.'}}, status=404)
+        
+        student_code = str(getattr(enrollment.student, 'student_id', payment.id) or payment.id).lower()
+        filename = f"receipt_{student_code}.pdf"
             
         # 1. Serve stored file directly if available
         if payment.receipt_pdf:
@@ -249,7 +252,7 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
                 stored_content = payment.receipt_pdf.read()
                 payment.receipt_pdf.close()
                 response = HttpResponse(stored_content, content_type='application/pdf')
-                response['Content-Disposition'] = f'inline; filename="Receipt_{payment.receipt_number or payment.id}.pdf"'
+                response['Content-Disposition'] = f'inline; filename="{filename}"'
                 return response
             except Exception:
                 pass
@@ -258,7 +261,6 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
         from utils.receipts import generate_receipt_pdf
         try:
             pdf_content = generate_receipt_pdf(payment)
-            filename = f"Receipt_{payment.receipt_number or payment.id}.pdf"
             
             # 3. Store and serve directly
             from django.core.files.base import ContentFile

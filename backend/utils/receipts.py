@@ -185,7 +185,7 @@ def generate_receipt_pdf(payment=None, student=None, order_id=None):
     story.append(Spacer(1, 0.1 * cm))
 
     # Enrollments Table
-    fee_data = [['#', 'Subject', 'Batch Time', 'SubFee', 'LibFee', 'Total']]
+    fee_data = [['Sr no.', 'Subject', 'Batch Time', 'SubFee', 'LibFee', 'Total']]
     grand_total = 0
     
     # Match payments to enrollments if we have both

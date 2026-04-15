@@ -546,8 +546,11 @@ export default function RegisterPage() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      const safeName = form.name.replace(/\s+/g, '_')
-      a.download = `${safeName}_${successData.student_id}_Receipt.pdf`
+      const contentDisposition = res.headers.get('content-disposition')
+      const filenameMatch = contentDisposition?.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/i)
+      const serverFilename = filenameMatch?.[1]?.replace(/['"]/g, '').trim()
+      const studentCode = String(successData.student_id || 'student').toLowerCase()
+      a.download = serverFilename || `receipt_${studentCode}.pdf`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)

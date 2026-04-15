@@ -48,12 +48,13 @@ def generate_id_card_pdf(enrollment, is_provisional=False):
     except Exception:
         pass
         
-    # Positions: 1: Top Right, 2: Top Left, 3: Bottom Right, 4: Bottom Left
+    # Positions: 1: Top Left, 2: Top Right, 3: Bottom Left, 4: Bottom Right
     # Centered 2x2 grid calculation
     horiz_gap = (page_w - (2 * CARD_W)) / 3
     vert_gap = (page_h - (2 * CARD_H)) / 3
     
     positions = [
+        (horiz_gap, page_h - vert_gap - CARD_H),                   # Top Left
         (page_w - horiz_gap - CARD_W, page_h - vert_gap - CARD_H), # Top Right
         (horiz_gap, page_h - vert_gap - CARD_H),                   # Top Left
         (page_w - horiz_gap - CARD_W, vert_gap),                   # Bottom Right
@@ -184,9 +185,9 @@ def generate_bulk_id_cards_pdf(enrollments):
             
             ibw=16*mm; ibh=18*mm; ibx=cx+CARD_W-ibw-l_marg; iby=cy+CARD_H-ibh-l_marg
             c.setLineWidth(0.3); c.roundRect(ibx, iby, ibw, ibh, radius=1*mm)
-            c.setFont("Helvetica-Bold", 4.5); c.drawCentredString(ibx+ibw/2, iby+ibh-3*mm, "ID")
+            c.setFont("Helvetica-Bold", 7); c.drawCentredString(ibx+ibw/2, iby+ibh-3*mm, "ID")
             login_id = str(getattr(student, 'login_username', None) or getattr(student, 'student_id', 'N/A'))
-            c.setFont("Helvetica-Bold", 7); c.setFillColor(grey); c.drawCentredString(ibx+ibw/2, iby+6*mm, login_id.upper()); c.setFillColor(black)
+            c.setFont("Helvetica-Bold", 8); c.setFillColor(grey); c.drawCentredString(ibx+ibw/2, iby+6*mm, login_id.upper()); c.setFillColor(black)
 
             fy = cy+CARD_H-25*mm; labx=cx+6*mm; valx=cx+28*mm; sp=5.5*mm
             items = [("Student Name:", student.name.upper()[:25] if student.name else "N/A"),

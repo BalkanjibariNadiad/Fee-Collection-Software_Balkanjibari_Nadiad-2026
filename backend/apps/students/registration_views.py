@@ -579,7 +579,8 @@ Your fee receipt is attached to this email as a PDF."""
         if pdf_bytes and latest_payment and not latest_payment.receipt_pdf:
             try:
                 from django.core.files.base import ContentFile
-                filename = f"Registration_Receipt_{student.student_id}.pdf"
+                student_code = str(student.student_id or latest_payment.id).lower()
+                filename = f"receipt_{student_code}.pdf"
                 latest_payment.receipt_pdf.save(filename, ContentFile(pdf_bytes), save=True)
                 logger.info("Saved registration receipt to Cloudinary for student_id=%s", student.student_id)
             except Exception as e:
@@ -597,8 +598,8 @@ Your fee receipt is attached to this email as a PDF."""
 
         # Attach the fee receipt PDF if generated successfully
         if pdf_bytes:
-            safe_name = ''.join(c if c.isalnum() else '_' for c in student.name)
-            filename = f"FeeReceipt_{safe_name}_{student.student_id}.pdf"
+            student_code = str(student.student_id or 'student').lower()
+            filename = f"receipt_{student_code}.pdf"
             email.attach(filename, pdf_bytes, 'application/pdf')
 
         email.send(fail_silently=False)
@@ -633,8 +634,8 @@ def download_registration_receipt(request):
     pdf_bytes = generate_receipt_pdf(student=student, order_id=order_id)
 
     # Build filename
-    safe_name = ''.join(c if c.isalnum() else '_' for c in student.name)
-    filename = f"Receipt_{safe_name}_{student.student_id}.pdf"
+    student_code = str(student.student_id or student.id).lower()
+    filename = f"receipt_{student_code}.pdf"
 
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'

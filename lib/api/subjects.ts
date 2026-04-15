@@ -271,10 +271,15 @@ export const enrollmentsApi = {
                 enrollmentsApi.getDocumentRequestConfig()
             );
 
+            const contentDisposition = response.headers?.['content-disposition'] as string | undefined;
+            const filenameMatch = contentDisposition?.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/i);
+            const serverFilename = filenameMatch?.[1]?.replace(/['"]/g, '').trim();
+            const downloadFilename = serverFilename || `receipt_${id}.pdf`;
+
             const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `Receipt_ENR_${id}.pdf`);
+            link.setAttribute('download', downloadFilename);
             document.body.appendChild(link);
             link.click();
             link.parentNode?.removeChild(link);
