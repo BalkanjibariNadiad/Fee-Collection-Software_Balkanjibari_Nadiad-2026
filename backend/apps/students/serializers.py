@@ -225,6 +225,7 @@ class StudentCreateSerializer(serializers.ModelSerializer):
             'gender': {'required': False, 'allow_null': True},
             'date_of_birth': {'required': False, 'allow_null': True},
             'parent_name': {'required': False, 'allow_null': True},
+            'phone': {'required': True},
             'email': {'required': False, 'allow_null': True},
             'address': {'required': False, 'allow_null': True},
             'area': {'required': False, 'allow_null': True},
@@ -259,7 +260,11 @@ class StudentCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_phone(self, value):
-        """Validate phone number - accept 10 digits or 12 digits (with 91 prefix)."""
+        """Validate phone number - accept 10 digits or 12 digits (with 91 prefix). Phone is required."""
+        # Phone is required
+        if not value:
+            raise serializers.ValidationError('Phone number is required.')
+            
         phone_digits = ''.join(filter(str.isdigit, value))
         
         if len(phone_digits) == 12 and phone_digits.startswith('91'):
@@ -307,14 +312,8 @@ class StudentCreateSerializer(serializers.ModelSerializer):
         # Remove payment_method from validated_data
         validated_data.pop('payment_method', None)
         
-        # Prevent duplicate creation for the same active student profile.
-        duplicate_exists = Student.objects.filter(
-            is_deleted=False,
-            phone=validated_data.get('phone'),
-            name__iexact=validated_data.get('name', '').strip()
-        ).exists()
-        if duplicate_exists:
-            raise serializers.ValidationError({'phone': 'A student with this name and phone already exists.'})
+        # Note: Phone duplicates are allowed (same phone can be used by multiple students)
+        # No duplicate check needed - phone is commonal in registrations
 
         # Create the student
         print(f"DEBUG: Creating student with data: {validated_data}")

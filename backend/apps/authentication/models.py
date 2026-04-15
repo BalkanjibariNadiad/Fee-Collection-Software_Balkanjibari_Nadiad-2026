@@ -11,6 +11,7 @@ class User(AbstractUser):
     """
     Custom User model with role-based access control.
     Extends Django's AbstractUser to add role, phone, address fields.
+    Email is now optional and non-unique to allow same email for multiple registrations.
     """
     
     ROLE_CHOICES = [
@@ -19,6 +20,15 @@ class User(AbstractUser):
         ('STUDENT', 'Student'),
         ('ACCOUNTANT', 'Accountant'),
     ]
+    
+    # Override email field to be optional and non-unique
+    email = models.EmailField(
+        max_length=254,
+        blank=True,
+        null=True,
+        unique=False,
+        help_text='Email address (optional, can be used by multiple users)'
+    )
     
     role = models.CharField(
         max_length=10,

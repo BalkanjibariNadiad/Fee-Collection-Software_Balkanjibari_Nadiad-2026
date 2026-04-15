@@ -192,9 +192,8 @@ def _handle_registration_logic(request):
         return Response({'success': False, 'error': 'Full name is required.'}, status=400)
     if not phone or len(phone) < 10:
         return Response({'success': False, 'error': 'Valid 10-digit mobile number is required.'}, status=400)
-    # Email is now optional, but recommended
-    # if not email:
-    #     return Response({'success': False, 'error': 'Email is required for login credentials.'}, status=400)
+    # Email is optional
+    # Phone is required but can be duplicated across registrations
 
     # Parse subjects
     subjects_raw = data.get('subjects_data', '[]')

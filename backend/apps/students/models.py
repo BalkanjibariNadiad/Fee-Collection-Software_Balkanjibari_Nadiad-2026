@@ -70,12 +70,15 @@ class Student(models.Model):
     
     # Contact Information
     parent_name = models.CharField(max_length=200, blank=True, null=True)
-    phone = models.CharField(max_length=15)
+    phone = models.CharField(
+        max_length=15,
+        help_text='Student phone number (required, can be duplicated across students)'
+    )
     email = models.EmailField(
         max_length=254,
         blank=True,
         null=True,
-        help_text='Student email for notifications'
+        help_text='Student email for notifications (optional, can be used by multiple students)'
     )
     address = models.TextField(blank=True, null=True)
     area = models.CharField(max_length=100, blank=True, null=True)
