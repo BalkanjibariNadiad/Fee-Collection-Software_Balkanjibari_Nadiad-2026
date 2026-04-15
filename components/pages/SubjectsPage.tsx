@@ -34,6 +34,11 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
   const [showForm, setShowForm] = useState(false)
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null)
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -56,8 +61,13 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
     try {
       setLoading(true)
       setError('')
-      const response = await subjectsApi.getAll()
-      setSubjects(response.data)
+      const response = await subjectsApi.getAll({ page: currentPage, page_size: 20 })
+      const subjectsData = response.data || (Array.isArray(response) ? response : [])
+      setSubjects(subjectsData)
+      
+      // Set pagination info
+      setTotalPages(response?.total_pages || Math.ceil(subjectsData.length / 20) || 1)
+      setTotalCount(response?.count || subjectsData.length || 0)
     } catch (err: any) {
       setError(err.message || 'Failed to load subjects')
     } finally {
@@ -67,7 +77,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
 
   useEffect(() => {
     fetchSubjects()
-  }, [])
+  }, [currentPage])
 
   const resetForm = () => {
     setFormData({
@@ -380,7 +390,17 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
       )}
 
       {/* Subjects Grid */}
-      {subjects.length === 0 ? (
+      <div className="space-y-4">
+        {/* Page Info Header */}
+        {!loading && subjects.length > 0 && totalPages > 1 && (
+          <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl">
+            <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 uppercase tracking-widest">
+              📚 Page {currentPage} of {totalPages} • Showing {((currentPage - 1) * 20) + 1}-{Math.min(currentPage * 20, totalCount)} of {totalCount} subjects
+            </p>
+          </div>
+        )}
+        
+        {subjects.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
           <div className="w-20 h-20 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
             <BookOpen className="text-gray-300" size={32} />
@@ -481,6 +501,73 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
             </div>
           ))}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+            <div className="flex-1">
+              <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalCount)} of {totalCount} subjects
+              </p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                Page {currentPage} of {totalPages}
+              </p>
+            </div>
+            
+            <div className="flex gap-2 items-center">
+              {/* Previous Button */}
+              <button
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed font-medium text-sm uppercase tracking-widest active:scale-95"
+                title="Previous page"
+              >
+                ← Prev
+              </button>
+
+              {/* Page Numbers - Show 3 pages max */}
+              <div className="flex gap-1">
+                {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 2) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 1) {
+                    pageNum = totalPages - 2 + i;
+                  } else {
+                    pageNum = currentPage - 1 + i;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-10 h-10 rounded-lg font-bold text-sm transition-all active:scale-95 ${
+                        currentPage === pageNum
+                          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
+                      title={`Go to page ${pageNum}`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Next Button */}
+              <button
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed font-medium text-sm uppercase tracking-widest active:scale-95"
+                title="Next page"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        )}
       )}
     </div>
   )
