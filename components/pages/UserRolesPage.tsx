@@ -43,13 +43,28 @@ export default function UserRolesPage() {
       setLoading(true)
       // Load all users at once - no pagination
       const response = await usersApi.getAll({ page: 1, page_size: 1000 })
-      const usersData = response.data || (Array.isArray(response) ? response : [])
+      
+      // Handle API response: could be array directly or wrapped in response object
+      let usersData: User[] = []
+      
+      if (Array.isArray(response)) {
+        // Direct array response
+        usersData = response
+      } else if (response?.data && Array.isArray(response.data)) {
+        // Response object with data array
+        usersData = response.data
+      } else if (response?.data && Array.isArray(response.data.data)) {
+        // Nested response object
+        usersData = response.data.data
+      }
+      
       setUsers(usersData)
       
       // Set pagination info
       setTotalPages(1)
       setTotalCount(usersData.length || 0)
     } catch (err: any) {
+      console.error('Failed to load users:', err)
       setError('Failed to load users')
     } finally {
       setLoading(false)

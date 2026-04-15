@@ -31,9 +31,10 @@ export const usersApi = {
     /**
      * Get all users
      */
-    getAll: async (): Promise<ApiResponse<User[]>> => {
+    getAll: async (params?: { page?: number; page_size?: number }): Promise<ApiResponse<User[]>> => {
+        const queryString = params ? `?page=${params.page || 1}&page_size=${params.page_size || 100}` : '';
         const response = await apiClient.get<ApiResponse<User[]>>(
-            '/api/v1/auth/users/'
+            `/api/v1/auth/users/${queryString}`
         );
         return response.data;
     },
