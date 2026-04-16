@@ -94,7 +94,7 @@ export default function PaymentsPage({ userRole, canEdit }: PaymentsPageProps) {
       const [res, statsRes, accurateOutstanding] = await Promise.all([
         paymentsApi.getAll({
           page: currentPage,
-          page_size: 20,
+          page_size: 30,  // Optimized page size for better performance
           search: searchTerm || undefined,
           payment_mode: paymentModeFilter || undefined,
           start_date: startDate || undefined,
