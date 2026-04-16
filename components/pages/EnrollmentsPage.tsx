@@ -192,7 +192,7 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-sm">
         <div>
           <h1 className="text-xl sm:text-3xl font-bold text-slate-900 font-poppins uppercase tracking-tight">Active Enrollments</h1>
-          <p className="text-slate-500 text-[10px] sm:text-sm mt-1 font-medium font-inter uppercase tracking-widest">Record Count: {filteredEnrollments.length}</p>
+          <p className="text-slate-500 text-[10px] sm:text-sm mt-1 font-medium font-inter uppercase tracking-widest">Total Enrolled: {enrollments.length} • Filtered: {filteredEnrollments.length}</p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
@@ -217,7 +217,9 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                 </button>
               )}
             </div>
-            <p className="text-[9px] text-slate-400 mt-1 font-inter">{filteredEnrollments.length} result{filteredEnrollments.length !== 1 ? 's' : ''}</p>
+            <p className="text-[9px] text-slate-400 mt-1 font-inter">
+              {searchTerm ? `${filteredEnrollments.length} of ${enrollments.length} results` : `Showing all ${enrollments.length} enrollments`}
+            </p>
           </div>
 
           {/* Subject Filter */}

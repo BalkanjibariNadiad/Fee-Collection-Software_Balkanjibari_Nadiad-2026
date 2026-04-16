@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, Shield, User as UserIcon, AlertCircle } from 'lucide-react'
+import { Plus, Edit2, Trash2, Shield, User as UserIcon, AlertCircle, Search, X } from 'lucide-react'
 import { usersApi, User, CreateUserData } from '@/lib/api'
 
 export default function UserRolesPage() {
@@ -9,6 +9,7 @@ export default function UserRolesPage() {
   const [showForm, setShowForm] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [filterRole, setFilterRole] = useState('ALL')
+  const [searchTerm, setSearchTerm] = useState('')
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
@@ -222,21 +223,44 @@ export default function UserRolesPage() {
 
   return (
     <div className="space-y-8 no-scrollbar pb-20">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight font-poppins uppercase">User Management</h1>
-          <p className="text-slate-400 text-[10px] sm:text-sm font-medium font-inter uppercase tracking-widest mt-1">Total Registry: {users.length}</p>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight font-poppins uppercase">User Management</h1>
+            <p className="text-slate-400 text-[10px] sm:text-sm font-medium font-inter uppercase tracking-widest mt-1">Total Registry: {users.length}</p>
+          </div>
+          <button
+            onClick={() => {
+              resetForm()
+              setShowForm(!showForm)
+            }}
+            className="w-full sm:w-auto h-11 px-6 bg-indigo-600 text-white rounded-xl font-medium font-poppins text-[11px] uppercase tracking-widest shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-95 flex items-center justify-center gap-2"
+          >
+            <Plus size={16} />
+            <span>Add New User</span>
+          </button>
         </div>
-        <button
-          onClick={() => {
-            resetForm()
-            setShowForm(!showForm)
-          }}
-          className="w-full sm:w-auto h-11 px-6 bg-indigo-600 text-white rounded-xl font-medium font-poppins text-[11px] uppercase tracking-widest shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-95 flex items-center justify-center gap-2"
-        >
-          <Plus size={16} />
-          <span>Add New User</span>
-        </button>
+
+        {/* Search Bar */}
+        <div className="relative">
+          <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search by name, username, or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full h-11 pl-10 pr-8 input-standard text-xs sm:text-sm font-medium uppercase tracking-wider font-inter"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              title="Clear search"
+            >
+              <X size={18} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Dynamic Role Filter Dropdown */}
@@ -429,7 +453,7 @@ export default function UserRolesPage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                        {users.filter(u => filterRole === 'ALL' || u.role === filterRole).map((user) => (
+                        {users.filter(u => (filterRole === 'ALL' || u.role === filterRole) && (searchTerm === '' || u.full_name.toLowerCase().includes(searchTerm.toLowerCase()) || u.username.toLowerCase().includes(searchTerm.toLowerCase()) || u.email.toLowerCase().includes(searchTerm.toLowerCase()))).map((user) => (
                         <tr key={user.id} className="hover:bg-slate-50/30 transition-colors group">
                             <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
@@ -499,7 +523,7 @@ export default function UserRolesPage() {
 
           {/* Mobile Card View */}
           <div className="lg:hidden grid grid-cols-1 gap-3">
-              {users.filter(u => filterRole === 'ALL' || u.role === filterRole).map((user) => (
+              {users.filter(u => (filterRole === 'ALL' || u.role === filterRole) && (searchTerm === '' || u.full_name.toLowerCase().includes(searchTerm.toLowerCase()) || u.username.toLowerCase().includes(searchTerm.toLowerCase()) || u.email.toLowerCase().includes(searchTerm.toLowerCase()))).map((user) => (
                   <div key={user.id} className="mobile-card space-y-4">
                       <div className="flex justify-between items-start">
                           <div className="flex items-center gap-3">

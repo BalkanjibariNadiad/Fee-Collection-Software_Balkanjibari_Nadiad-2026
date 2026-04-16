@@ -1,12 +1,22 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { AlertCircle, CheckCircle2, CreditCard, Loader2, RefreshCw, X, Trash2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, CreditCard, Loader2, RefreshCw, X, Trash2, ChevronLeft, Eye, EyeOff } from 'lucide-react'
 import { paymentsApi, enrollmentsApi, subjectsApi, OfflineRequestItem, Subject } from '@/lib/api'
 import { useNotifications } from '@/hooks/useNotifications'
 
 interface RequestAcceptancePageProps {
   userRole: 'admin' | 'staff' | 'student' | 'accountant'
+}
+
+interface AcceptedCredential {
+  student_id: string
+  student_name: string
+  subject: string
+  username?: string
+  password_hint?: string
+  accepted_at: Date
+  visible: boolean
 }
 
 const PENDING_STATUSES = new Set(['PENDING_CONFIRMATION', 'CREATED', 'UNPAID', 'PENDING'])
@@ -27,6 +37,9 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
     request: null,
     reason: ''
   })
+
+  const [showSlider, setShowSlider] = useState(false)
+  const [acceptedCredentials, setAcceptedCredentials] = useState<AcceptedCredential[]>([])
 
   const canAccept = userRole === 'admin' || userRole === 'staff' || userRole === 'accountant'
 
@@ -188,6 +201,24 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
 
       if (!receiptTab || !idCardTab) {
         notifyInfo('Your browser blocked one or more tabs. Please allow pop-ups for this site to auto-open both PDFs.')
+      }
+
+      // Fetch student credentials and add to slider
+      try {
+        const studentRes = await studentsApi.getById(payment.student_id)
+        const student = studentRes?.data || {}
+        setAcceptedCredentials(prev => [{
+          student_id: payment.student_id || '',
+          student_name: payment.student_name || '',
+          subject: payment.subject || '',
+          username: student.login_username || payment.student_id,
+          password_hint: student.login_password_hint || '(Ask student)',
+          accepted_at: new Date(),
+          visible: false
+        }, ...prev.slice(0, 9)])
+        setShowSlider(true)
+      } catch (err) {
+        console.error('Failed to fetch student credentials:', err)
       }
 
       await fetchPendingCashRequests()
@@ -524,6 +555,113 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
             ))}
           </div>
         </div>
+      )}
+
+      {/* Right-side Slider for Accepted Credentials */}
+      <div className={`fixed right-0 top-0 h-screen w-80 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-lg transform transition-transform duration-300 z-40 overflow-y-auto ${showSlider ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between">
+          <h3 className="font-bold text-slate-900 dark:text-white text-sm uppercase tracking-widest">
+            Recently Accepted ({acceptedCredentials.length})
+          </h3>
+          <button
+            onClick={() => setShowSlider(false)}
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+          >
+            <ChevronLeft size={20} />
+          </button>
+        </div>
+
+        {acceptedCredentials.length === 0 ? (
+          <div className="p-4 text-center text-slate-500 text-sm">
+            <p>No credentials to show yet.</p>
+            <p className="text-xs mt-2">Accept payment requests to view student credentials here.</p>
+          </div>
+        ) : (
+          <div className="space-y-2 p-4">
+            {acceptedCredentials.map((cred, idx) => (
+              <div key={idx} className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-xl p-4 border border-emerald-200 dark:border-emerald-800">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-slate-900 dark:text-white text-sm truncate">{cred.student_name}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 truncate">{cred.subject}</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
+                      {cred.accepted_at.toLocaleTimeString()}
+                    </p>
+                  </div>
+                  <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold shrink-0 ml-2">
+                    ✓
+                  </div>
+                </div>
+
+                <div className="space-y-2 bg-white dark:bg-slate-800 rounded-lg p-3 border border-emerald-100 dark:border-emerald-900">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Username/ID</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-mono font-semibold text-slate-900 dark:text-white truncate">{cred.username}</p>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(cred.username || '')
+                          notifySuccess('Copied to clipboard')
+                        }}
+                        className="text-xs text-blue-600 dark:text-blue-400 hover:underline shrink-0"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Password Hint</p>
+                      <button
+                        onClick={() => {
+                          setAcceptedCredentials(prev => prev.map((c, i) => i === idx ? { ...c, visible: !c.visible } : c))
+                        }}
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                      >
+                        {cred.visible ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-mono font-semibold text-slate-900 dark:text-white truncate">
+                        {cred.visible ? cred.password_hint : '••••••••'}
+                      </p>
+                      {cred.visible && (
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(cred.password_hint || '')
+                            notifySuccess('Copied to clipboard')
+                          }}
+                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline shrink-0"
+                        >
+                          Copy
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Slider Toggle Button */}
+      {acceptedCredentials.length > 0 && !showSlider && (
+        <button
+          onClick={() => setShowSlider(true)}
+          className="fixed right-0 top-32 -translate-y-1/2 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-l-lg font-bold text-xs uppercase tracking-widest shadow-lg transition-all active:scale-95 z-30"
+        >
+          Credentials ({acceptedCredentials.length})
+        </button>
+      )}
+
+      {/* Semi-transparent Overlay when Slider is open */}
+      {showSlider && (
+        <div
+          className="fixed inset-0 bg-black/20 dark:bg-black/40 z-30"
+          onClick={() => setShowSlider(false)}
+        />
       )}
     </div>
   )
