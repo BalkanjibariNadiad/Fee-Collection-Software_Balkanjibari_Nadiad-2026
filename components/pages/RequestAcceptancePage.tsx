@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { AlertCircle, CheckCircle2, CreditCard, Loader2, RefreshCw } from 'lucide-react'
+import { AlertCircle, CheckCircle2, CreditCard, Loader2, RefreshCw, X, Trash2 } from 'lucide-react'
 import { paymentsApi, enrollmentsApi, subjectsApi, OfflineRequestItem, Subject } from '@/lib/api'
 import { useNotifications } from '@/hooks/useNotifications'
 
@@ -22,6 +22,11 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
   const [processingId, setProcessingId] = useState<number | null>(null)
   const [rows, setRows] = useState<OfflineRequestItem[]>([])
   const [requestFilter, setRequestFilter] = useState<RequestFilter>('PENDING')
+  const [rejectConfirm, setRejectConfirm] = useState<{ show: boolean; request: OfflineRequestItem | null; reason: string }>({
+    show: false,
+    request: null,
+    reason: ''
+  })
 
   const canAccept = userRole === 'admin' || userRole === 'staff' || userRole === 'accountant'
 
@@ -201,6 +206,53 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
     }
   }
 
+  const handleRejectPayment = async (request: OfflineRequestItem) => {
+    setRejectConfirm({ show: true, request, reason: '' })
+  }
+
+  const confirmRejectPayment = async () => {
+    if (!rejectConfirm.request) return
+
+    try {
+      setProcessingId(rejectConfirm.request.request_id)
+      notifyInfo('Rejecting payment request...')
+
+      const rejectRes = await paymentsApi.rejectOfflineRequest(
+        rejectConfirm.request.request_id,
+        rejectConfirm.reason || undefined
+      )
+
+      notifySuccess('Payment request rejected successfully. The student can resubmit.')
+      setRejectConfirm({ show: false, request: null, reason: '' })
+      await fetchPendingCashRequests()
+    } catch (err: any) {
+      const backendMessage = err?.response?.data?.error?.message
+      const fallbackMessage = err?.message
+      notifyError(backendMessage || fallbackMessage || 'Failed to reject payment')
+    } finally {
+      setProcessingId(null)
+    }
+  }
+
+  const getDuplicateStudents = useMemo(() => {
+    const studentMap = new Map<string, OfflineRequestItem[]>()
+    for (const request of rows) {
+      const studentId = request.student_id?.toLowerCase().trim() || ''
+      if (!studentId) continue
+      if (!studentMap.has(studentId)) {
+        studentMap.set(studentId, [])
+      }
+      studentMap.get(studentId)!.push(request)
+    }
+    const duplicates = new Map<string, OfflineRequestItem[]>()
+    for (const [studentId, requests] of studentMap) {
+      if (requests.length > 1) {
+        duplicates.set(studentId, requests)
+      }
+    }
+    return duplicates
+  }, [rows])
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-sm">
@@ -303,10 +355,23 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
                     const requestedAmount = Number(payment.total_fees || 0)
                     const displayAmount = actualFee ?? requestedAmount
                     const showMismatch = actualFee !== null && Math.round(actualFee) !== Math.round(requestedAmount)
+                    const duplicates = getDuplicateStudents.get(payment.student_id?.toLowerCase().trim() || '')
+                    const hasDuplicates = duplicates && duplicates.length > 1
 
                     return (
-                  <tr key={payment.request_id} className="hover:bg-slate-50/70">
-                    <td className="px-6 py-4 text-sm font-semibold text-slate-900">{payment.student_name}</td>
+                  <tr key={payment.request_id} className={`hover:bg-slate-50/70 ${hasDuplicates ? 'bg-orange-50/30' : ''}`}>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">{payment.student_name}</p>
+                          {hasDuplicates && (
+                            <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest mt-1">
+                              ⚠️ {duplicates.length} Registrations
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-sm text-slate-700">{payment.subject}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="text-sm font-semibold text-slate-900">₹{Number(displayAmount || 0).toLocaleString('en-IN')}</div>
@@ -321,14 +386,26 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
                     </td>
                     <td className="px-6 py-4 text-right">
                       {PENDING_STATUSES.has((payment.status || payment.payment_status || '').toUpperCase()) ? (
-                        <button
-                          disabled={!canAccept || processingId === payment.request_id}
-                          onClick={() => handleAcceptPayment(payment)}
-                          className="inline-flex items-center gap-2 px-4 h-9 rounded-lg bg-emerald-600 text-white text-[11px] font-bold uppercase tracking-widest hover:bg-emerald-700 disabled:opacity-60"
-                        >
-                          {processingId === payment.request_id ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
-                          Accept Payment
-                        </button>
+                        <div className="flex items-center gap-2 justify-end">
+                          <button
+                            disabled={!canAccept || processingId === payment.request_id}
+                            onClick={() => handleAcceptPayment(payment)}
+                            className="inline-flex items-center gap-1 px-3 h-9 rounded-lg bg-emerald-600 text-white text-[11px] font-bold uppercase tracking-widest hover:bg-emerald-700 disabled:opacity-60"
+                            title="Accept and generate documents"
+                          >
+                            {processingId === payment.request_id ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
+                            Accept
+                          </button>
+                          <button
+                            disabled={!canAccept || processingId === payment.request_id}
+                            onClick={() => handleRejectPayment(payment)}
+                            className="inline-flex items-center gap-1 px-3 h-9 rounded-lg bg-rose-600 text-white text-[11px] font-bold uppercase tracking-widest hover:bg-rose-700 disabled:opacity-60"
+                            title="Reject this request"
+                          >
+                            {processingId === payment.request_id ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
+                            Reject
+                          </button>
+                        </div>
                       ) : (
                         <span className="text-xs font-bold uppercase tracking-widest text-slate-400">-</span>
                       )}
@@ -347,6 +424,107 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
         <AlertCircle size={14} className="mt-0.5" />
         <p>After acceptance, payment is marked as paid in CASH mode and both student documents are generated, opened in separate tabs, and downloaded for printing.</p>
       </div>
+
+      {/* Reject Confirmation Modal */}
+      {rejectConfirm.show && rejectConfirm.request && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center">
+                <AlertCircle size={24} className="text-rose-600" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 dark:text-white">Reject Request?</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">{rejectConfirm.request.student_name}</p>
+              </div>
+            </div>
+
+            <div className="bg-rose-50 dark:bg-rose-900/20 rounded-xl p-4 border border-rose-200 dark:border-rose-800">
+              <p className="text-sm text-slate-700 dark:text-slate-300">
+                <span className="font-semibold">Subject:</span> {rejectConfirm.request.subject}
+              </p>
+              <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">
+                <span className="font-semibold">Amount:</span> ₹{Number(rejectConfirm.request.total_fees || 0).toLocaleString('en-IN')}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                Reason for Rejection (Optional)
+              </label>
+              <textarea
+                value={rejectConfirm.reason}
+                onChange={(e) => setRejectConfirm({ ...rejectConfirm, reason: e.target.value })}
+                placeholder="e.g., Duplicate registration, Student withdrew, Invalid documents..."
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none"
+                rows={3}
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setRejectConfirm({ show: false, request: null, reason: '' })}
+                className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmRejectPayment}
+                disabled={processingId === rejectConfirm.request.request_id}
+                className="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                {processingId === rejectConfirm.request.request_id ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Rejecting...
+                  </>
+                ) : (
+                  <>
+                    <X size={16} />
+                    Reject Request
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Duplicates Warning */}
+      {getDuplicateStudents.size > 0 && (
+        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-2xl p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <AlertCircle size={20} className="text-orange-600 dark:text-orange-400 flex-shrink-0" />
+            <h3 className="font-bold text-orange-900 dark:text-orange-100">⚠️ Duplicate Registrations Detected</h3>
+          </div>
+          <p className="text-sm text-orange-800 dark:text-orange-200">
+            {getDuplicateStudents.size} student(s) have multiple registrations. Review the entries marked with ⚠️ above and reject or delete duplicates.
+          </p>
+          <div className="grid gap-2">
+            {Array.from(getDuplicateStudents.entries()).map(([studentId, requests]) => (
+              <div key={studentId} className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-orange-100 dark:border-orange-800">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">{requests[0].student_name} ({requests.length} entries)</p>
+                <div className="text-xs text-slate-600 dark:text-slate-400 mt-1 space-y-1">
+                  {requests.map((req, idx) => (
+                    <div key={req.request_id} className="flex items-center justify-between">
+                      <span>Entry {idx + 1}: {req.subject} - ₹{Number(req.total_fees).toLocaleString('en-IN')}</span>
+                      {PENDING_STATUSES.has((req.status || req.payment_status || '').toUpperCase()) && (
+                        <button
+                          onClick={() => handleRejectPayment(req)}
+                          className="text-rose-600 hover:text-rose-700 font-semibold text-[10px] uppercase tracking-widest"
+                          title="Reject this duplicate entry"
+                        >
+                          Reject
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

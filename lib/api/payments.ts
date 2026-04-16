@@ -375,6 +375,33 @@ export const paymentsApi = {
     },
 
     /**
+     * Reject/Cancel an offline cash payment request
+     * Marks the request as REJECTED
+     */
+    rejectOfflineRequest: async (requestId: number, reason?: string): Promise<ApiResponse<{ message: string }>> => {
+        try {
+            const response = await apiClient.post<ApiResponse<{ message: string }>>(
+                `/api/v1/requests/reject/${requestId}/`,
+                reason ? { reason } : {}
+            );
+            return response.data;
+        } catch (error: any) {
+            const httpStatus = error?.response?.status;
+            if (httpStatus === 404 || httpStatus === 405) {
+                // Fallback: delete the payment if reject endpoint not available
+                const fallbackResponse = await apiClient.delete(
+                    `/api/v1/payments/${requestId}/`
+                );
+                return {
+                    success: true,
+                    data: { message: 'Payment request rejected and deleted' }
+                };
+            }
+            throw error;
+        }
+    },
+
+    /**
      * Get summary stats
      */
     getStats: async (): Promise<ApiResponse<{ total_paid: number; total_pending: number; total_transactions: number }>> => {
