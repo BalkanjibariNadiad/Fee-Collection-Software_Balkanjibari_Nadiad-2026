@@ -175,13 +175,13 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
         limit: 100,
         auto_confirm: false
       })
-      if (result?.success) {
-        const summary = (result as any)?.summary
+      if (result?.data?.success) {
+        const summary = result?.data?.summary
         notifySuccess(
           `Sync complete: ${summary?.matched || 0} matched, ${summary?.confirmed || 0} confirmed`
         )
       } else {
-        notifyError(result?.message || 'Sync failed')
+        notifyError((result?.data as any)?.message || 'Sync failed')
       }
       await fetchPendingCashRequests()
     } catch (err: any) {

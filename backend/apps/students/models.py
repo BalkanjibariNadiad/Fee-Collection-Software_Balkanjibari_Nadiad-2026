@@ -46,7 +46,7 @@ class Student(models.Model):
     # Link to User model for student login
     user = models.OneToOneField(
         User,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         blank=True,
         related_name='student_profile'
