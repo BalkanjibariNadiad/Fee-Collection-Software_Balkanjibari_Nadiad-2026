@@ -138,7 +138,6 @@ export default function RegisterPage() {
   ])
   const [successData, setSuccessData] = useState<SuccessData | null>(null)
   const [isDownloadingReceipt, setIsDownloadingReceipt] = useState(false)
-  const [isCashProceedLoading, setIsCashProceedLoading] = useState(false)
 
   const [todayDisplay, setTodayDisplay] = useState('')
   const [currentIST, setCurrentIST] = useState('')
@@ -414,13 +413,14 @@ export default function RegisterPage() {
     return ''
   }
 
+  // Handle payment - Cash by default (office collection)
   const handlePayNow = async () => {
     const err = validate()
     if (err) { toast.error(err); return }
     setIsPaymentLoading(true)
 
     try {
-      // Step 1: Register student and get Razorpay order
+      // Register student with CASH payment mode by default
       const fd = new FormData()
       fd.append('name', form.name.trim())
       fd.append('date_of_birth', (() => {
@@ -438,9 +438,9 @@ export default function RegisterPage() {
         const t = new Date()
         return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`
       })())
+      fd.append('payment_mode', 'CASH')  // Always CASH mode
       const validSubs = selectedSubjects.filter(s => s.subject_id > 0)
       fd.append('subjects_data', JSON.stringify(validSubs))
-      // Photo can be added from the student profile page after login
 
       const regRes = await fetch(`${API_BASE}/api/v1/students/register/`, {
         method: 'POST',
@@ -451,98 +451,6 @@ export default function RegisterPage() {
       if (!regRes.ok || !regData.success) {
         toast.error(regData.error || 'Registration failed. Please try again.')
         setIsPaymentLoading(false)
-        return
-      }
-
-      const {
-        student_id, username, order_id, amount, key_id,
-        payment_ids, test_mode
-      } = regData
-
-      // Step 2: Open Razorpay checkout
-      const rzpLoaded = await loadRazorpayScript()
-
-      if (!rzpLoaded || test_mode) {
-        // Test mode: simulate payment success
-        await handlePaymentSuccess({
-          razorpay_order_id: order_id,
-          razorpay_payment_id: `pay_test_${Date.now()}`,
-          razorpay_signature: 'test_sig',
-        }, student_id, payment_ids)
-        return
-      }
-
-      const options = {
-        key: key_id,
-        amount: regData.amount_paise,
-        currency: 'INR',
-        name: 'Balkanji Ni Bari',
-        description: 'Summer Camp Enrollment Fee',
-        order_id: order_id,
-        prefill: {
-          name: form.name,
-          email: normalizedEmail,
-          contact: form.phone,
-        },
-        theme: { color: '#4F46E5' },
-        handler: async (response: any) => {
-          await handlePaymentSuccess(response, student_id, payment_ids)
-        },
-        modal: {
-          ondismiss: () => {
-            toast.error('Payment was cancelled. Please complete payment to activate your account.')
-            setIsPaymentLoading(false)
-          }
-        }
-      }
-
-      const rzp = new (window as any).Razorpay(options)
-      rzp.open()
-
-    } catch (e: any) {
-      toast.error('Network error. Please check your connection and try again.')
-      setIsPaymentLoading(false)
-    }
-  }
-
-  // Handle cash workflow - proceed to process cash payment
-  const handleCashProceed = async () => {
-    const err = validate()
-    if (err) { toast.error(err); return }
-    setIsCashProceedLoading(true)
-
-    try {
-      // Register student with CASH payment mode
-      const fd = new FormData()
-      fd.append('name', form.name.trim())
-      fd.append('date_of_birth', (() => {
-        const [d, m, y] = form.date_of_birth.split('-')
-        return `${y}-${m}-${d}`
-      })())
-      fd.append('age', form.age)
-      fd.append('gender', form.gender)
-      fd.append('phone', form.phone.trim())
-      fd.append('email', normalizedEmail)
-      fd.append('address', form.address.trim())
-      fd.append('city', form.city.trim())
-      fd.append('pincode', form.pincode)
-      fd.append('enrollment_date', (() => {
-        const t = new Date()
-        return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`
-      })())
-      fd.append('payment_mode', 'CASH')
-      const validSubs = selectedSubjects.filter(s => s.subject_id > 0)
-      fd.append('subjects_data', JSON.stringify(validSubs))
-
-      const regRes = await fetch(`${API_BASE}/api/v1/students/register/`, {
-        method: 'POST',
-        body: fd,
-      })
-      const regData = await regRes.json()
-
-      if (!regRes.ok || !regData.success) {
-        toast.error(regData.error || 'Registration failed. Please try again.')
-        setIsCashProceedLoading(false)
         return
       }
 
@@ -571,12 +479,16 @@ export default function RegisterPage() {
         { subject_id: 0, subject_name: '', batch_time: '', include_library_fee: true }
       ])
       
-      setIsCashProceedLoading(false)
+      setIsPaymentLoading(false)
       
     } catch (e: any) {
       toast.error('Network error. Please check your connection and try again.')
-      setIsCashProceedLoading(false)
+      setIsPaymentLoading(false)
     }
+  }
+
+  const handleCashProceed = async () => {
+    // Removed - payment handling consolidated to handlePayNow with CASH mode
   }
 
   const handlePaymentSuccess = async (
@@ -1150,45 +1062,26 @@ export default function RegisterPage() {
             </div>
             )}
 
-            {/* ---- Payment Method Selection ---- */}
+            {/* ---- Pay Now Button (Cash Payment) ---- */}
             <div className="mt-8 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Online Payment Button */}
-                <button
-                  type="button"
-                  onClick={handlePayNow}
-                  disabled={isPaymentLoading || isCashProceedLoading || grandTotal <= 0 || anyIneligible}
-                  className="py-3.5 rounded-xl font-poppins font-black text-white text-[16px] tracking-widest transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl active:scale-[0.99] border-b-4 border-blue-950/20"
-                  style={{ background: grandTotal > 0 && !anyIneligible ? 'linear-gradient(135deg, #1E40AF, #3B82F6)' : '#9CA3AF' }}
-                >
-                  {anyIneligible 
-                    ? <><AlertCircle size={20} /> AGE INELIGIBLE</>
-                    : isPaymentLoading
-                      ? <><Loader2 size={20} className="animate-spin" /> VERIFYING...</>
-                      : <><CreditCard size={20} /> PAY ONLINE</>
-                  }
-                </button>
-
-                {/* Cash Payment Button */}
-                <button
-                  type="button"
-                  onClick={handleCashProceed}
-                  disabled={isCashProceedLoading || isPaymentLoading || grandTotal <= 0 || anyIneligible}
-                  className="py-3.5 rounded-xl font-poppins font-black text-white text-[16px] tracking-widest transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl active:scale-[0.99] border-b-4 border-green-950/20"
-                  style={{ background: grandTotal > 0 && !anyIneligible ? 'linear-gradient(135deg, #059669, #10B981)' : '#9CA3AF' }}
-                >
-                  {anyIneligible 
-                    ? <><AlertCircle size={20} /> AGE INELIGIBLE</>
-                    : isCashProceedLoading
-                      ? <><Loader2 size={20} className="animate-spin" /> PROCESSING...</>
-                      : <><span>💵</span> PROCEED (CASH)</>  
-                  }
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handlePayNow}
+                disabled={isPaymentLoading || grandTotal <= 0 || anyIneligible}
+                className="w-full py-3.5 rounded-xl font-poppins font-black text-white text-[16px] tracking-widest transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl active:scale-[0.99] border-b-4 border-blue-950/20"
+                style={{ background: grandTotal > 0 && !anyIneligible ? 'linear-gradient(135deg, #1E40AF, #3B82F6)' : '#9CA3AF' }}
+              >
+                {anyIneligible 
+                  ? <><AlertCircle size={20} /> AGE INELIGIBLE</>
+                  : isPaymentLoading
+                    ? <><Loader2 size={20} className="animate-spin" /> PROCESSING...</>
+                    : <><CreditCard size={20} /> PAY NOW</>
+                }
+              </button>
 
               <p className="text-center text-gray-400 text-xs">
-                <span className="block">Online payments are secured by Razorpay. Account created instantly after payment.</span>
-                <span className="block text-green-600 font-medium mt-1">Cash payments: Complete registration, pay at office before class starts.</span>
+                <span className="block font-semibold text-green-600">💵 Cash Payment - Pay at office before class starts</span>
+                <span className="block mt-1">Registration form will clear after submission for next student.</span>
               </p>
             </div>
           </div>

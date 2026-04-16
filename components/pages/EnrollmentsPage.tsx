@@ -43,7 +43,6 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
   const [successMessage, setSuccessMessage] = useState('')
   const [refundConfirm, setRefundConfirm] = useState<{ show: boolean; enrollment: Enrollment | null }>({ show: false, enrollment: null })
   const [processing, setProcessing] = useState(false)
-  const [markingPaidId, setMarkingPaidId] = useState<number | null>(null)
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
@@ -124,6 +123,35 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
     setFilteredEnrollments(filtered)
   }, [selectedSubject, enrollments, searchTerm])
 
+  // Sync with Payments page: Auto-refresh when a payment is marked as paid
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const paymentConfirmed = localStorage.getItem('paymentConfirmed')
+      if (paymentConfirmed) {
+        // Refetch enrollments to show updated payment status
+        fetchData()
+        // Clear the flag
+        localStorage.removeItem('paymentConfirmed')
+        toast.success('Enrollment updated: Payment marked as paid')
+      }
+    }
+
+    // Listen for storage changes (when another tab/window updates localStorage)
+    window.addEventListener('storage', handleStorageChange)
+    
+    // Also listen for a custom event in case of same-window changes
+    const handlePaymentConfirmed = () => {
+      fetchData()
+      toast.success('Enrollment updated: Payment marked as paid')
+    }
+    window.addEventListener('paymentConfirmed', handlePaymentConfirmed)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('paymentConfirmed', handlePaymentConfirmed)
+    }
+  }, [])
+
   // Handle refund confirmation
   const handleRefundClick = (enrollment: Enrollment) => {
     setRefundConfirm({ show: true, enrollment })
@@ -151,56 +179,6 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
       setError(err.response?.data?.error?.message || err.message || 'Failed to process refund')
     } finally {
       setProcessing(false)
-    }
-  }
-
-  // Mark enrollment as paid - creates payment record and generates documents
-  const handleMarkAsPaid = async (enrollment: Enrollment) => {
-    if (!enrollment.pending_amount || Number(enrollment.pending_amount) === 0) {
-      toast.error('This enrollment has no pending fees')
-      return
-    }
-
-    if (!confirm(`Mark ₹${Number(enrollment.pending_amount).toLocaleString()} as paid for ${enrollment.student.name}? This will generate receipt and ID card.`)) return
-
-    try {
-      setMarkingPaidId(enrollment.id)
-      setError('')
-
-      // Create payment record for the pending amount
-      const paymentResponse = await paymentsApi.create({
-        enrollment_id: enrollment.id,
-        amount: Number(enrollment.pending_amount),
-        payment_date: new Date().toISOString().split('T')[0],
-        payment_mode: enrollment.payment_mode === 'ONLINE' ? 'ONLINE' : 'CASH',
-        transaction_id: `MANUAL_${Date.now()}`,
-        notes: 'Marked as paid from enrollments page',
-      })
-
-      if (!paymentResponse.success) {
-        throw new Error(paymentResponse.error?.message || 'Failed to create payment record')
-      }
-
-      // Confirm the payment to generate documents
-      const paymentId = paymentResponse?.data?.id
-      if (paymentId) {
-        const confirmResponse = await paymentsApi.confirmPayment(paymentId)
-        const enrollmentId = Number(confirmResponse?.data?.enrollment_id || enrollment.id)
-
-        // Open receipt and ID card in new tabs
-        await Promise.all([
-          paymentsApi.openReceiptInNewTab(paymentId),
-          enrollmentsApi.openIdCardInNewTab(enrollmentId),
-        ])
-      }
-
-      toast.success('Payment marked as paid! Receipt and ID card opened.')
-      setMarkingPaidId(null)
-      fetchData() // Refresh list
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to mark as paid')
-      setError(err.message || 'Failed to mark as paid')
-      setMarkingPaidId(null)
     }
   }
 
@@ -390,20 +368,6 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                         </td>
                         <td className="px-5 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            {Number(enrollment.pending_amount || 0) > 0 && (
-                              <button
-                                onClick={() => handleMarkAsPaid(enrollment)}
-                                disabled={markingPaidId === enrollment.id}
-                                className="p-2 hover:bg-green-50 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 rounded-xl transition-all active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                                title={`Mark ₹${Number(enrollment.pending_amount).toLocaleString()} as paid`}
-                              >
-                                {markingPaidId === enrollment.id ? (
-                                  <Loader2 size={18} className="animate-spin" />
-                                ) : (
-                                  <CheckCircle size={18} />
-                                )}
-                              </button>
-                            )}
                             {(enrollment.payment_status === 'PAID' || enrollment.payment_mode === 'OFFLINE') && (
                               <>
                                 <button
@@ -491,19 +455,6 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                   </div>
 
                   <div className="flex flex-col gap-3">
-                    {Number(enrollment.pending_amount || 0) > 0 && (
-                      <button
-                        onClick={() => handleMarkAsPaid(enrollment)}
-                        disabled={markingPaidId === enrollment.id}
-                        className="w-full h-12 rounded-xl text-[11px] bg-green-600 hover:bg-green-700 disabled:bg-green-500 disabled:opacity-50 text-white font-bold uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all disabled:cursor-not-allowed"
-                      >
-                        {markingPaidId === enrollment.id ? (
-                          <><Loader2 size={16} className="animate-spin" /> Processing...</>
-                        ) : (
-                          <><CheckCircle size={16} /> Mark Paid ({enrollment.pending_amount})</>
-                        )}
-                      </button>
-                    )}
                     {(enrollment.payment_status === 'PAID' || enrollment.payment_mode === 'OFFLINE') && (
                       <div className="flex gap-3">
                         <button
