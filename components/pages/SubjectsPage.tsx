@@ -526,55 +526,17 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
 
             {/* Content */}
             <div className="p-6 space-y-6">
-              {/* Create New Batch Form */}
-              <div className="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/10 dark:to-blue-900/10 p-5 rounded-xl border border-cyan-200 dark:border-cyan-800">
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 font-poppins uppercase tracking-widest">Create New Batch</h3>
-                <form onSubmit={handleCreateBatch} className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Batch Name/Time *</label>
-                      <input
-                        type="text"
-                        placeholder="e.g., Batch A (7-8 AM)"
-                        value={newBatch.batch_time}
-                        onChange={(e) => setNewBatch({ ...newBatch, batch_time: e.target.value })}
-                        className="w-full h-10 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Capacity Limit *</label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={newBatch.capacity_limit}
-                        onChange={(e) => setNewBatch({ ...newBatch, capacity_limit: parseInt(e.target.value) })}
-                        className="w-full h-10 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full h-10 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium text-sm uppercase tracking-widest transition-colors active:scale-95"
-                  >
-                    <Plus size={16} className="inline mr-2" />
-                    Create Batch
-                  </button>
-                </form>
-              </div>
-
-              {/* Batches List */}
+              {/* Existing Batches */}
               <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 font-poppins uppercase tracking-widest">Existing Batches</h3>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 font-poppins uppercase tracking-widest">All Existing Batches</h3>
                 {batchLoading ? (
-                  <div className="flex items-center justify-center py-8">
+                  <div className="flex items-center justify-center py-12">
                     <Loader2 className="animate-spin text-cyan-600" size={32} />
                   </div>
                 ) : batches.length === 0 ? (
-                  <div className="text-center py-8 bg-slate-50 dark:bg-slate-800 rounded-lg border border-dashed border-slate-300 dark:border-slate-700">
+                  <div className="text-center py-12 bg-slate-50 dark:bg-slate-800 rounded-lg border border-dashed border-slate-300 dark:border-slate-700">
                     <Grid3X3 className="mx-auto text-slate-300 dark:text-slate-600 mb-3" size={32} />
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">No batches created yet</p>
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">No batches available for this subject</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -628,19 +590,17 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                                 </>
                               )}
                             </button>
-                            {batch.available_seats > 0 && (
-                              <button
-                                onClick={() => {
-                                  setEditingBatch(batch)
-                                  setEditingBatchCapacity(batch.capacity_limit)
-                                  setShowEditBatchModal(true)
-                                }}
-                                className="h-9 px-3 rounded-lg font-medium text-xs uppercase tracking-widest transition-all active:scale-95 bg-blue-500 hover:bg-blue-600 text-white"
-                                title="Edit capacity limit"
-                              >
-                                Edit
-                              </button>
-                            )}
+                            <button
+                              onClick={() => {
+                                setEditingBatch(batch)
+                                setEditingBatchCapacity(batch.capacity_limit)
+                                setShowEditBatchModal(true)
+                              }}
+                              className="h-9 px-3 rounded-lg font-medium text-xs uppercase tracking-widest transition-all active:scale-95 bg-blue-500 hover:bg-blue-600 text-white"
+                              title="Edit batch capacity"
+                            >
+                              Edit
+                            </button>
                             <button
                               onClick={() => handleDeleteBatch(batch)}
                               className="h-9 px-3 rounded-lg font-medium text-xs uppercase tracking-widest transition-all active:scale-95 bg-slate-300 hover:bg-slate-400 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-white"
