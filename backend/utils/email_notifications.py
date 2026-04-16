@@ -16,29 +16,49 @@ import string
 class StudentCredentialManager:
     """
     Manages automatic credential generation for students
+    Credentials format:
+    - Username: STU{student_id} (e.g., STU0018229)
+    - Password: {student_id}{last_4_digits_mobile} (e.g., STU00182294567)
     """
     
     @staticmethod
-    def generate_password(length=12):
-        """Generate secure random password"""
-        characters = string.ascii_letters + string.digits + string.punctuation
-        password = ''.join(secrets.choice(characters) for _ in range(length))
-        return password
+    def generate_password(student_id, phone):
+        """
+        Generate password from student ID and last 4 digits of mobile
+        Format: STU0018229 + 4567 = STU00182294567
+        """
+        try:
+            # Remove non-digits from phone
+            digits = ''.join(filter(str.isdigit, phone)) if phone else '0000'
+            # Get last 4 digits
+            last_four = digits[-4:] if len(digits) >= 4 else digits.zfill(4)
+            # Combine: student_id + last 4 digits of phone
+            password = f"{student_id}{last_four}"
+            return password
+        except Exception as e:
+            print(f"Error generating password: {e}")
+            # Fallback: just student_id + random 4 digits
+            return f"{student_id}{secrets.randbelow(10000):04d}"
     
     @staticmethod
     def generate_student_username(student_id):
-        """Generate username from student ID"""
-        return f"student_{student_id.lower().replace(' ', '_')}"
+        """
+        Generate username from student ID
+        Format: STU{student_id} (e.g., STU0018229)
+        """
+        return f"STU{student_id}"
     
     @staticmethod
     def create_student_login(student):
         """
         Create login credentials for student
-        Returns: (username, password)
+        Returns: (username, password, created)
+        Username: STU{student_id}
+        Password: {student_id}{last_4_mobile_digits}
         """
         try:
             username = StudentCredentialManager.generate_student_username(student.student_id)
-            password = StudentCredentialManager.generate_password()
+            password = StudentCredentialManager.generate_password(student.student_id, student.phone)
             
             # Create or update user account
             user, created = User.objects.get_or_create(

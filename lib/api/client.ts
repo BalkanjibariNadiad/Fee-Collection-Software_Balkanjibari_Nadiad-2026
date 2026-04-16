@@ -258,4 +258,66 @@ apiClient.interceptors.response.use(
   }
 );
 
+// ===== REQUEST DEDUPLICATION (Session 14) =====
+/**
+ * Prevents duplicate API calls by caching identical requests
+ * within a time window (100ms)
+ */
+const requestCache = new Map<string, {
+  promise: Promise<any>;
+  timestamp: number;
+}>();
+
+const REQUEST_DEDUP_WINDOW = 100; // milliseconds
+
+const createRequestKey = (config: any) => {
+  return `${config.method}-${config.url}-${JSON.stringify(config.params)}`;
+};
+
+// Wrap apiClient methods to deduplicate requests
+const originalGet = apiClient.get.bind(apiClient);
+const originalPost = apiClient.post.bind(apiClient);
+const originalPut = apiClient.put.bind(apiClient);
+const originalPatch = apiClient.patch.bind(apiClient);
+const originalDelete = apiClient.delete.bind(apiClient);
+
+const deduplicatedRequest = (originalMethod: any) => {
+  return async (url: string, ...args: any[]) => {
+    const config = { method: 'GET', url, params: args[1]?.params };
+    const key = createRequestKey(config);
+    const now = Date.now();
+    
+    // Check if we have a cached request within the window
+    if (requestCache.has(key)) {
+      const cached = requestCache.get(key)!;
+      if (now - cached.timestamp < REQUEST_DEDUP_WINDOW) {
+        console.debug(`[API DEDUP] Returning cached request: ${key}`);
+        return cached.promise;
+      } else {
+        // Cache expired, remove it
+        requestCache.delete(key);
+      }
+    }
+    
+    // Make the actual request
+    const promise = originalMethod(url, ...args)
+      .finally(() => {
+        // Clean up cache after request completes
+        setTimeout(() => requestCache.delete(key), REQUEST_DEDUP_WINDOW);
+      });
+    
+    // Store the promise
+    requestCache.set(key, { promise, timestamp: now });
+    
+    return promise;
+  };
+};
+
+// Override methods with deduplicated versions
+apiClient.get = deduplicatedRequest(originalGet);
+apiClient.post = deduplicatedRequest(originalPost);
+apiClient.put = deduplicatedRequest(originalPut);
+apiClient.patch = deduplicatedRequest(originalPatch);
+apiClient.delete = deduplicatedRequest(originalDelete);
+
 export default apiClient;

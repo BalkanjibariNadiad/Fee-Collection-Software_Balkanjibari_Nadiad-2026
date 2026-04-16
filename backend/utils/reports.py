@@ -1,8 +1,9 @@
 """
-Utility for generating watermarked PDF reports.
+Utility for generating watermarked PDF reports with compression.
 """
 
 import os
+import zlib
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -12,6 +13,12 @@ from reportlab.lib.colors import HexColor, white, black
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from django.conf import settings
+
+try:
+    from PyPDF2 import PdfWriter, PdfReader
+    HAS_PYPDF2 = True
+except ImportError:
+    HAS_PYPDF2 = False
 
 # Style constants
 NAVY_BLUE = HexColor("#1A237E")
@@ -48,8 +55,43 @@ class ReportCanvas(canvas.Canvas):
         self.drawCentredString(A4[0]/2, A4[1] - 26*mm, title.upper())
         self.restoreState()
 
+def compress_pdf(pdf_content):
+    """
+    Compress PDF content to reduce file size.
+    Uses PyPDF2 if available, otherwise returns original content.
+    """
+    if not HAS_PYPDF2:
+        return pdf_content
+    
+    try:
+        # Read the PDF
+        reader = PdfReader(BytesIO(pdf_content))
+        writer = PdfWriter()
+        
+        # Add compressed pages
+        for page_num in range(len(reader.pages)):
+            page = reader.pages[page_num]
+            page.compress_content_streams()
+            writer.add_page(page)
+        
+        # Write compressed PDF
+        output_buffer = BytesIO()
+        writer.write(output_buffer)
+        compressed_content = output_buffer.getvalue()
+        output_buffer.close()
+        
+        # Only return if compression actually reduced size
+        if len(compressed_content) < len(pdf_content):
+            return compressed_content
+        return pdf_content
+        
+    except Exception as e:
+        print(f"PDF compression error: {e}")
+        return pdf_content
+
+
 def generate_pdf_report(title, headers, data):
-    """Generic PDF report generator with watermark and brand header."""
+    """Generic PDF report generator with watermark, brand header, and compression."""
     buffer = BytesIO()
     
     def on_page(canvas, doc):
@@ -62,7 +104,8 @@ def generate_pdf_report(title, headers, data):
         rightMargin=15*mm,
         leftMargin=15*mm,
         topMargin=40*mm,
-        bottomMargin=20*mm
+        bottomMargin=20*mm,
+        compression=True  # Enable ReportLab compression
     )
     
     styles = getSampleStyleSheet()
@@ -98,4 +141,8 @@ def generate_pdf_report(title, headers, data):
     
     pdf_content = buffer.getvalue()
     buffer.close()
+    
+    # Compress PDF to reduce size
+    pdf_content = compress_pdf(pdf_content)
+    
     return pdf_content

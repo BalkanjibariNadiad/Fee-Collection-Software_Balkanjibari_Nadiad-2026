@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { ArrowUp, Users, CreditCard, TrendingUp } from 'lucide-react'
@@ -9,10 +9,15 @@ import { useOptimizedDashboardData } from '@/lib/hooks/useOptimizedDataLoading'
 
 export default function DashboardPage() {
   const { dashboardData, loading, error, loadDashboardData, refresh } = useOptimizedDashboardData()
+  const loadedRef = useRef(false)
 
   useEffect(() => {
-    loadDashboardData()
-  }, [])
+    // Load data only once on mount
+    if (!loadedRef.current) {
+      loadedRef.current = true
+      loadDashboardData()
+    }
+  }, []) // Empty dependency array - load only once
 
   if (loading) {
     return (
