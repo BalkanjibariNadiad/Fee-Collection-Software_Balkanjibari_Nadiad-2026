@@ -197,4 +197,45 @@ export const analyticsApi = {
         const response = await apiClient.get<ApiResponse<any>>('/api/v1/analytics/student-stats/');
         return response.data;
     },
+
+    // ===== NEW REPORT ENDPOINTS (Session 12) =====
+
+    getOnlineRazorpayReport: async (): Promise<ApiResponse<any>> => {
+        const response = await apiClient.get<ApiResponse<any>>(
+            '/api/v1/analytics/online_razorpay_report/'
+        );
+        return response.data;
+    },
+
+    exportOnlineRazorpayReportCsv: async () =>
+        analyticsApi.downloadFile('/api/v1/analytics/export_online_razorpay_report_csv/', 'online_razorpay_report.csv'),
+
+    exportOnlineRazorpayReportPdf: async () =>
+        analyticsApi.downloadFile('/api/v1/analytics/export_online_razorpay_report_pdf/', 'online_razorpay_report.pdf'),
+
+    getOnlineBalkanjiReport: async (): Promise<ApiResponse<any>> => {
+        const response = await apiClient.get<ApiResponse<any>>(
+            '/api/v1/analytics/online_balkanji_bari_report/'
+        );
+        return response.data;
+    },
+
+    exportOnlineBalkanjiReportCsv: async () =>
+        analyticsApi.downloadFile('/api/v1/analytics/export_online_balkanji_bari_report_csv/', 'online_balkanji_bari_report.csv'),
+
+    exportOnlineBalkanjiReportPdf: async () =>
+        analyticsApi.downloadFile('/api/v1/analytics/export_online_balkanji_bari_report_pdf/', 'online_balkanji_bari_report.pdf'),
+
+    getSubjectwiseTotalReport: async (): Promise<ApiResponse<any>> => {
+        const response = await apiClient.get<ApiResponse<any>>(
+            '/api/v1/analytics/subjectwise_total_report/'
+        );
+        return response.data;
+    },
+
+    exportSubjectwiseTotalReportCsv: async () =>
+        analyticsApi.downloadFile('/api/v1/analytics/export_subjectwise_total_report_csv/', 'subjectwise_total_report.csv'),
+
+    exportSubjectwiseTotalReportPdf: async () =>
+        analyticsApi.downloadFile('/api/v1/analytics/export_subjectwise_total_report_pdf/', 'subjectwise_total_report.pdf'),
 };

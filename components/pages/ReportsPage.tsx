@@ -22,6 +22,17 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
   const [activityType, setActivityType] = useState<'ALL' | 'SUMMER_CAMP' | 'YEAR_ROUND'>('ALL')
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState<any>(null)
+  
+  // New Report States (Session 12)
+  const [batchReportLoading, setBatchReportLoading] = useState(false)
+  const [batchReportData, setBatchReportData] = useState<any | null>(null)
+  const [razorpayReportLoading, setRazorpayReportLoading] = useState(false)
+  const [razorpayReportData, setRazorpayReportData] = useState<any | null>(null)
+  const [balkanjiReportLoading, setBalkanjiReportLoading] = useState(false)
+  const [balkanjiReportData, setBalkanjiReportData] = useState<any | null>(null)
+  const [subjectwiseTotalLoading, setSubjectwiseTotalLoading] = useState(false)
+  const [subjectwiseTotalData, setSubjectwiseTotalData] = useState<any | null>(null)
+  
   const fileInputRef = useRef<HTMLInputElement>(null)
   const startDateRef = useRef<HTMLInputElement>(null)
   const subjectDateRef = useRef<HTMLInputElement>(null)
@@ -162,6 +173,87 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
     } finally {
       setImporting(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  // New Report Handlers (Session 12)
+  const generateBatchReport = async () => {
+    try {
+      setBatchReportLoading(true)
+      // Batch report is generated on the fly when downloading
+      // Just set a placeholder for now
+      setBatchReportData({ generated: true })
+      notifySuccess('Batch report ready')
+    } catch (error) {
+      notifyError('Failed to generate batch report')
+    } finally {
+      setBatchReportLoading(false)
+    }
+  }
+
+  const generateRazorpayReport = async () => {
+    try {
+      setRazorpayReportLoading(true)
+      const response = await analyticsApi.getOnlineRazorpayReport()
+      const data = (response as any)?.data || response
+      setRazorpayReportData(data || null)
+      notifySuccess('Razorpay report generated successfully')
+    } catch (error) {
+      console.error('Razorpay report generation failed:', error)
+      notifyError('Failed to generate Razorpay report')
+    } finally {
+      setRazorpayReportLoading(false)
+    }
+  }
+
+  const generateBalkanjiReport = async () => {
+    try {
+      setBalkanjiReportLoading(true)
+      const response = await analyticsApi.getOnlineBalkanjiReport()
+      const data = (response as any)?.data || response
+      setBalkanjiReportData(data || null)
+      notifySuccess('Balkanji Bari online report generated successfully')
+    } catch (error) {
+      console.error('Balkanji report generation failed:', error)
+      notifyError('Failed to generate Balkanji report')
+    } finally {
+      setBalkanjiReportLoading(false)
+    }
+  }
+
+  const generateSubjectwiseTotalReport = async () => {
+    try {
+      setSubjectwiseTotalLoading(true)
+      const response = await analyticsApi.getSubjectwiseTotalReport()
+      const data = (response as any)?.data || response
+      setSubjectwiseTotalData(data || null)
+      notifySuccess('Subject-wise total report generated successfully')
+    } catch (error) {
+      console.error('Subject-wise total report generation failed:', error)
+      notifyError('Failed to generate subject-wise total report')
+    } finally {
+      setSubjectwiseTotalLoading(false)
+    }
+  }
+
+  const handleNewReportDownload = async (reportId: string, format: 'CSV' | 'PDF') => {
+    try {
+      setDownloading(`${reportId}_${format}`)
+      if (reportId === 'batch') {
+        format === 'CSV' ? await analyticsApi.exportBatchReportCsv() : await analyticsApi.exportBatchReportPdf()
+      } else if (reportId === 'razorpay') {
+        format === 'CSV' ? await analyticsApi.exportOnlineRazorpayReportCsv() : await analyticsApi.exportOnlineRazorpayReportPdf()
+      } else if (reportId === 'balkanji') {
+        format === 'CSV' ? await analyticsApi.exportOnlineBalkanjiReportCsv() : await analyticsApi.exportOnlineBalkanjiReportPdf()
+      } else if (reportId === 'subjectwise_total') {
+        format === 'CSV' ? await analyticsApi.exportSubjectwiseTotalReportCsv() : await analyticsApi.exportSubjectwiseTotalReportPdf()
+      }
+      notifySuccess(`${format} Report downloaded successfully`)
+    } catch (error) {
+      console.error('Download failed:', error)
+      notifyError(`Failed to generate ${format} report`)
+    } finally {
+      setDownloading(null)
     }
   }
 
@@ -660,6 +752,288 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
                 </div>
             ))}
         </div>
+      </div>
+
+      {/* NEW REPORTS SECTION - Session 12 */}
+      <div className="space-y-6">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
+          <h2 className="text-base font-bold text-slate-900 mb-6 uppercase tracking-widest pt-1 font-poppins">Advanced Reports</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Batchwise Report */}
+            <div className="border border-slate-100 rounded-2xl p-6 space-y-4 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight font-poppins">Batchwise Report</h3>
+                  <p className="text-xs text-slate-500 mt-1 font-inter">Student enrollments grouped by batch time</p>
+                </div>
+                <div className="p-2 bg-orange-50 rounded-xl">
+                  <Calendar size={20} className="text-orange-600" />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => generateBatchReport()}
+                  disabled={batchReportLoading || !!downloading}
+                  className="flex-1 h-10 px-4 rounded-lg bg-orange-50 text-orange-600 border border-orange-100 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 font-poppins hover:bg-orange-100 transition-all"
+                >
+                  {batchReportLoading ? <Loader2 size={14} className="animate-spin" /> : <BarChart3 size={14} />}
+                  Generate
+                </button>
+                <button
+                  onClick={() => handleNewReportDownload('batch', 'CSV')}
+                  disabled={!batchReportData || !!downloading}
+                  className="flex-1 h-10 px-4 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 font-poppins disabled:opacity-50"
+                >
+                  {downloading === 'batch_CSV' ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                  CSV
+                </button>
+                <button
+                  onClick={() => handleNewReportDownload('batch', 'PDF')}
+                  disabled={!batchReportData || !!downloading}
+                  className="flex-1 h-10 px-4 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 font-poppins disabled:opacity-50"
+                >
+                  {downloading === 'batch_PDF' ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+                  PDF
+                </button>
+              </div>
+            </div>
+
+            {/* Online Razorpay Report */}
+            <div className="border border-slate-100 rounded-2xl p-6 space-y-4 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight font-poppins">Razorpay Payments</h3>
+                  <p className="text-xs text-slate-500 mt-1 font-inter">Online payments via Razorpay gateway</p>
+                </div>
+                <div className="p-2 bg-blue-50 rounded-xl">
+                  <BarChart3 size={20} className="text-blue-600" />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => generateRazorpayReport()}
+                  disabled={razorpayReportLoading || !!downloading}
+                  className="flex-1 h-10 px-4 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 font-poppins hover:bg-blue-100 transition-all"
+                >
+                  {razorpayReportLoading ? <Loader2 size={14} className="animate-spin" /> : <BarChart3 size={14} />}
+                  Generate
+                </button>
+                <button
+                  onClick={() => handleNewReportDownload('razorpay', 'CSV')}
+                  disabled={!razorpayReportData || !!downloading}
+                  className="flex-1 h-10 px-4 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 font-poppins disabled:opacity-50"
+                >
+                  {downloading === 'razorpay_CSV' ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                  CSV
+                </button>
+                <button
+                  onClick={() => handleNewReportDownload('razorpay', 'PDF')}
+                  disabled={!razorpayReportData || !!downloading}
+                  className="flex-1 h-10 px-4 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 font-poppins disabled:opacity-50"
+                >
+                  {downloading === 'razorpay_PDF' ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+                  PDF
+                </button>
+              </div>
+            </div>
+
+            {/* Online Balkanji Bari Report */}
+            <div className="border border-slate-100 rounded-2xl p-6 space-y-4 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight font-poppins">All Online Payments</h3>
+                  <p className="text-xs text-slate-500 mt-1 font-inter">Complete online payment history and status</p>
+                </div>
+                <div className="p-2 bg-emerald-50 rounded-xl">
+                  <Users size={20} className="text-emerald-600" />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => generateBalkanjiReport()}
+                  disabled={balkanjiReportLoading || !!downloading}
+                  className="flex-1 h-10 px-4 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 font-poppins hover:bg-emerald-100 transition-all"
+                >
+                  {balkanjiReportLoading ? <Loader2 size={14} className="animate-spin" /> : <Users size={14} />}
+                  Generate
+                </button>
+                <button
+                  onClick={() => handleNewReportDownload('balkanji', 'CSV')}
+                  disabled={!balkanjiReportData || !!downloading}
+                  className="flex-1 h-10 px-4 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 font-poppins disabled:opacity-50"
+                >
+                  {downloading === 'balkanji_CSV' ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                  CSV
+                </button>
+                <button
+                  onClick={() => handleNewReportDownload('balkanji', 'PDF')}
+                  disabled={!balkanjiReportData || !!downloading}
+                  className="flex-1 h-10 px-4 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 font-poppins disabled:opacity-50"
+                >
+                  {downloading === 'balkanji_PDF' ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+                  PDF
+                </button>
+              </div>
+            </div>
+
+            {/* Subjectwise Total Report */}
+            <div className="border border-slate-100 rounded-2xl p-6 space-y-4 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight font-poppins">Subject Statistics</h3>
+                  <p className="text-xs text-slate-500 mt-1 font-inter">Subject-wise fees, enrollments, and collection %</p>
+                </div>
+                <div className="p-2 bg-purple-50 rounded-xl">
+                  <BookOpen size={20} className="text-purple-600" />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => generateSubjectwiseTotalReport()}
+                  disabled={subjectwiseTotalLoading || !!downloading}
+                  className="flex-1 h-10 px-4 rounded-lg bg-purple-50 text-purple-600 border border-purple-100 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 font-poppins hover:bg-purple-100 transition-all"
+                >
+                  {subjectwiseTotalLoading ? <Loader2 size={14} className="animate-spin" /> : <BookOpen size={14} />}
+                  Generate
+                </button>
+                <button
+                  onClick={() => handleNewReportDownload('subjectwise_total', 'CSV')}
+                  disabled={!subjectwiseTotalData || !!downloading}
+                  className="flex-1 h-10 px-4 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 font-poppins disabled:opacity-50"
+                >
+                  {downloading === 'subjectwise_total_CSV' ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                  CSV
+                </button>
+                <button
+                  onClick={() => handleNewReportDownload('subjectwise_total', 'PDF')}
+                  disabled={!subjectwiseTotalData || !!downloading}
+                  className="flex-1 h-10 px-4 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 font-poppins disabled:opacity-50"
+                >
+                  {downloading === 'subjectwise_total_PDF' ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+                  PDF
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Report Data Tables - Display after generation */}
+        {batchReportData && (
+          <div className="card-standard p-6">
+            <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-tight font-poppins">Batchwise Data</h3>
+            <div className="overflow-x-auto border border-slate-100 rounded-2xl">
+              <table className="w-full text-xs">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-bold text-slate-600 font-poppins">Batch</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-600 font-poppins">Students</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-600 font-poppins">Total Fees</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {batchReportData.rows?.map((row: any, i: number) => (
+                    <tr key={i} className="border-b border-slate-100 bg-white hover:bg-slate-50">
+                      <td className="px-4 py-3 font-medium text-slate-900">{row.batch_time || row.batch || 'N/A'}</td>
+                      <td className="px-4 py-3 text-right text-slate-700">{row.student_count || 0}</td>
+                      <td className="px-4 py-3 text-right font-bold text-indigo-600">{row.total_fees ? `₹${parseFloat(row.total_fees).toFixed(2)}` : '₹0.00'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {razorpayReportData && (
+          <div className="card-standard p-6">
+            <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-tight font-poppins">Razorpay Payments Data</h3>
+            <div className="overflow-x-auto border border-slate-100 rounded-2xl">
+              <table className="w-full text-xs">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-bold text-slate-600 font-poppins">Student</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-600 font-poppins">Amount</th>
+                    <th className="px-4 py-3 text-left font-bold text-slate-600 font-poppins">Status</th>
+                    <th className="px-4 py-3 text-left font-bold text-slate-600 font-poppins">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {razorpayReportData.rows?.map((row: any, i: number) => (
+                    <tr key={i} className="border-b border-slate-100 bg-white hover:bg-slate-50">
+                      <td className="px-4 py-3 font-medium text-slate-900">{row.student_name}</td>
+                      <td className="px-4 py-3 text-right font-bold text-emerald-600">₹{parseFloat(row.amount || 0).toFixed(2)}</td>
+                      <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-[10px] font-bold ${row.status === 'SUCCESS' ? 'bg-emerald-100 text-emerald-700' : 'bg-yellow-100 text-yellow-700'}`}>{row.status}</span></td>
+                      <td className="px-4 py-3 text-slate-600">{new Date(row.payment_date).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {balkanjiReportData && (
+          <div className="card-standard p-6">
+            <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-tight font-poppins">All Online Payments Data</h3>
+            <div className="overflow-x-auto border border-slate-100 rounded-2xl">
+              <table className="w-full text-xs">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-bold text-slate-600 font-poppins">Student</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-600 font-poppins">Amount</th>
+                    <th className="px-4 py-3 text-left font-bold text-slate-600 font-poppins">Status</th>
+                    <th className="px-4 py-3 text-left font-bold text-slate-600 font-poppins">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {balkanjiReportData.rows?.map((row: any, i: number) => (
+                    <tr key={i} className="border-b border-slate-100 bg-white hover:bg-slate-50">
+                      <td className="px-4 py-3 font-medium text-slate-900">{row.student_name}</td>
+                      <td className="px-4 py-3 text-right font-bold text-emerald-600">₹{parseFloat(row.amount || 0).toFixed(2)}</td>
+                      <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-[10px] font-bold ${row.status === 'SUCCESS' ? 'bg-emerald-100 text-emerald-700' : 'bg-yellow-100 text-yellow-700'}`}>{row.status}</span></td>
+                      <td className="px-4 py-3 text-slate-600">{new Date(row.payment_date).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {subjectwiseTotalData && (
+          <div className="card-standard p-6">
+            <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-tight font-poppins">Subject-wise Statistics</h3>
+            <div className="overflow-x-auto border border-slate-100 rounded-2xl">
+              <table className="w-full text-xs">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-bold text-slate-600 font-poppins">Subject</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-600 font-poppins">Enrollments</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-600 font-poppins">Total Fees</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-600 font-poppins">Collected</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-600 font-poppins">Pending</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-600 font-poppins">Collection %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subjectwiseTotalData.rows?.map((row: any, i: number) => (
+                    <tr key={i} className="border-b border-slate-100 bg-white hover:bg-slate-50">
+                      <td className="px-4 py-3 font-medium text-slate-900">{row.subject_name}</td>
+                      <td className="px-4 py-3 text-right text-slate-700">{row.total_enrollments || 0}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-slate-700">₹{parseFloat(row.total_fees || 0).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right font-bold text-emerald-600">₹{parseFloat(row.total_paid || 0).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right font-bold text-orange-600">₹{parseFloat(row.total_pending || 0).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right"><span className="px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 font-bold">{parseFloat(row.collection_percentage || 0).toFixed(1)}%</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   )

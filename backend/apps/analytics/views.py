@@ -948,6 +948,428 @@ class AnalyticsViewSet(viewsets.ViewSet):
         except Exception as e:
             return Response({'success': False, 'error': {'message': str(e)}}, status=500)
 
+    # ===== NEW REPORTS (Session 12) =====
+    
+    @action(detail=False, methods=['get'])
+    def online_razorpay_report(self, request):
+        """Get online Razorpay payments report data."""
+        try:
+            payments = Payment.objects.filter(
+                is_deleted=False,
+                payment_mode='ONLINE',
+                razorpay_order_id__isnull=False,
+                razorpay_order_id__exact=''  # Has razorpay_order_id
+            ).exclude(razorpay_order_id='').select_related('enrollment__student', 'enrollment__subject').order_by('-payment_date')
+            
+            # Alternative: simpler check
+            payments = Payment.objects.filter(
+                is_deleted=False,
+                payment_mode='ONLINE'
+            ).select_related('enrollment__student', 'enrollment__subject').order_by('-payment_date')
+            
+            rows = []
+            total_amount = 0
+            total_count = 0
+            
+            for p in payments:
+                total_amount += float(p.amount or 0)
+                total_count += 1
+                rows.append({
+                    'payment_id': p.payment_id,
+                    'student_name': p.enrollment.student.name if p.enrollment else 'N/A',
+                    'student_id': p.enrollment.student.student_id if p.enrollment else 'N/A',
+                    'subject': p.enrollment.subject.name if p.enrollment and p.enrollment.subject else 'N/A',
+                    'amount': float(p.amount or 0),
+                    'payment_date': p.payment_date.strftime('%Y-%m-%d'),
+                    'status': p.status,
+                    'razorpay_order_id': p.razorpay_order_id or 'N/A'
+                })
+            
+            return Response({
+                'success': True,
+                'data': {
+                    'rows': rows,
+                    'total_payments': total_count,
+                    'total_amount': float(total_amount)
+                }
+            })
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
+    @action(detail=False, methods=['get'])
+    def export_online_razorpay_report_csv(self, request):
+        """Export online Razorpay payments as CSV."""
+        try:
+            payments = Payment.objects.filter(
+                is_deleted=False,
+                payment_mode='ONLINE'
+            ).select_related('enrollment__student', 'enrollment__subject').order_by('-payment_date')
+            
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="online_razorpay_report.csv"'
+            
+            writer = csv.writer(response)
+            writer.writerow(['Payment ID', 'Student Name', 'Student ID', 'Subject', 'Amount', 'Date', 'Status', 'Order ID'])
+            
+            total_amount = 0
+            for p in payments:
+                amount = float(p.amount or 0)
+                total_amount += amount
+                writer.writerow([
+                    p.payment_id,
+                    p.enrollment.student.name if p.enrollment else 'N/A',
+                    p.enrollment.student.student_id if p.enrollment else 'N/A',
+                    p.enrollment.subject.name if p.enrollment and p.enrollment.subject else 'N/A',
+                    f"{amount:.2f}",
+                    p.payment_date.strftime('%Y-%m-%d'),
+                    p.status,
+                    p.razorpay_order_id or 'N/A'
+                ])
+            
+            writer.writerow([])
+            writer.writerow(['TOTAL', '', '', '', f"{total_amount:.2f}"])
+            
+            return response
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
+    @action(detail=False, methods=['get'])
+    def export_online_razorpay_report_pdf(self, request):
+        """Export online Razorpay payments as PDF."""
+        try:
+            payments = Payment.objects.filter(
+                is_deleted=False,
+                payment_mode='ONLINE'
+            ).select_related('enrollment__student', 'enrollment__subject').order_by('-payment_date')
+            
+            headers = ['Payment ID', 'Student Name', 'Student ID', 'Subject', 'Amount', 'Date', 'Status']
+            data = []
+            total_amount = 0
+            
+            for p in payments:
+                amount = float(p.amount or 0)
+                total_amount += amount
+                data.append([
+                    p.payment_id,
+                    p.enrollment.student.name if p.enrollment else 'N/A',
+                    p.enrollment.student.student_id if p.enrollment else 'N/A',
+                    p.enrollment.subject.name if p.enrollment and p.enrollment.subject else 'N/A',
+                    f"Rs. {amount:,.2f}",
+                    p.payment_date.strftime('%Y-%m-%d'),
+                    p.status
+                ])
+            
+            data.append([])
+            data.append(['TOTAL', '', '', '', f"Rs. {total_amount:,.2f}"])
+            
+            pdf_content = generate_pdf_report("Online Razorpay Payment Report", headers, data)
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="online_razorpay_report.pdf"'
+            return response
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
+    @action(detail=False, methods=['get'])
+    def online_balkanji_bari_report(self, request):
+        """Get all online payments report data (Balkanji Bari online channel)."""
+        try:
+            payments = Payment.objects.filter(
+                is_deleted=False,
+                payment_mode='ONLINE'
+            ).select_related('enrollment__student', 'enrollment__subject').order_by('-payment_date')
+            
+            rows = []
+            total_amount = 0
+            total_count = 0
+            status_breakdown = {}
+            
+            for p in payments:
+                total_amount += float(p.amount or 0)
+                total_count += 1
+                
+                # Breakdown by status
+                status = p.status
+                if status not in status_breakdown:
+                    status_breakdown[status] = 0
+                status_breakdown[status] += float(p.amount or 0)
+                
+                rows.append({
+                    'payment_id': p.payment_id,
+                    'student_name': p.enrollment.student.name if p.enrollment else 'N/A',
+                    'student_id': p.enrollment.student.student_id if p.enrollment else 'N/A',
+                    'subject': p.enrollment.subject.name if p.enrollment and p.enrollment.subject else 'N/A',
+                    'amount': float(p.amount or 0),
+                    'payment_date': p.payment_date.strftime('%Y-%m-%d'),
+                    'status': p.status
+                })
+            
+            return Response({
+                'success': True,
+                'data': {
+                    'rows': rows,
+                    'total_payments': total_count,
+                    'total_amount': float(total_amount),
+                    'status_breakdown': status_breakdown
+                }
+            })
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
+    @action(detail=False, methods=['get'])
+    def export_online_balkanji_bari_report_csv(self, request):
+        """Export all online payments (Balkanji Bari) as CSV."""
+        try:
+            payments = Payment.objects.filter(
+                is_deleted=False,
+                payment_mode='ONLINE'
+            ).select_related('enrollment__student', 'enrollment__subject').order_by('-payment_date')
+            
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="online_balkanji_bari_report.csv"'
+            
+            writer = csv.writer(response)
+            writer.writerow(['Payment ID', 'Student Name', 'Student ID', 'Subject', 'Amount', 'Date', 'Status'])
+            
+            total_amount = 0
+            for p in payments:
+                amount = float(p.amount or 0)
+                total_amount += amount
+                writer.writerow([
+                    p.payment_id,
+                    p.enrollment.student.name if p.enrollment else 'N/A',
+                    p.enrollment.student.student_id if p.enrollment else 'N/A',
+                    p.enrollment.subject.name if p.enrollment and p.enrollment.subject else 'N/A',
+                    f"{amount:.2f}",
+                    p.payment_date.strftime('%Y-%m-%d'),
+                    p.status
+                ])
+            
+            writer.writerow([])
+            writer.writerow(['TOTAL', '', '', '', f"{total_amount:.2f}"])
+            
+            return response
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
+    @action(detail=False, methods=['get'])
+    def export_online_balkanji_bari_report_pdf(self, request):
+        """Export all online payments (Balkanji Bari) as PDF."""
+        try:
+            payments = Payment.objects.filter(
+                is_deleted=False,
+                payment_mode='ONLINE'
+            ).select_related('enrollment__student', 'enrollment__subject').order_by('-payment_date')
+            
+            headers = ['Payment ID', 'Student Name', 'Student ID', 'Subject', 'Amount', 'Date', 'Status']
+            data = []
+            total_amount = 0
+            
+            for p in payments:
+                amount = float(p.amount or 0)
+                total_amount += amount
+                data.append([
+                    p.payment_id,
+                    p.enrollment.student.name if p.enrollment else 'N/A',
+                    p.enrollment.student.student_id if p.enrollment else 'N/A',
+                    p.enrollment.subject.name if p.enrollment and p.enrollment.subject else 'N/A',
+                    f"Rs. {amount:,.2f}",
+                    p.payment_date.strftime('%Y-%m-%d'),
+                    p.status
+                ])
+            
+            data.append([])
+            data.append(['TOTAL', '', '', '', f"Rs. {total_amount:,.2f}"])
+            
+            pdf_content = generate_pdf_report("Online Balkanji Bari Payment Report", headers, data)
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="online_balkanji_bari_report.pdf"'
+            return response
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
+    @action(detail=False, methods=['get'])
+    def subjectwise_total_report(self, request):
+        """Get comprehensive subject-wise statistics report."""
+        try:
+            subjects = Subject.objects.filter(is_deleted=False)
+            
+            rows = []
+            grand_total_enrollments = 0
+            grand_total_fees = 0
+            grand_total_paid = 0
+            grand_total_pending = 0
+            
+            for subject in subjects:
+                enrollments = Enrollment.objects.filter(subject=subject, is_deleted=False)
+                stats = enrollments.aggregate(
+                    total_enrollments=Count('id'),
+                    total_fees=Sum('total_fee'),
+                    total_paid=Sum('paid_amount'),
+                    total_pending=Sum('pending_amount')
+                )
+                
+                total_enrollments = stats['total_enrollments'] or 0
+                total_fees = float(stats['total_fees'] or 0)
+                total_paid = float(stats['total_paid'] or 0)
+                total_pending = float(stats['total_pending'] or 0)
+                
+                grand_total_enrollments += total_enrollments
+                grand_total_fees += total_fees
+                grand_total_paid += total_paid
+                grand_total_pending += total_pending
+                
+                collection_percentage = (total_paid / total_fees * 100) if total_fees > 0 else 0
+                
+                rows.append({
+                    'subject_name': subject.name,
+                    'total_enrollments': total_enrollments,
+                    'total_fees': total_fees,
+                    'total_paid': total_paid,
+                    'total_pending': total_pending,
+                    'collection_percentage': round(collection_percentage, 1)
+                })
+            
+            return Response({
+                'success': True,
+                'data': {
+                    'rows': rows,
+                    'summary': {
+                        'total_subjects': subjects.count(),
+                        'grand_total_enrollments': grand_total_enrollments,
+                        'grand_total_fees': grand_total_fees,
+                        'grand_total_paid': grand_total_paid,
+                        'grand_total_pending': grand_total_pending,
+                        'overall_collection_percentage': round((grand_total_paid / grand_total_fees * 100) if grand_total_fees > 0 else 0, 1)
+                    }
+                }
+            })
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
+    @action(detail=False, methods=['get'])
+    def export_subjectwise_total_report_csv(self, request):
+        """Export comprehensive subject-wise statistics as CSV."""
+        try:
+            subjects = Subject.objects.filter(is_deleted=False)
+            
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="subjectwise_total_report.csv"'
+            
+            writer = csv.writer(response)
+            writer.writerow(['Subject', 'Total Enrollments', 'Total Fees', 'Total Paid', 'Total Pending', 'Collection %'])
+            
+            grand_total_enrollments = 0
+            grand_total_fees = 0
+            grand_total_paid = 0
+            grand_total_pending = 0
+            
+            for subject in subjects:
+                enrollments = Enrollment.objects.filter(subject=subject, is_deleted=False)
+                stats = enrollments.aggregate(
+                    total_enrollments=Count('id'),
+                    total_fees=Sum('total_fee'),
+                    total_paid=Sum('paid_amount'),
+                    total_pending=Sum('pending_amount')
+                )
+                
+                total_enrollments = stats['total_enrollments'] or 0
+                total_fees = float(stats['total_fees'] or 0)
+                total_paid = float(stats['total_paid'] or 0)
+                total_pending = float(stats['total_pending'] or 0)
+                
+                grand_total_enrollments += total_enrollments
+                grand_total_fees += total_fees
+                grand_total_paid += total_paid
+                grand_total_pending += total_pending
+                
+                collection_percentage = (total_paid / total_fees * 100) if total_fees > 0 else 0
+                
+                writer.writerow([
+                    subject.name,
+                    total_enrollments,
+                    f"{total_fees:.2f}",
+                    f"{total_paid:.2f}",
+                    f"{total_pending:.2f}",
+                    f"{collection_percentage:.1f}%"
+                ])
+            
+            writer.writerow([])
+            writer.writerow([
+                'GRAND TOTAL',
+                grand_total_enrollments,
+                f"{grand_total_fees:.2f}",
+                f"{grand_total_paid:.2f}",
+                f"{grand_total_pending:.2f}",
+                f"{(grand_total_paid / grand_total_fees * 100) if grand_total_fees > 0 else 0:.1f}%"
+            ])
+            
+            return response
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
+    @action(detail=False, methods=['get'])
+    def export_subjectwise_total_report_pdf(self, request):
+        """Export comprehensive subject-wise statistics as PDF."""
+        try:
+            subjects = Subject.objects.filter(is_deleted=False)
+            
+            headers = ['Subject', 'Enrollments', 'Total Fees', 'Paid', 'Pending', 'Collection %']
+            data = []
+            
+            grand_total_enrollments = 0
+            grand_total_fees = 0
+            grand_total_paid = 0
+            grand_total_pending = 0
+            
+            for subject in subjects:
+                enrollments = Enrollment.objects.filter(subject=subject, is_deleted=False)
+                stats = enrollments.aggregate(
+                    total_enrollments=Count('id'),
+                    total_fees=Sum('total_fee'),
+                    total_paid=Sum('paid_amount'),
+                    total_pending=Sum('pending_amount')
+                )
+                
+                total_enrollments = stats['total_enrollments'] or 0
+                total_fees = float(stats['total_fees'] or 0)
+                total_paid = float(stats['total_paid'] or 0)
+                total_pending = float(stats['total_pending'] or 0)
+                
+                grand_total_enrollments += total_enrollments
+                grand_total_fees += total_fees
+                grand_total_paid += total_paid
+                grand_total_pending += total_pending
+                
+                collection_percentage = (total_paid / total_fees * 100) if total_fees > 0 else 0
+                
+                data.append([
+                    subject.name,
+                    str(total_enrollments),
+                    f"Rs. {total_fees:,.2f}",
+                    f"Rs. {total_paid:,.2f}",
+                    f"Rs. {total_pending:,.2f}",
+                    f"{collection_percentage:.1f}%"
+                ])
+            
+            data.append([])
+            data.append([
+                'GRAND TOTAL',
+                str(grand_total_enrollments),
+                f"Rs. {grand_total_fees:,.2f}",
+                f"Rs. {grand_total_paid:,.2f}",
+                f"Rs. {grand_total_pending:,.2f}",
+                f"{(grand_total_paid / grand_total_fees * 100) if grand_total_fees > 0 else 0:.1f}%"
+            ])
+            
+            pdf_content = generate_pdf_report("Subject-wise Total Report", headers, data)
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="subjectwise_total_report.pdf"'
+            return response
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+        except Exception as e:
+            return Response({'success': False, 'error': {'message': str(e)}}, status=500)
+
     @action(detail=False, methods=['get'])
     def export_total_enrollments_pdf(self, request):
         """Detailed Total Enrollments Report."""

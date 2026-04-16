@@ -1046,15 +1046,6 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
 
       {/* Students List Container */}
       <div className="space-y-4">
-        {/* Page Info Header */}
-        {!loading && students.length > 0 && totalPages > 1 && (
-          <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl">
-            <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 uppercase tracking-widest">
-              👥 Page {currentPage} of {totalPages} • Showing {((currentPage - 1) * 20) + 1}-{Math.min(currentPage * 20, totalCount)} of {totalCount} students
-            </p>
-          </div>
-        )}
-        
         {loading ? (
           <SkeletonTable rows={8} />
         ) : students.length === 0 ? (
