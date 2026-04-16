@@ -198,11 +198,17 @@ class SubjectBatchViewSet(viewsets.ModelViewSet):
         """Filter batches by subject from URL parameter or query params."""
         queryset = SubjectBatch.objects.all()
         subject_id = self.kwargs.get('subject_pk') or self.request.query_params.get('subject_id')
-        
+
         if subject_id:
             queryset = queryset.filter(subject_id=subject_id)
-        
+
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        """Return batches in {success, data} format (no pagination wrapper)."""
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'success': True, 'data': serializer.data})
     
     def perform_create(self, serializer):
         """Automatically set the subject from URL parameter."""
