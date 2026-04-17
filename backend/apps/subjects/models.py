@@ -175,11 +175,12 @@ class SubjectBatch(models.Model):
         default=100,
         help_text='Maximum age for this batch. 100 = no upper limit.'
     )
+    auto_close_when_full = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         db_table = 'subject_batches'
         unique_together = ('subject', 'batch_time')
