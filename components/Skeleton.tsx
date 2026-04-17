@@ -3,11 +3,11 @@
 import React from 'react'
 
 export const SkeletonPulse = ({ className }: { className?: string }) => (
-  <div className={`animate-pulse bg-slate-200 dark:bg-slate-800 rounded-xl ${className}`} />
+  <div className={`animate-pulse bg-slate-200 rounded-xl ${className}`} />
 )
 
 export const SkeletonCard = () => (
-  <div className="p-5 rounded-[24px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4 transition-all overflow-hidden relative">
+  <div className="p-5 rounded-[24px] bg-white border border-slate-100 shadow-sm flex items-center gap-4 transition-all overflow-hidden relative">
     <SkeletonPulse className="w-14 h-14 rounded-2xl shrink-0" />
     <div className="flex-1 space-y-2">
       <SkeletonPulse className="h-3 w-16" />
@@ -17,8 +17,8 @@ export const SkeletonCard = () => (
 )
 
 export const SkeletonTable = ({ rows = 5 }: { rows?: number }) => (
-  <div className="card-standard overflow-hidden border-none shadow-xl bg-white dark:bg-slate-900">
-    <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+  <div className="card-standard overflow-hidden border-none shadow-xl bg-white">
+    <div className="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
       <SkeletonPulse className="h-10 w-48" />
       <SkeletonPulse className="h-10 w-32" />
     </div>
@@ -57,7 +57,7 @@ export const SkeletonDashboard = () => (
           <SkeletonTable rows={2} />
        </div>
        <div className="space-y-6">
-          <div className="h-[400px] w-full rounded-[24px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6">
+          <div className="h-[400px] w-full rounded-[24px] bg-white border border-slate-100 p-6">
               <SkeletonPulse className="h-4 w-32 mb-6" />
               <div className="space-y-4">
                  <SkeletonPulse className="h-12 w-full" />

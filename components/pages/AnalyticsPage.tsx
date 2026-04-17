@@ -234,7 +234,7 @@ export default function AnalyticsPage() {
         {/* Line Chart - Fee Collection Over Time */}
         <div className="card-standard p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-widest font-poppins">Collection Trend</h2>
+            <h2 className="text-base font-bold text-slate-900 uppercase tracking-widest font-poppins">Collection Trend</h2>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-inter">Last 6 Months</span>
           </div>
           <div className="h-48 xs:h-64">
@@ -279,7 +279,7 @@ export default function AnalyticsPage() {
         {/* Subject Popularity - Donut Chart */}
         <div className="card-standard p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-widest font-poppins">Subject Market Share</h2>
+            <h2 className="text-base font-bold text-slate-900 uppercase tracking-widest font-poppins">Subject Market Share</h2>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-inter">Enrolled Students</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
@@ -334,7 +334,7 @@ export default function AnalyticsPage() {
 
         {/* Bar Chart - Subject-wise Collection */}
         <div className="card-standard p-6">
-          <h2 className="text-base font-bold text-slate-900 dark:text-white mb-6 uppercase tracking-widest font-poppins">Subject Impact</h2>
+          <h2 className="text-base font-bold text-slate-900 mb-6 uppercase tracking-widest font-poppins">Subject Impact</h2>
           <div className="h-48 xs:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={normalizedSubjectData.slice(0, 6)} layout="vertical">
@@ -371,7 +371,7 @@ export default function AnalyticsPage() {
 
       {/* Pie Chart - Paid vs Pending */}
       <div className="card-standard p-6">
-        <h2 className="text-base font-bold text-slate-900 dark:text-white mb-6 uppercase tracking-widest font-poppins">Status Overview</h2>
+        <h2 className="text-base font-bold text-slate-900 mb-6 uppercase tracking-widest font-poppins">Status Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
           <div className="h-48 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -407,13 +407,13 @@ export default function AnalyticsPage() {
           </div>
           <div className="space-y-4">
             {paymentStatusData.map((item) => (
-              <div key={item.name} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-black/10 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm font-inter">
+              <div key={item.name} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 shadow-sm font-inter">
                 <div className="flex items-center gap-3">
                   <div className="w-4 h-4 rounded-full shadow-lg" style={{ backgroundColor: item.color }}></div>
                   <span className="text-xs font-bold text-slate-900 uppercase tracking-widest font-poppins">{item.name}</span>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-bold text-gray-900 dark:text-white font-poppins">{formatCurrency(item.value)}</p>
+                  <p className="text-xs font-bold text-gray-900 font-poppins">{formatCurrency(item.value)}</p>
                   <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter font-inter">{item.percentage}% Contribution</p>
                 </div>
               </div>

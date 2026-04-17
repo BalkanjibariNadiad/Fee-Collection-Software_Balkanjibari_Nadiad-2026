@@ -60,7 +60,7 @@ export default function Sidebar({ currentPage, setCurrentPage, user, isOpen, onL
   return (
     <aside
       className={`fixed lg:static inset-y-0 left-0 z-50 ${isOpen ? 'translate-x-0 w-[240px]' : '-translate-x-full w-0'
-      } bg-white dark:bg-slate-900 border-r border-slate-100 transition-all duration-300 ease-in-out overflow-hidden flex flex-col font-inter`}
+      } bg-white border-r border-slate-100 transition-all duration-300 ease-in-out overflow-hidden flex flex-col font-inter`}
     >
       <div className="p-4 flex items-center gap-2.5 border-b border-slate-50 mb-2">
         <div className="w-10 h-10 flex items-center justify-center overflow-hidden rounded-lg bg-white shadow-sm border border-slate-100 p-0.5 shrink-0">
@@ -100,7 +100,7 @@ export default function Sidebar({ currentPage, setCurrentPage, user, isOpen, onL
 
       {/* Bottom Identity Section */}
       <div className="p-4 mt-auto">
-        <div className="flex items-center gap-3 bg-purple-100 dark:bg-purple-900/20 p-3 rounded-2xl border border-purple-200/50">
+        <div className="flex items-center gap-3 bg-purple-100 p-3 rounded-2xl border border-purple-200/50">
           <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm overflow-hidden shrink-0">
             {userRole === 'ADMIN' ? 'A' : userRole === 'STAFF' ? 'S' : userRole === 'ACCOUNTANT' ? 'AC' : 'ST'}
           </div>

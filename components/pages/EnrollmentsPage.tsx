@@ -327,7 +327,7 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg flex items-center gap-2">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <AlertCircle size={20} />
           <span>{error}</span>
         </div>
@@ -335,7 +335,7 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
 
       {/* Success Message */}
       {successMessage && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg flex items-center gap-2">
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle size={20} />
           <span>{successMessage}</span>
         </div>
@@ -345,16 +345,16 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
       <div className="space-y-4">
         {/* Page Info Header */}
         {!loading && enrollments.length > 0 && totalPages > 1 && (
-          <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl">
-            <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 uppercase tracking-widest">
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
+            <p className="text-xs font-semibold text-blue-900 uppercase tracking-widest">
               📋 Page {currentPage} of {totalPages} • Showing {((currentPage - 1) * 20) + 1}-{Math.min(currentPage * 20, totalCount)} of {totalCount} enrollments
             </p>
           </div>
         )}
         
         {filteredEnrollments.length === 0 ? (
-          <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
-            <div className="w-20 h-20 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="text-gray-300" size={32} />
             </div>
             <p className="text-gray-500 font-bold">No enrollments found</p>
@@ -367,10 +367,10 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
         ) : (
           <>
             {/* Desktop Table View (Hidden below LG) */}
-            <div className="hidden lg:block bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden text-sm">
+            <div className="hidden lg:block bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden text-sm">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-100/50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 font-poppins">
+                  <thead className="bg-gray-100/50 border-b border-gray-100 font-poppins">
                     <tr>
                       <th className="px-5 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Enrollment ID</th>
                       <th className="px-5 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Student & Subject</th>
@@ -379,24 +379,24 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                       <th className="px-5 py-4 text-right text-[10px] font-bold uppercase tracking-widest text-gray-400">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  <tbody className="divide-y divide-gray-100">
                     {filteredEnrollments.map((enrollment) => (
-                      <tr key={enrollment.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors group">
+                      <tr key={enrollment.id} className="hover:bg-blue-50/30 transition-colors group">
                         <td className="px-5 py-4">
-                          <p className="font-semibold text-blue-600 dark:text-blue-400 font-inter">{enrollment.enrollment_id}</p>
+                          <p className="font-semibold text-blue-600 font-inter">{enrollment.enrollment_id}</p>
                         </td>
                         <td className="px-5 py-4">
                           <div>
-                            <p className="font-semibold text-gray-900 dark:text-white leading-tight uppercase tracking-tight font-inter">{enrollment.student?.name}</p>
+                            <p className="font-semibold text-gray-900 leading-tight uppercase tracking-tight font-inter">{enrollment.student?.name}</p>
                             <p className="text-[10px] font-medium text-gray-400 mt-0.5 uppercase tracking-widest font-inter">{enrollment.subject?.name}</p>
-                            <p className="text-[9px] font-medium text-gray-500 dark:text-gray-400 mt-1 font-inter">
+                            <p className="text-[9px] font-medium text-gray-500 mt-1 font-inter">
                               {new Date(enrollment.enrollment_date).toLocaleDateString('en-IN')} • {new Date(enrollment.enrollment_date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>
                         </td>
                         <td className="px-5 py-4 text-right">
                           <div className="flex flex-col items-end">
-                            <p className="font-semibold text-gray-900 dark:text-white font-inter">₹{Number(enrollment.total_fee || 0).toLocaleString()}</p>
+                            <p className="font-semibold text-gray-900 font-inter">₹{Number(enrollment.total_fee || 0).toLocaleString()}</p>
                             <p className="text-[10px] font-medium text-green-600 uppercase font-inter">Paid: ₹{Number(enrollment.paid_amount || 0).toLocaleString()}</p>
                           </div>
                         </td>
@@ -444,14 +444,14 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                               <>
                                 <button
                                   onClick={() => enrollmentsApi.downloadReceipt(enrollment.id)}
-                                  className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl transition-all active:scale-90"
+                                  className="p-2 hover:bg-blue-50 text-blue-600 rounded-xl transition-all active:scale-90"
                                   title="Download Receipt"
                                 >
                                   <Download size={18} />
                                 </button>
                                 <button
                                   onClick={() => enrollmentsApi.downloadIdCard(enrollment.id)}
-                                  className="p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl transition-all active:scale-90"
+                                  className="p-2 hover:bg-indigo-50 text-indigo-600 rounded-xl transition-all active:scale-90"
                                   title="Download ID Card"
                                 >
                                   <CreditCard size={18} />
@@ -461,7 +461,7 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                             {userRole === 'admin' && (
                               <button
                                 onClick={() => handleRefundClick(enrollment)}
-                                className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl transition-all active:scale-90"
+                                className="p-2 hover:bg-red-50 text-red-600 rounded-xl transition-all active:scale-90"
                                 title="Delete"
                               >
                                 <Trash2 size={18} />
@@ -477,19 +477,19 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
             </div>
             <div className="lg:hidden grid grid-cols-1 gap-4 px-1 sm:px-0">
               {filteredEnrollments.map((enrollment) => (
-                <div key={enrollment.id} className="bg-white dark:bg-slate-900 rounded-[28px] p-6 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/10 group transition-all">
+                <div key={enrollment.id} className="bg-white rounded-[28px] p-6 border border-slate-100 shadow-xl shadow-slate-200/10 group transition-all">
                   <div className="flex justify-between items-start mb-4">
                     <div className="min-w-0 pr-2">
                       <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-1 leading-none font-poppins">
                         ID: {enrollment.enrollment_id}
                       </p>
-                      <p className="font-bold text-lg text-slate-900 dark:text-white truncate tracking-tight uppercase font-poppins leading-tight">
+                      <p className="font-bold text-lg text-slate-900 truncate tracking-tight uppercase font-poppins leading-tight">
                         {enrollment.student?.name}
                       </p>
                       <p className="text-[11px] font-medium text-slate-400 truncate tracking-tight uppercase mt-0.5 font-inter">
                         {enrollment.subject?.name}
                       </p>
-                      <p className="text-[9px] font-medium text-slate-500 dark:text-slate-400 mt-1 font-inter">
+                      <p className="text-[9px] font-medium text-slate-500 mt-1 font-inter">
                         {new Date(enrollment.enrollment_date).toLocaleDateString('en-IN')} • {new Date(enrollment.enrollment_date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -497,28 +497,28 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                       {enrollment.payment_status !== 'PAID' && (
                         <span className={`px-2.5 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold uppercase tracking-widest shadow-sm ${
                           enrollment.payment_status === 'PARTIAL'
-                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600'
-                            : 'bg-rose-50 dark:bg-rose-900/30 text-rose-600'
+                            ? 'bg-blue-50 text-blue-600'
+                            : 'bg-rose-50 text-rose-600'
                           }`}>
                           {enrollment.payment_status}
                         </span>
                       )}
                       <span className={`px-2.5 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold uppercase tracking-widest shadow-sm ${enrollment.payment_mode === 'OFFLINE'
-                        ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-600'
+                        ? 'bg-purple-50 text-purple-600'
                         : enrollment.payment_mode === 'ONLINE'
-                          ? 'bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600'
-                          : 'bg-slate-50 dark:bg-slate-900/30 text-slate-600'
+                          ? 'bg-cyan-50 text-cyan-600'
+                          : 'bg-slate-50 text-slate-600'
                         }`}>
                         {enrollment.payment_mode || 'Unknown'}
                       </span>
-                      <p className="text-base font-semibold text-slate-900 dark:text-white mt-2 leading-none font-poppins">₹{Number(enrollment.total_fee || 0).toLocaleString()}</p>
+                      <p className="text-base font-semibold text-slate-900 mt-2 leading-none font-poppins">₹{Number(enrollment.total_fee || 0).toLocaleString()}</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl mb-5 border border-slate-100 dark:border-slate-700">
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-2xl mb-5 border border-slate-100">
                     <div>
                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 font-inter">Paid</p>
-                      <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 font-inter">₹{Number(enrollment.paid_amount || 0).toLocaleString()}</p>
+                      <p className="text-[11px] font-semibold text-emerald-600 font-inter">₹{Number(enrollment.paid_amount || 0).toLocaleString()}</p>
                     </div>
                     <div>
                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 font-inter">Balance</p>
@@ -547,7 +547,7 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                       <div className="flex gap-3">
                         <button
                           onClick={() => enrollmentsApi.downloadReceipt(enrollment.id)}
-                          className="flex-1 h-12 rounded-xl text-[11px] bg-slate-900 dark:bg-slate-800 text-white font-bold uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all"
+                          className="flex-1 h-12 rounded-xl text-[11px] bg-slate-900 text-white font-bold uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all"
                         >
                           <Download size={16} /> Receipt
                         </button>
@@ -562,7 +562,7 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                     {userRole === 'admin' && (
                       <button
                         onClick={() => handleRefundClick(enrollment)}
-                        className="w-full h-11 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50 font-medium font-poppins uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 active:scale-95 transition-all"
+                        className="w-full h-11 bg-rose-50 text-rose-600 border border-rose-100 font-medium font-poppins uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 active:scale-95 transition-all"
                       >
                         <Trash2 size={16} /> Delete Enrollment
                       </button>
@@ -574,13 +574,13 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
 
             {/* Enhanced Pagination Controls */}
             {totalPages > 1 && (
-              <div className="space-y-4 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm p-4 sm:p-6">
+              <div className="space-y-4 bg-white rounded-3xl border border-gray-100 shadow-sm p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
                       📊 Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalCount)} of {totalCount} enrollments
                     </p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    <p className="text-xs text-gray-400 mt-1">
                       Page {currentPage} of {totalPages}
                     </p>
                   </div>
@@ -592,7 +592,7 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                   <button
                     onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed font-bold text-xs uppercase tracking-widest active:scale-95 shadow-sm"
+                    className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed font-bold text-xs uppercase tracking-widest active:scale-95 shadow-sm"
                     title="Go to previous page"
                   >
                     ⬅️ Previous
@@ -635,7 +635,7 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                             className={`w-10 h-10 rounded-lg font-bold text-xs transition-all active:scale-95 ${
                               currentPage === pageNum
                                 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                             title={`Go to page ${pageNum}`}
                           >
@@ -658,8 +658,8 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                 </div>
 
                 {/* Quick Jump Input */}
-                <div className="flex items-center justify-center gap-2 border-t border-gray-100 dark:border-gray-700 pt-4">
-                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                <div className="flex items-center justify-center gap-2 border-t border-gray-100 pt-4">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
                     Jump to page:
                   </label>
                   <input
@@ -673,9 +673,9 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                         setCurrentPage(pageNum);
                       }
                     }}
-                    className="w-16 px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-bold text-center text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-16 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 font-bold text-center text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
-                  <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                     of {totalPages}
                   </span>
                 </div>
@@ -689,23 +689,23 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
       {refundConfirm.show && refundConfirm.enrollment && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="glass-premium rounded-3xl shadow-2xl max-w-md w-full p-6 border border-white/20">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-tight">Confirm Deletion</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-4 uppercase tracking-tight">Confirm Deletion</h3>
             <div className="space-y-3 mb-6">
-              <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase leading-relaxed">
+              <p className="text-[11px] font-bold text-gray-500 uppercase leading-relaxed">
                 You are about to permanently remove this enrollment and trigger a refund process if applicable.
               </p>
-              <div className="bg-white/40 dark:bg-black/10 rounded-2xl p-4 space-y-2.5 border border-white/20">
+              <div className="bg-white/40 rounded-2xl p-4 space-y-2.5 border border-white/20">
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Student</span>
-                  <span className="text-[11px] font-bold text-gray-900 dark:text-white uppercase">{refundConfirm.enrollment.student.name}</span>
+                  <span className="text-[11px] font-bold text-gray-900 uppercase">{refundConfirm.enrollment.student.name}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Subject</span>
-                  <span className="text-[11px] font-bold text-gray-900 dark:text-white uppercase">{refundConfirm.enrollment.subject.name}</span>
+                  <span className="text-[11px] font-bold text-gray-900 uppercase">{refundConfirm.enrollment.subject.name}</span>
                 </div>
                 <div className="flex justify-between items-center border-t border-white/10 pt-2.5">
                   <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Refund Amount</span>
-                  <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">₹{Number(refundConfirm.enrollment.paid_amount).toLocaleString()}</span>
+                  <span className="text-lg font-bold text-emerald-600">₹{Number(refundConfirm.enrollment.paid_amount).toLocaleString()}</span>
                 </div>
               </div>
               <p className="text-[9px] text-rose-500 font-bold uppercase tracking-tighter bg-rose-500/10 p-2 rounded-lg text-center">
@@ -716,7 +716,7 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
               <button
                 onClick={() => setRefundConfirm({ show: false, enrollment: null })}
                 disabled={processing}
-                className="flex-1 btn-standard h-11 bg-white/40 dark:bg-black/10 text-gray-500 border border-white/20 text-[10px] font-bold uppercase"
+                className="flex-1 btn-standard h-11 bg-white/40 text-gray-500 border border-white/20 text-[10px] font-bold uppercase"
               >
                 Cancel
               </button>

@@ -425,8 +425,8 @@ export default function UserRolesPage() {
       <div className="space-y-4">
         {/* Page Info Header */}
         {!loading && users.length > 0 && totalPages > 1 && (
-          <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl">
-            <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 uppercase tracking-widest">
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
+            <p className="text-xs font-semibold text-blue-900 uppercase tracking-widest">
               👥 Page {currentPage} of {totalPages} • Showing {((currentPage - 1) * 20) + 1}-{Math.min(currentPage * 20, totalCount)} of {totalCount} users
             </p>
           </div>
@@ -579,12 +579,12 @@ export default function UserRolesPage() {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-6 bg-white rounded-3xl border border-gray-100 shadow-sm">
               <div className="flex-1">
-                <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
                   Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalCount)} of {totalCount} users
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                <p className="text-xs text-gray-400 mt-1">
                   Page {currentPage} of {totalPages}
                 </p>
               </div>
@@ -594,7 +594,7 @@ export default function UserRolesPage() {
                 <button
                   onClick={() => setCurrentPage(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed font-medium text-sm uppercase tracking-widest active:scale-95"
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed font-medium text-sm uppercase tracking-widest active:scale-95"
                   title="Previous page"
                 >
                   ← Prev
@@ -621,7 +621,7 @@ export default function UserRolesPage() {
                         className={`w-10 h-10 rounded-lg font-bold text-sm transition-all active:scale-95 ${
                           currentPage === pageNum
                             ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                         title={`Go to page ${pageNum}`}
                       >

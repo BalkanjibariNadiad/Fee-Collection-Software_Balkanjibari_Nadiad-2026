@@ -39,7 +39,7 @@ export default function LandingPage() {
   const router = useRouter()
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 overflow-x-hidden relative font-inter flex flex-col items-center">
+    <div className="min-h-screen bg-slate-50 overflow-x-hidden relative font-inter flex flex-col items-center">
 
       {/* Centered Logo at Top */}
       <div className="relative z-50 pt-8 pb-2 flex justify-center w-full">
@@ -48,7 +48,7 @@ export default function LandingPage() {
           <img
             src="/logo.jpeg"
             alt="Balkan-Ji-Bari Logo"
-            className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white dark:border-slate-800 shadow-2xl object-contain bg-white"
+            className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white shadow-2xl object-contain bg-white"
           />
         </div>
       </div>
@@ -58,23 +58,23 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto space-y-8">
 
           <div className="space-y-4">
-            <h1 className="font-poppins text-3xl sm:text-5xl lg:text-6xl font-bold text-slate-800 dark:text-white leading-[1.2]">
+            <h1 className="font-poppins text-3xl sm:text-5xl lg:text-6xl font-bold text-slate-800 leading-[1.2]">
               <span className="text-primary">
                 BALKAN-JI-BARI
               </span><br />
               SUMMER CAMP 2026
             </h1>
-            <h2 className="text-xl sm:text-3xl lg:text-4xl font-bold text-slate-800 dark:text-indigo-200 leading-tight py-2">
+            <h2 className="text-xl sm:text-3xl lg:text-4xl font-bold text-slate-800 leading-tight py-2">
               નડિયાદ બાલકન-જી-બારી આયોજિત<br />
               <br />
-              <span className="text-primary italic dark:text-primary-foreground">૩૫મો ગ્રીષ્મ શિબિર – ૨૦૨૬</span>
+              <span className="text-primary italic">૩૫મો ગ્રીષ્મ શિબિર – ૨૦૨૬</span>
             </h2>
           </div>
 
-          <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg font-medium max-w-2xl mx-auto leading-relaxed">
+          <p className="text-slate-600 text-base sm:text-lg font-medium max-w-2xl mx-auto leading-relaxed">
             Unleash your creativity and skills this summer!
             <br />Join our month-long camp
-            from <span className="font-bold text-slate-900 dark:text-white border-b-2 border-primary/30">May 1st to May 31st, 2026</span>.
+            from <span className="font-bold text-slate-900 border-b-2 border-primary/30">May 1st to May 31st, 2026</span>.
           </p>
 
           <div className="pt-6 flex flex-col items-center gap-4">
@@ -97,46 +97,46 @@ export default function LandingPage() {
       </section>
 
       {/* Instructions & Contact Section */}
-      <section className="relative z-10 w-full py-12 bg-[#0a0f1d] dark:bg-slate-50 text-white dark:text-slate-900 px-4 border-t border-white/5 dark:border-slate-200 transition-colors duration-500">
+      <section className="relative z-10 w-full py-12 bg-[#0a0f1d] text-white px-4 border-t border-white/5 transition-colors duration-500">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
           {/* Instructions Column */}
           <div className="lg:col-span-7 space-y-8">
             <div className="space-y-4">
-              <h3 className="text-2xl sm:text-3xl font-bold uppercase text-white dark:text-slate-900 flex items-center justify-center sm:justify-start gap-4 italic text-center sm:text-left">
+              <h3 className="text-2xl sm:text-3xl font-bold uppercase text-white flex items-center justify-center sm:justify-start gap-4 italic text-center sm:text-left">
                 <span className="hidden sm:block w-16 h-1 bg-primary rounded-full shrink-0"></span>
                 <span className="shrink-0">IMPORTANT INSTRUCTIONS</span>
                 <span className="hidden sm:block w-16 h-1 bg-primary rounded-full shrink-0"></span>
               </h3>
-              <p className="text-slate-300 dark:text-slate-500 font-medium max-w-lg leading-relaxed text-center sm:text-left">
+              <p className="text-slate-300 font-medium max-w-lg leading-relaxed text-center sm:text-left">
                 Please read carefully before proceeding with the registration.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 sm:gap-6">
               {/* Box 1 */}
-              <div className="bg-white/5 dark:bg-slate-100 border border-white/10 dark:border-slate-200 rounded-2xl p-5 sm:p-6 space-y-4 transition-all hover:bg-white/10 dark:hover:bg-slate-200 hover:border-primary/50 group">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6 space-y-4 transition-all hover:bg-white/10 hover:border-primary/50 group">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold shrink-0 shadow-lg shadow-primary/20">1</div>
-                  <h4 className="text-lg font-bold text-white dark:text-slate-800 uppercase tracking-tight">CASH PAYMENT</h4>
+                  <h4 className="text-lg font-bold text-white uppercase tracking-tight">CASH PAYMENT</h4>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-blue-300 dark:text-slate-600 font-semibold text-sm italic">Visit: April 15th - April 25th</p>
-                  <p className="text-primary font-bold text-sm tracking-wide bg-primary/10 dark:bg-primary/5 py-1 px-3 rounded-md inline-block">5:00 PM – 7:00 PM</p>
-                  <p className="text-slate-400 dark:text-slate-500 text-[13px] leading-relaxed border-t border-white/10 dark:border-slate-200 pt-3 mt-3">
+                  <p className="text-blue-300 font-semibold text-sm italic">Visit: April 15th - April 25th</p>
+                  <p className="text-primary font-bold text-sm tracking-wide bg-primary/10 py-1 px-3 rounded-md inline-block">5:00 PM – 7:00 PM</p>
+                  <p className="text-slate-400 text-[13px] leading-relaxed border-t border-white/10 pt-3 mt-3">
                     રોકડ ચૂકવણી દ્વારા પ્રવેશ માટે, ૧૫ થી ૨૫ એપ્રિલ દરમિયાન સાંજે ૫:૦૦ થી ૭:૦૦ વાગ્યા સુધી બાલકન-જી-બારી ઓફિસમાં રૂબરૂ આવવું.
                   </p>
                 </div>
               </div>
 
               {/* Box 2 */}
-              <div className="bg-white/5 dark:bg-slate-100 border border-white/10 dark:border-slate-200 rounded-2xl p-5 sm:p-6 space-y-4 transition-all hover:bg-white/10 dark:hover:bg-slate-200 hover:border-primary/50 group">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6 space-y-4 transition-all hover:bg-white/10 hover:border-primary/50 group">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold shrink-0 shadow-lg shadow-primary/20">2</div>
-                  <h4 className="text-lg font-bold text-white dark:text-slate-800 uppercase tracking-tight">FORM ASSISTANCE</h4>
+                  <h4 className="text-lg font-bold text-white uppercase tracking-tight">FORM ASSISTANCE</h4>
                 </div>
                 <div className="space-y-3">
-                  <p className="text-slate-300 dark:text-slate-600 text-sm leading-relaxed">Need help with the form? Visit the office for assistance.</p>
-                  <p className="text-slate-400 dark:text-slate-500 text-[13px] leading-relaxed border-t border-white/10 dark:border-slate-200 pt-3 mt-3">
+                  <p className="text-slate-300 text-sm leading-relaxed">Need help with the form? Visit the office for assistance.</p>
+                  <p className="text-slate-400 text-[13px] leading-relaxed border-t border-white/10 pt-3 mt-3">
                     ઓનલાઈન ફોર્મ ભરવામાં મદદ જોઈતી હોય તેવા વિદ્યાર્થીઓ પણ ઉક્ત સમય દરમિયાન ઓફિસની મુલાકાત લઈ શકે છે.
                   </p>
                 </div>
@@ -144,12 +144,12 @@ export default function LandingPage() {
             </div>
 
             {/* Box 3 */}
-            <div className="bg-white/5 dark:bg-slate-100 border border-white/10 dark:border-slate-200 rounded-2xl p-5 sm:p-6 space-y-4 transition-all hover:bg-white/10 dark:hover:bg-slate-200 hover:border-primary/50 group">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6 space-y-4 transition-all hover:bg-white/10 hover:border-primary/50 group">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold shrink-0 shadow-lg shadow-primary/20">3</div>
-                <h4 className="text-lg font-bold text-white dark:text-slate-800 uppercase tracking-tight">ID CARD COLLECTION</h4>
+                <h4 className="text-lg font-bold text-white uppercase tracking-tight">ID CARD COLLECTION</h4>
               </div>
-              <p className="text-slate-300 dark:text-slate-600 text-sm leading-relaxed">
+              <p className="text-slate-300 text-sm leading-relaxed">
                 ID CARD will be given in respective class during <span className="text-primary font-bold">1 to 3 May 2026</span>.
               </p>
             </div>
@@ -157,22 +157,22 @@ export default function LandingPage() {
 
           {/* Contact Card Column */}
           <div className="lg:col-span-5">
-            <div className="bg-[#0d1425] dark:bg-white border border-white/10 dark:border-slate-200 rounded-[2.5rem] p-6 sm:p-7 shadow-xl dark:shadow-2xl relative overflow-hidden group transition-colors duration-500">
+            <div className="bg-[#0d1425] border border-white/10 rounded-[2.5rem] p-6 sm:p-7 shadow-xl relative overflow-hidden group transition-colors duration-500">
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-32 -mt-32 transition-opacity group-hover:opacity-100"></div>
 
               <div className="relative z-10 space-y-6">
                 <div className="space-y-1">
-                  <h4 className="text-2xl font-bold text-white dark:text-slate-900 uppercase italic">Contact & Location</h4>
+                  <h4 className="text-2xl font-bold text-white uppercase italic">Contact & Location</h4>
                   <div className="w-12 h-1 bg-primary rounded-full"></div>
                 </div>
 
                 <div className="space-y-6">
                   {/* Location */}
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-primary/20 dark:bg-primary/10 flex items-center justify-center text-primary transition-all">
+                    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary transition-all">
                       <MapPin size={22} />
                     </div>
-                    <p className="font-bold text-base leading-snug text-slate-200 dark:text-slate-700">
+                    <p className="font-bold text-base leading-snug text-slate-200">
                       Opposite R.T.O. Office, Mill Road,<br />Nadiad – 387001
                     </p>
                   </div>
@@ -181,56 +181,56 @@ export default function LandingPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-blue-500/20 dark:bg-blue-500/10 flex items-center justify-center text-blue-300 dark:text-blue-600 border border-blue-400/20">
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-300 border border-blue-400/20">
                           <Phone size={20} />
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold uppercase text-blue-400 dark:text-blue-500 tracking-widest leading-none mb-1">Secretary</p>
-                          <p className="font-bold text-sm text-white dark:text-slate-800">Harishbhai: 9426546816</p>
+                          <p className="text-[10px] font-bold uppercase text-blue-400 tracking-widest leading-none mb-1">Secretary</p>
+                          <p className="font-bold text-sm text-white">Harishbhai: 9426546816</p>
                         </div>
                       </div>
-                      <a href="tel:9426546816" className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-300 dark:text-blue-600 hover:text-white text-[11px] font-bold rounded-full transition-all border border-blue-400/20">
+                      <a href="tel:9426546816" className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-300 hover:text-white text-[11px] font-bold rounded-full transition-all border border-blue-400/20">
                         Call
                       </a>
                     </div>
 
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-blue-500/20 dark:bg-blue-500/10 flex items-center justify-center text-blue-300 dark:text-blue-600 border border-blue-400/20">
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-300 border border-blue-400/20">
                           <Phone size={20} />
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold uppercase text-blue-400 dark:text-blue-500 tracking-widest leading-none mb-1">Coordinator</p>
-                          <p className="font-bold text-sm text-white dark:text-slate-800">Pragneshbhai: 9898555933</p>
+                          <p className="text-[10px] font-bold uppercase text-blue-400 tracking-widest leading-none mb-1">Coordinator</p>
+                          <p className="font-bold text-sm text-white">Pragneshbhai: 9898555933</p>
                         </div>
                       </div>
-                      <a href="tel:9898555933" className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-300 dark:text-blue-600 hover:text-white text-[11px] font-bold rounded-full transition-all border border-blue-400/20">
+                      <a href="tel:9898555933" className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-300 hover:text-white text-[11px] font-bold rounded-full transition-all border border-blue-400/20">
                         Call
                       </a>
                     </div>
                   </div>
 
                   {/* Email & Facebook */}
-                  <div className="space-y-3 border-t border-white/5 dark:border-slate-200 pt-4">
+                  <div className="space-y-3 border-t border-white/5 pt-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-blue-500/20 dark:bg-blue-500/10 flex items-center justify-center text-blue-300 dark:text-blue-600 border border-blue-400/20">
+                      <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-300 border border-blue-400/20">
                         <Mail size={20} />
                       </div>
-                      <p className="font-bold text-sm text-blue-200 dark:text-slate-700">info@balkanjibari.org</p>
+                      <p className="font-bold text-sm text-blue-200">info@balkanjibari.org</p>
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-300 border border-blue-400/20">
+                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600 border border-blue-400/20">
                         <Facebook size={20} />
                       </div>
-                      <a href="https://www.facebook.com/nadiadbalkanjibari/" target="_blank" rel="noopener noreferrer" className="font-bold text-sm text-slate-700 dark:text-blue-200 hover:text-blue-600 dark:hover:text-white transition-colors flex items-center gap-2">
+                      <a href="https://www.facebook.com/nadiadbalkanjibari/" target="_blank" rel="noopener noreferrer" className="font-bold text-sm text-slate-700 hover:text-blue-600 transition-colors flex items-center gap-2">
                         Join with us <ExternalLink size={16} />
                       </a>
                     </div>
                   </div>
 
                   {/* Note */}
-                  <div className="pt-4 border-t border-white/5 dark:border-slate-200">
+                  <div className="pt-4 border-t border-white/5">
                     <p className="text-primary font-bold text-sm text-center leading-relaxed">
                       નોંધ : દરેક બેચમાં પ્રવેશ વહેલા તે પહેલાના ધોરણે જ આપવામાં આવશે.
                     </p>

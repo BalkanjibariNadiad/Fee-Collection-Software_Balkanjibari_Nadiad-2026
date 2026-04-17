@@ -88,13 +88,13 @@ export default function SecuritySettings() {
 
     return (
         <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
-            <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">
-                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/40 rounded-xl text-indigo-600 dark:text-indigo-400 shadow-sm shrink-0">
+            <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
+                <div className="p-2.5 bg-indigo-100 rounded-xl text-indigo-600 shadow-sm shrink-0">
                     <Shield size={22} />
                 </div>
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white uppercase tracking-tight font-poppins">Security Terminal</h2>
-                    <p className="text-gray-500 dark:text-gray-400 text-[10px] sm:text-[11px] font-bold uppercase tracking-widest leading-none mt-1">Manage authentication & 2FA</p>
+                    <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight font-poppins">Security Terminal</h2>
+                    <p className="text-gray-500 text-[10px] sm:text-[11px] font-bold uppercase tracking-widest leading-none mt-1">Manage authentication & 2FA</p>
                 </div>
             </div>
 
@@ -112,10 +112,10 @@ export default function SecuritySettings() {
                 </div>
             )}
 
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-                <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4 mb-4">
+            <div className="bg-white rounded-2xl p-4 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-4">
                     <Key size={20} className="text-blue-600" />
-                    <h3 className="font-bold text-slate-900 dark:text-white uppercase tracking-tight font-poppins">Change Password</h3>
+                    <h3 className="font-bold text-slate-900 uppercase tracking-tight font-poppins">Change Password</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
@@ -151,7 +151,7 @@ export default function SecuritySettings() {
                     </div>
                 </div>
 
-                <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex justify-end pt-4 border-t border-slate-100">
                     <button
                         onClick={async () => {
                             if (newPassword !== confirmPassword) {
@@ -181,10 +181,10 @@ export default function SecuritySettings() {
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+            <div className="bg-white rounded-2xl p-4 sm:p-8 border border-slate-200 shadow-sm space-y-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="space-y-1">
-                        <h3 className="font-bold text-slate-900 dark:text-white flex flex-wrap items-center gap-2 uppercase tracking-tight font-poppins text-sm">
+                        <h3 className="font-bold text-slate-900 flex flex-wrap items-center gap-2 uppercase tracking-tight font-poppins text-sm">
                             Two-Factor Authentication (TOTP)
                             {user?.is_2fa_enabled && (
                                 <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm border border-emerald-100 font-inter">
@@ -239,9 +239,9 @@ export default function SecuritySettings() {
                                     <img src={qrCode} alt="2FA QR Code" className="w-40 h-40 sm:w-48 sm:h-48" />
                                 </div>
 
-                                <div className="p-4 bg-white/60 dark:bg-black/20 rounded-xl border border-dashed border-blue-200">
+                                <div className="p-4 bg-white/60 rounded-xl border border-dashed border-blue-200">
                                     <p className="text-[10px] text-blue-500 uppercase font-bold tracking-widest mb-2">Manual Entry Key</p>
-                                    <p className="text-xs font-mono text-slate-600 dark:text-slate-400 break-all bg-slate-50 dark:bg-slate-900 p-2 rounded border border-slate-100 dark:border-slate-800">{secret}</p>
+                                    <p className="text-xs font-mono text-slate-600 break-all bg-slate-50 p-2 rounded border border-slate-100">{secret}</p>
                                 </div>
                             </div>
 

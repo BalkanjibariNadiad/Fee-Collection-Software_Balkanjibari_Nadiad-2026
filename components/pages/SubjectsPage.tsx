@@ -266,7 +266,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg flex items-center gap-2">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <AlertCircle size={20} />
           <span>{error}</span>
         </div>
@@ -275,7 +275,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
       {/* Form */}
       {showForm && (
         <div className="glass-premium rounded-2xl p-4 sm:p-6 shadow-lg">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3 font-poppins uppercase tracking-tight">
+          <h2 className="text-lg font-bold text-gray-900 mb-3 font-poppins uppercase tracking-tight">
             {editingSubject ? 'Edit Subject' : 'New Activity'}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-3">
@@ -366,7 +366,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl bg-white/40 dark:bg-black/10 border border-white/20 dark:border-white/5 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 dark:text-white text-[11px] font-medium font-inter resize-none uppercase shadow-inner"
+                className="w-full px-4 py-3 rounded-xl bg-white/40 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 text-[11px] font-medium font-inter resize-none uppercase shadow-inner"
                 rows={3}
                 placeholder="Course curriculum..."
               />
@@ -386,7 +386,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                   setEditingSubject(null)
                   resetForm()
                 }}
-                className="h-11 sm:h-12 bg-white/40 dark:bg-black/10 text-gray-500 border border-slate-200 dark:border-slate-800 rounded-xl font-medium font-poppins text-[11px] uppercase tracking-widest w-full sm:w-32 active:scale-[0.98] transition-all"
+                className="h-11 sm:h-12 bg-white/40 text-gray-500 border border-slate-200 rounded-xl font-medium font-poppins text-[11px] uppercase tracking-widest w-full sm:w-32 active:scale-[0.98] transition-all"
               >
                 Cancel
               </button>
@@ -397,8 +397,8 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
 
       {/* Subjects Grid */}
       {subjects.length === 0 ? (
-        <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
-          <div className="w-20 h-20 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm">
+          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <BookOpen className="text-gray-300" size={32} />
           </div>
           <p className="text-gray-500 font-medium font-inter uppercase tracking-widest text-xs">No subjects found</p>
@@ -409,7 +409,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
           {subjects.map((subject: any) => (
             <div
               key={subject.id}
-              className="group relative bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-indigo-200/50 transition-all duration-300 ring-1 ring-slate-900/[0.02]"
+              className="group relative bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-indigo-200/50 transition-all duration-300 ring-1 ring-slate-900/[0.02]"
             >
               <div className="p-4 sm:p-5">
                 <div className="flex items-start justify-between mb-4">
@@ -425,7 +425,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                         {subject.activity_type === 'SUMMER_CAMP' ? 'Summer Camp' : 'Year-Round'}
                       </span>
                     </div>
-                    <h3 className="font-bold text-base text-gray-900 dark:text-white leading-tight uppercase tracking-tight font-poppins group-hover:text-indigo-600 transition-colors truncate">
+                    <h3 className="font-bold text-base text-gray-900 leading-tight uppercase tracking-tight font-poppins group-hover:text-indigo-600 transition-colors truncate">
                       {subject.name}
                     </h3>
                   </div>
@@ -433,14 +433,14 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                     <div className="flex gap-1.5 shrink-0">
                       <button
                         onClick={() => handleOpenBatchManager(subject)}
-                        className="w-8 h-8 flex items-center justify-center bg-white/40 dark:bg-black/10 text-gray-400 hover:text-cyan-500 rounded-lg transition-all border border-white/20"
+                        className="w-8 h-8 flex items-center justify-center bg-white/40 text-gray-400 hover:text-cyan-500 rounded-lg transition-all border border-white/20"
                         title="Manage Batches"
                       >
                         <Grid3X3 size={14} />
                       </button>
                       <button
                         onClick={() => handleEdit(subject)}
-                        className="w-8 h-8 flex items-center justify-center bg-white/40 dark:bg-black/10 text-gray-400 hover:text-indigo-600 rounded-lg transition-all border border-white/20"
+                        className="w-8 h-8 flex items-center justify-center bg-white/40 text-gray-400 hover:text-indigo-600 rounded-lg transition-all border border-white/20"
                         title="Edit"
                       >
                         <Edit2 size={14} />
@@ -448,7 +448,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                       {canDelete && (
                         <button
                           onClick={() => handleDelete(subject.id)}
-                          className="w-8 h-8 flex items-center justify-center bg-white/40 dark:bg-black/10 text-gray-400 hover:text-rose-500 rounded-lg transition-all border border-white/20"
+                          className="w-8 h-8 flex items-center justify-center bg-white/40 text-gray-400 hover:text-rose-500 rounded-lg transition-all border border-white/20"
                           title="Delete"
                         >
                           <Trash2 size={14} />
@@ -458,29 +458,29 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                   )}
                 </div>
 
-                <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-5 line-clamp-2 h-8 leading-relaxed font-inter uppercase tracking-tight">
+                <p className="text-[10px] font-medium text-gray-500 mb-5 line-clamp-2 h-8 leading-relaxed font-inter uppercase tracking-tight">
                   {subject.description || 'No description provided.'}
                 </p>
 
                 <div className="space-y-2.5 pt-4 border-t border-white/10">
                   <div className="flex justify-between items-center">
                     <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest font-inter">Instructor</span>
-                    <span className="text-[10px] font-semibold text-gray-900 dark:text-white uppercase font-poppins">{subject.instructor_name || 'TBA'}</span>
+                    <span className="text-[10px] font-semibold text-gray-900 uppercase font-poppins">{subject.instructor_name || 'TBA'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest font-inter">Pricing</span>
-                    <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 font-poppins">
+                    <span className="text-sm font-semibold text-indigo-600 font-poppins">
                       ₹{parseFloat(subject.current_fee?.amount || '0').toLocaleString('en-IN')}
                       <span className="text-[8px] text-gray-400 ml-0.5 font-inter">/{subject.current_fee?.duration?.split('_')[0]}MO</span>
                     </span>
                   </div>
 
                   {/* Enrollment Badge */}
-                  <div className="mt-4 p-4 bg-slate-50 dark:bg-black/10 rounded-2xl border border-slate-100 dark:border-white/5 space-y-3 shadow-sm">
+                  <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 shadow-sm">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 font-inter">Enrolled</p>
-                        <p className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-tight font-poppins">{subject.enrolled_count} / {subject.max_seats} Students</p>
+                        <p className="text-xs font-semibold text-slate-900 uppercase tracking-tight font-poppins">{subject.enrolled_count} / {subject.max_seats} Students</p>
                       </div>
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${subject.enrolled_count >= subject.max_seats ? 'bg-rose-500 shadow-rose-500/20' : 'bg-indigo-600 shadow-indigo-500/20'}`}>
                         <Users size={18} className="text-white" />
@@ -488,7 +488,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                     </div>
                     
                     {/* Progress Bar */}
-                    <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
                       <div 
                         className={`h-full transition-all duration-500 ${subject.enrolled_count >= subject.max_seats ? 'bg-rose-500' : 'bg-indigo-600'}`}
                         style={{ width: `${Math.min(100, (subject.enrolled_count / subject.max_seats) * 100)}%` }}
@@ -508,19 +508,19 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
 
       {/* Batch Manager Modal */}
       {showBatchManager && selectedSubjectForBatch && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-700">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200">
             {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+            <div className="sticky top-0 bg-gradient-to-r from-cyan-50 to-blue-50 p-6 border-b border-slate-200 flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white font-poppins uppercase tracking-tight">Manage Batches</h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-inter uppercase tracking-widest">{selectedSubjectForBatch.name}</p>
+                <h2 className="text-xl font-bold text-slate-900 font-poppins uppercase tracking-tight">Manage Batches</h2>
+                <p className="text-xs text-slate-500 mt-1 font-inter uppercase tracking-widest">{selectedSubjectForBatch.name}</p>
               </div>
               <button
                 onClick={() => setShowBatchManager(false)}
-                className="w-8 h-8 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                className="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-lg transition-colors"
               >
-                <X size={20} className="text-slate-600 dark:text-slate-400" />
+                <X size={20} className="text-slate-600" />
               </button>
             </div>
 
@@ -528,15 +528,15 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
             <div className="p-6 space-y-6">
               {/* Existing Batches */}
               <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 font-poppins uppercase tracking-widest">All Existing Batches</h3>
+                <h3 className="text-sm font-bold text-slate-900 mb-4 font-poppins uppercase tracking-widest">All Existing Batches</h3>
                 {batchLoading ? (
                   <div className="flex items-center justify-center py-12">
                     <Loader2 className="animate-spin text-cyan-600" size={32} />
                   </div>
                 ) : batches.length === 0 ? (
-                  <div className="text-center py-12 bg-slate-50 dark:bg-slate-800 rounded-lg border border-dashed border-slate-300 dark:border-slate-700">
-                    <Grid3X3 className="mx-auto text-slate-300 dark:text-slate-600 mb-3" size={32} />
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">No batches available for this subject</p>
+                  <div className="text-center py-12 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                    <Grid3X3 className="mx-auto text-slate-300 mb-3" size={32} />
+                    <p className="text-sm font-medium text-slate-500">No batches available for this subject</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -545,27 +545,27 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                         key={batch.id}
                         className={`p-4 rounded-xl border-2 transition-all ${
                           batch.is_active
-                            ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800'
-                            : 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800 opacity-75'
+                            ? 'bg-green-50 border-green-200'
+                            : 'bg-red-50 border-red-200 opacity-75'
                         }`}
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-bold text-slate-900 dark:text-white uppercase text-sm font-poppins tracking-tight">
+                              <h4 className="font-bold text-slate-900 uppercase text-sm font-poppins tracking-tight">
                                 {batch.batch_time}
                               </h4>
                               <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest ${
                                 batch.is_active
-                                  ? 'bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-200'
-                                  : 'bg-red-200 dark:bg-red-800 text-red-700 dark:text-red-200'
+                                  ? 'bg-green-200 text-green-700'
+                                  : 'bg-red-200 text-red-700'
                               }`}>
                                 {batch.is_active ? 'Open' : 'Closed'}
                               </span>
                             </div>
-                            <p className="text-[11px] text-slate-600 dark:text-slate-300 font-medium">
+                            <p className="text-[11px] text-slate-600 font-medium">
                               Enrolled: <span className="font-bold">{batch.enrolled_count}</span> / <span className="font-bold">{batch.capacity_limit}</span> 
-                              {batch.is_full && <span className="text-red-600 dark:text-red-400 ml-2">🔴 FULL</span>}
+                              {batch.is_full && <span className="text-red-600 ml-2">🔴 FULL</span>}
                             </p>
                           </div>
                           <div className="flex gap-2 shrink-0">
@@ -603,7 +603,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                             </button>
                             <button
                               onClick={() => handleDeleteBatch(batch)}
-                              className="h-9 px-3 rounded-lg font-medium text-xs uppercase tracking-widest transition-all active:scale-95 bg-slate-300 hover:bg-slate-400 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-white"
+                              className="h-9 px-3 rounded-lg font-medium text-xs uppercase tracking-widest transition-all active:scale-95 bg-slate-300 hover:bg-slate-400 text-slate-900"
                               title="Delete batch"
                             >
                               Delete
@@ -612,7 +612,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                         </div>
 
                         {/* Progress Bar */}
-                        <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                           <div
                             className={`h-full transition-all duration-300 ${
                               batch.is_full
@@ -634,10 +634,10 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-slate-50 dark:bg-slate-800 p-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+            <div className="sticky bottom-0 bg-slate-50 p-4 border-t border-slate-200 flex justify-end">
               <button
                 onClick={() => setShowBatchManager(false)}
-                className="h-10 px-6 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white rounded-lg font-medium text-sm uppercase tracking-widest transition-colors"
+                className="h-10 px-6 bg-slate-200 hover:bg-slate-300 text-slate-900 rounded-lg font-medium text-sm uppercase tracking-widest transition-colors"
               >
                 Close
               </button>
@@ -645,20 +645,20 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
 
             {/* Edit Batch Capacity Modal */}
             {showEditBatchModal && editingBatch && (
-              <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-700 p-6">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 font-poppins uppercase tracking-tight">
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 p-6">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4 font-poppins uppercase tracking-tight">
                     Edit Batch Capacity Limit
                   </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+                  <p className="text-sm text-slate-600 mb-4">
                     <span className="font-semibold">Batch:</span> {editingBatch.batch_time}
                   </p>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 mb-6">
+                  <p className="text-sm text-slate-600 mb-6">
                     <span className="font-semibold">Currently Enrolled:</span> {editingBatch.enrolled_count} students
                   </p>
                   
                   <div className="mb-6">
-                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
+                    <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-widest">
                       New Capacity Limit
                     </label>
                     <input
@@ -666,9 +666,9 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                       min={editingBatch.enrolled_count}
                       value={editingBatchCapacity || ''}
                       onChange={(e) => setEditingBatchCapacity(parseInt(e.target.value) || editingBatch.capacity_limit)}
-                      className="w-full h-11 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full h-11 px-4 bg-white border border-slate-200 rounded-lg text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                    <p className="text-xs text-slate-500 mt-2">
                       Minimum limit: {editingBatch.enrolled_count} (current enrollments)
                     </p>
                   </div>
@@ -680,7 +680,7 @@ export default function SubjectsPage({ userRole, canEdit }: SubjectsPageProps) {
                         setEditingBatch(null)
                         setEditingBatchCapacity(null)
                       }}
-                      className="flex-1 h-10 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white rounded-lg font-medium text-sm uppercase tracking-widest transition-colors"
+                      className="flex-1 h-10 bg-slate-200 hover:bg-slate-300 text-slate-900 rounded-lg font-medium text-sm uppercase tracking-widest transition-colors"
                     >
                       Cancel
                     </button>

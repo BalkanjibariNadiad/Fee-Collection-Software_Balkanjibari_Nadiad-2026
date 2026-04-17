@@ -66,13 +66,13 @@ export default function LoginPage({ showRegistration = true }: LoginPageProps) {
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 sm:p-6"
+      className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 p-4 sm:p-6"
     >
       <div className="relative z-10 w-full max-w-md">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl px-6 sm:px-10 py-8 sm:py-12 shadow-xl border border-slate-200 dark:border-slate-800">
+        <div className="bg-white rounded-2xl px-6 sm:px-10 py-8 sm:py-12 shadow-xl border border-slate-200">
           {/* Logo — large, centered, no subtitle */}
           <div className="flex justify-center mb-8">
-            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-indigo-50 dark:border-indigo-900/30 shadow-md">
+            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-indigo-50 shadow-md">
               <img
                 src="/logo.jpeg"
                 alt="Logo"
@@ -176,21 +176,21 @@ export default function LoginPage({ showRegistration = true }: LoginPageProps) {
         <>
           {/* Cash Payment Notice (Wide Horizontal Banner) */}
           <div className="mt-8 w-full max-w-5xl animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="p-6 rounded-[24px] border border-red-200 bg-red-50/50 dark:bg-rose-950/20 dark:border-rose-900/50 shadow-sm relative overflow-hidden group">
+            <div className="p-6 rounded-[24px] border border-red-200 bg-red-50/50 shadow-sm relative overflow-hidden group">
               <div className="flex flex-col lg:flex-row items-center lg:items-start gap-6 relative z-10 transition-transform duration-500">
-                <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center shrink-0 border border-rose-200/50">
-                  <AlertCircle className="text-rose-600 dark:text-rose-400" size={24} />
+                <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center shrink-0 border border-rose-200/50">
+                  <AlertCircle className="text-rose-600" size={24} />
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 flex-1">
                   <div className="space-y-2">
                     <p className="text-[10px] font-bold text-rose-400 uppercase tracking-widest pl-0.5 font-poppins">Instruction</p>
-                    <p className="text-rose-900 dark:text-rose-200 text-[13.5px] font-medium leading-relaxed text-center lg:text-left font-inter">
+                    <p className="text-rose-900 text-[13.5px] font-medium leading-relaxed text-center lg:text-left font-inter">
                       For admission through cash payment, you have to visit the <span className="text-rose-600 font-semibold decoration-rose-500/30 underline-offset-4 decoration-2">Balkanji Ni Bari, Nadiad</span> office between <strong>15 April to 25 April</strong> during <strong>5:00 PM to 7:00 PM</strong> for filling the online form with cash. Students who need help filling the online form may also visit the office during the same hours.
                     </p>
                   </div>
                   <div className="space-y-2 border-t lg:border-t-0 lg:border-l border-rose-200/50 pt-6 lg:pt-0 lg:pl-12">
                     <p className="text-[10px] font-bold text-rose-400 uppercase tracking-widest pl-0.5 font-poppins">સૂચના</p>
-                    <p className="text-rose-900 dark:text-rose-200 text-[13.5px] font-medium leading-relaxed text-center lg:text-left font-inter" lang="gu">
+                    <p className="text-rose-900 text-[13.5px] font-medium leading-relaxed text-center lg:text-left font-inter" lang="gu">
                       રોકડ ચૂકવણી દ્વારા પ્રવેશ માટે, <span className="text-rose-600 font-semibold">૧૫ એપ્રિલ થી ૨૫ એપ્રિલ</span> દરમિયાન <span className="font-semibold">સાંજે ૫:૦૦ થી ૭:૦૦ વાગ્યા</span> સુધી બાળકાંજી ની બારી, નડિયાદ ઓફિસમાં રૂબરૂ આવવું. ઓનલાઈન ફોર્મ ભરવામાં मदद જોઈતી હોય તેવા વિદ્યાર્થીઓ પણ ઉક્ત સમય દરમિયાન ઓફિસની મુલાકાત લઈ શકે છે.
                     </p>
                   </div>
