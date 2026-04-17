@@ -175,6 +175,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
     payment_method: 'CASH'
   })
   const [availableSubjects, setAvailableSubjects] = useState<any[]>([])
+  const [batchData, setBatchData] = useState<Record<number, any[]>>({})
   const [formLoading, setFormLoading] = useState(false)
   const [countryCode, setCountryCode] = useState('+91')
 
@@ -521,16 +522,27 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
 
   const handleEnrollmentChange = (index: number, field: string, value: any) => {
     const newEnrollments = [...formData.enrollments]
-    
+
     if (field === 'subject_id') {
       const sub = availableSubjects.find(s => s.id === value)
       if (sub) {
-        // Auto-select first available batch time
         const timings = getUniqueBatchTimings(sub)
-        newEnrollments[index] = { 
-          ...newEnrollments[index], 
+        newEnrollments[index] = {
+          ...newEnrollments[index],
           [field]: value,
           batch_time: timings.length > 0 ? timings[0] : (sub.default_batch_timing || '')
+        }
+        // Fetch batch capacity data if not already loaded
+        if (value && !batchData[value]) {
+          fetch(`${API_BASE_URL}/api/v1/subjects/${value}/batches/`, {
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+          })
+            .then(r => r.json())
+            .then(data => {
+              const batches = data.data || data.results || []
+              setBatchData(prev => ({ ...prev, [value]: batches }))
+            })
+            .catch(() => {})
         }
       } else {
         newEnrollments[index] = { ...newEnrollments[index], [field]: value }
@@ -538,7 +550,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
     } else {
       newEnrollments[index] = { ...newEnrollments[index], [field]: value }
     }
-    
+
     setFormData({ ...formData, enrollments: newEnrollments })
   }
 
@@ -617,24 +629,24 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
 
       {/* Success Credentials Box */}
       {submittedCredentials && (
-        <div className="bg-emerald-50 dark:bg-emerald-900/10 border-2 border-emerald-500 rounded-3xl p-8 shadow-xl relative overflow-hidden group">
+        <div className="bg-emerald-50 border-2 border-emerald-500 rounded-3xl p-8 shadow-xl relative overflow-hidden group">
            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full -mr-16 -mt-16" />
            <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
               <div className="w-16 h-16 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20">
                  <Plus className="rotate-45" size={32} />
               </div>
               <div className="flex-1 text-center md:text-left">
-                 <h2 className="text-xl font-black text-slate-900 dark:text-white font-poppins mb-1 uppercase tracking-tight">Registration Successful</h2>
-                 <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Student account <b>{submittedCredentials.studentId}</b> created. Fees are currently pending in cash mode.</p>
+                 <h2 className="text-xl font-black text-slate-900 font-poppins mb-1 uppercase tracking-tight">Registration Successful</h2>
+                 <p className="text-slate-500 font-medium text-sm">Student account <b>{submittedCredentials.studentId}</b> created. Fees are currently pending in cash mode.</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full md:w-auto">
-                 <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-emerald-100 shadow-sm">
+                 <div className="p-4 bg-white rounded-2xl border border-emerald-100 shadow-sm">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Username</p>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white font-poppins">{submittedCredentials.username}</p>
+                    <p className="text-sm font-bold text-slate-900 font-poppins">{submittedCredentials.username}</p>
                  </div>
-                 <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-emerald-100 shadow-sm">
+                 <div className="p-4 bg-white rounded-2xl border border-emerald-100 shadow-sm">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Password</p>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white font-poppins font-mono tracking-wider">{submittedCredentials.password}</p>
+                    <p className="text-sm font-bold text-slate-900 font-poppins font-mono tracking-wider">{submittedCredentials.password}</p>
                  </div>
               </div>
               <button 
@@ -707,7 +719,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
 
       {/* Add/Edit Student Form */}
       {showForm && (
-        <div ref={formRef} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[24px] p-6 shadow-xl scroll-mt-20">
+        <div ref={formRef} className="bg-white border border-gray-200 rounded-[24px] p-6 shadow-xl scroll-mt-20">
           <h2 className="h2 mb-6">
             {editingStudent ? 'Edit Student Record' : 'New Student Registration'}
           </h2>
@@ -715,11 +727,11 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
             <div className="space-y-8">
               {/* ---- Personal Information ---- */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
                     <User size={18} />
                   </div>
-                  <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">Personal Information</h3>
+                  <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Personal Information</h3>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -763,7 +775,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                       readOnly
                       placeholder="Age"
                       value={formData.age ? `${formData.age} Years` : 'Enter DOB'}
-                      className="w-full input-standard bg-gray-50/80 dark:bg-gray-800/50 font-bold text-blue-600 dark:text-blue-400 cursor-not-allowed"
+                      className="w-full input-standard bg-gray-50/80 font-bold text-blue-600 cursor-not-allowed"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -799,18 +811,18 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
 
               {/* ---- Contact Details ---- */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
                     <AlertCircle size={18} />
                   </div>
-                  <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">Contact Details</h3>
+                  <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Contact Details</h3>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1">
                     <label className="text-[11px] font-bold text-gray-500 uppercase px-1">Contact Number (10 Digits) *</label>
                     <div className="flex">
-                      <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md dark:bg-gray-600 dark:text-gray-400 dark:border-gray-600">
+                      <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md">
                         +91
                       </span>
                       <input
@@ -887,17 +899,17 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
 
               {/* ---- Subject Enrollment Section ---- */}
               <div className="space-y-6 pt-4">
-                <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-700">
+                <div className="flex items-center justify-between pb-2 border-b border-gray-100">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
                       <BookOpen size={18} />
                     </div>
-                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">Subject Enrollment</h3>
+                    <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Subject Enrollment</h3>
                   </div>
                   <button
                     type="button"
                     onClick={addEnrollmentField}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 transition-all uppercase tracking-widest"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 border border-indigo-100 transition-all uppercase tracking-widest"
                   >
                     <Plus size={14} /> Add Subject
                   </button>
@@ -905,14 +917,14 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
 
                 <div className="space-y-4">
                   {formData.enrollments.map((enr: any, index: number) => (
-                    <div key={index} className="relative p-6 bg-gray-50/50 dark:bg-gray-800/30 rounded-2xl border border-gray-100 dark:border-gray-700 space-y-4 group">
+                    <div key={index} className="relative p-6 bg-gray-50/50 rounded-2xl border border-gray-100 space-y-4 group">
                       <div className="flex justify-between items-center">
-                        <span className="text-[10px] font-black text-indigo-300 dark:text-indigo-700 uppercase tracking-[3px]">Enrollment #{index + 1}</span>
+                        <span className="text-[10px] font-black text-indigo-300 uppercase tracking-[3px]">Enrollment #{index + 1}</span>
                         {formData.enrollments.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeEnrollmentField(index)}
-                            className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                            className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -923,7 +935,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                         <div className="flex flex-col gap-1">
                           <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Subject</label>
                           <select
-                            className="w-full input-standard bg-white dark:bg-gray-900"
+                            className="w-full input-standard bg-white"
                             value={enr.subject_id}
                             onChange={(e) => handleEnrollmentChange(index, 'subject_id', parseInt(e.target.value))}
                             required
@@ -939,7 +951,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                         <div className="flex flex-col gap-1">
                           <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Batch Time</label>
                           <select
-                            className="w-full input-standard bg-white dark:bg-gray-900"
+                            className="w-full input-standard bg-white"
                             value={enr.batch_time}
                             onChange={(e) => handleEnrollmentChange(index, 'batch_time', e.target.value)}
                             required
@@ -948,9 +960,16 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                             {(() => {
                                 const sub = availableSubjects.find(s => s.id === enr.subject_id)
                                 const timings = sub ? getUniqueBatchTimings(sub) : []
-                                return timings.map(t => (
-                                    <option key={t} value={t}>{t}</option>
-                                ))
+                                const batches: any[] = batchData[enr.subject_id] || []
+                                return timings.map(t => {
+                                    const batchInfo = batches.find((b: any) => b.batch_time === t)
+                                    const isFull = batchInfo?.is_full
+                                    const isClosed = batchInfo && !batchInfo.is_active
+                                    const label = `${t}${batchInfo ? ` (${batchInfo.enrolled_count}/${batchInfo.capacity_limit})` : ''}${isFull ? ' 🔴 FULL' : isClosed ? ' 🔒 CLOSED' : ''}`
+                                    return (
+                                        <option key={t} value={t} disabled={isFull || isClosed}>{label}</option>
+                                    )
+                                })
                             })()}
                           </select>
                         </div>
@@ -960,28 +979,28 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                         const fees = getEnrollmentFeeBreakdown(enr)
                         return (
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div className="p-3 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+                            <div className="p-3 rounded-xl bg-white border border-gray-100">
                               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Subject Fees</p>
-                              <p className="text-sm font-bold text-slate-900 dark:text-white">Rs. {fees.subjectFee.toLocaleString()}</p>
+                              <p className="text-sm font-bold text-slate-900">Rs. {fees.subjectFee.toLocaleString()}</p>
                             </div>
-                            <div className="p-3 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+                            <div className="p-3 rounded-xl bg-white border border-gray-100">
                               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Library Fee</p>
-                              <p className="text-sm font-bold text-slate-900 dark:text-white">Rs. {fees.libraryFee.toLocaleString()}</p>
+                              <p className="text-sm font-bold text-slate-900">Rs. {fees.libraryFee.toLocaleString()}</p>
                             </div>
-                            <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800">
+                            <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-100">
                               <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Total Fees</p>
-                              <p className="text-sm font-bold text-indigo-700 dark:text-indigo-300">Rs. {fees.totalFee.toLocaleString()}</p>
+                              <p className="text-sm font-bold text-indigo-700">Rs. {fees.totalFee.toLocaleString()}</p>
                             </div>
                           </div>
                         )
                       })()}
                       
-                      <div className="flex items-center justify-between bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+                      <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-100">
                         <div className="flex items-center gap-3">
-                           <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500">
+                           <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
                              <BookOpen size={14} />
                            </div>
-                           <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Include Library Fee (₹10)</span>
+                           <span className="text-xs font-bold text-gray-700">Include Library Fee (₹10)</span>
                         </div>
                         <input
                           type="checkbox"
@@ -1033,7 +1052,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
 
               {lastCreatedId && (
                 <>
-                  <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-lg text-sm font-medium border border-blue-100 dark:border-blue-800">
+                  <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium border border-blue-100">
                     Registration saved with CASH (Pending). Use Request Acceptance to confirm cash and generate receipt + ID card.
                   </div>
                 </>
@@ -1045,7 +1064,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                   setShowForm(false)
                   resetForm()
                 }}
-                className="btn-standard btn-font bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-8 uppercase tracking-widest text-xs"
+                className="btn-standard btn-font bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 px-8 uppercase tracking-widest text-xs"
               >
                 {lastCreatedId ? 'Close' : 'Cancel'}
               </button>
@@ -1059,8 +1078,8 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
         {loading ? (
           <SkeletonTable rows={8} />
         ) : students.length === 0 ? (
-          <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
-            <div className="w-20 h-20 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="text-gray-300" size={32} />
             </div>
             <p className="text-gray-500 font-bold">No students found</p>
@@ -1069,11 +1088,11 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
         ) : (
           <>
             {/* Desktop Table View (Hidden below LG) */}
-            <div className="hidden lg:block bg-white dark:bg-gray-800 border border-slate-200/60 dark:border-slate-700 rounded-[24px] shadow-xl overflow-hidden">
+            <div className="hidden lg:block bg-white border border-slate-200/60 rounded-[24px] shadow-xl overflow-hidden">
               <div className="overflow-x-auto no-scrollbar">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700 font-inter font-medium">
+                    <tr className="bg-slate-50/50 border-b border-slate-100 font-inter font-medium">
                       <th className="px-6 py-4 text-left text-[11px] text-slate-400 uppercase tracking-widest font-poppins">Student</th>
                       <th className="px-6 py-4 text-left text-[11px] text-slate-400 uppercase tracking-widest font-poppins">Area</th>
                       <th className="px-6 py-4 text-right text-[11px] text-slate-400 uppercase tracking-widest font-poppins">Fee Info</th>
@@ -1081,12 +1100,12 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                       <th className="px-6 py-4 text-right text-[11px] text-slate-400 uppercase tracking-widest font-poppins">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 table-font font-inter font-medium leading-relaxed">
+                  <tbody className="divide-y divide-slate-100 table-font font-inter font-medium leading-relaxed">
                     {students.map((student) => (
-                      <tr key={student.id} className="hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-colors">
+                      <tr key={student.id} className="hover:bg-indigo-50/30 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap font-inter">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl overflow-hidden bg-sky-50 dark:bg-sky-900/20 flex items-center justify-center text-sky-600 dark:text-sky-400 font-bold text-xl shadow-sm group border border-sky-100/50">
+                            <div className="w-12 h-12 rounded-2xl overflow-hidden bg-sky-50 flex items-center justify-center text-sky-600 font-bold text-xl shadow-sm group border border-sky-100/50">
                               {(() => {
                                 const isLogo = student.photo && (student.photo.includes('logo.jpeg') || student.photo.includes('avatar'));
                                 const photoUrl = !isLogo ? getMediaUrl(student.photo) : null;
@@ -1109,18 +1128,18 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                               })()}
                             </div>
                             <div>
-                              <p className="text-[15px] font-semibold text-gray-900 dark:text-white leading-tight font-inter">{student.name}</p>
+                              <p className="text-[15px] font-semibold text-gray-900 leading-tight font-inter">{student.name}</p>
                               <p className="text-[12px] font-medium text-indigo-500 uppercase tracking-widest mt-0.5 font-inter">{student.student_id}</p>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 font-inter">
-                          <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">{student.area}</p>
+                          <p className="text-sm font-semibold text-gray-600">{student.area}</p>
                         </td>
                         <td className="px-6 py-4 font-inter text-right">
                           <div className="flex flex-col items-end gap-2">
                             <div>
-                              <p className="text-[13px] font-semibold text-gray-900 dark:text-white font-inter">₹{parseFloat(student.total_fees?.toString() || '0').toLocaleString()}</p>
+                              <p className="text-[13px] font-semibold text-gray-900 font-inter">₹{parseFloat(student.total_fees?.toString() || '0').toLocaleString()}</p>
                               <p className="text-[12px] font-medium text-red-500 uppercase font-inter">Pending: ₹{parseFloat(student.total_pending?.toString() || '0').toLocaleString()}</p>
                             </div>
                           </div>
@@ -1133,18 +1152,18 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                         <td className="px-6 py-4 text-right">
                           <div className="flex gap-2 justify-end">
                             {canUpdate && (
-                              <button onClick={() => handleEdit(student)} className="w-10 h-10 flex items-center justify-center hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl transition-all active:scale-90" title="Edit">
+                              <button onClick={() => handleEdit(student)} className="w-10 h-10 flex items-center justify-center hover:bg-amber-100 text-amber-600 rounded-xl transition-all active:scale-90" title="Edit">
                                 <Edit2 size={18} />
                               </button>
                             )}
                             {canDelete && (
-                              <button onClick={() => handleDelete(student.id)} className="w-10 h-10 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl transition-all active:scale-90" title="Delete">
+                              <button onClick={() => handleDelete(student.id)} className="w-10 h-10 flex items-center justify-center hover:bg-red-100 text-red-600 rounded-xl transition-all active:scale-90" title="Delete">
                                 <Trash2 size={18} />
                               </button>
                             )}
                             <button 
                               onClick={() => setViewingStudentId(student.id)}
-                              className="w-10 h-10 flex items-center justify-center hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl transition-all active:scale-90" 
+                              className="w-10 h-10 flex items-center justify-center hover:bg-blue-100 text-blue-600 rounded-xl transition-all active:scale-90" 
                               title="View Profile"
                             >
                               <User size={18} />
@@ -1161,9 +1180,9 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
             {/* Mobile/Tablet Card View (Visible below LG) */}
             <div className="lg:hidden grid grid-cols-1 gap-4 px-1 sm:px-0">
               {students.map((student) => (
-                <div key={student.id} className="bg-white dark:bg-slate-900 rounded-[28px] p-6 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/10 group transition-all">
+                <div key={student.id} className="bg-white rounded-[28px] p-6 border border-slate-100 shadow-xl shadow-slate-200/10 group transition-all">
                   <div className="flex gap-5 mb-5">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[20px] overflow-hidden bg-sky-50 dark:bg-sky-900/20 flex items-center justify-center border border-sky-100/50 shadow-sm flex-shrink-0 text-sky-600 dark:text-sky-400 font-bold text-2xl group-hover:scale-105 transition-transform">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[20px] overflow-hidden bg-sky-50 flex items-center justify-center border border-sky-100/50 shadow-sm flex-shrink-0 text-sky-600 font-bold text-2xl group-hover:scale-105 transition-transform">
                       {(() => {
                         const isLogo = student.photo && (student.photo.includes('logo.jpeg') || student.photo.includes('avatar'));
                         const photoUrl = !isLogo ? getMediaUrl(student.photo) : null;
@@ -1186,9 +1205,9 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                       })()}
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
-                      <p className="font-bold text-lg sm:text-xl text-slate-900 dark:text-white truncate tracking-tight font-poppins uppercase">{student.name}</p>
+                      <p className="font-bold text-lg sm:text-xl text-slate-900 truncate tracking-tight font-poppins uppercase">{student.name}</p>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] sm:text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-0.5 rounded-lg border border-indigo-100/50">
+                        <span className="text-[10px] sm:text-[11px] font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2.5 py-0.5 rounded-lg border border-indigo-100/50">
                           ID: {student.student_id}
                         </span>
                         <span className={`px-2.5 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold uppercase tracking-widest shadow-sm ${getStatusColor(student.payment_status)}`}>
@@ -1198,14 +1217,14 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl mb-4 border border-slate-100 dark:border-slate-700">
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-2xl mb-4 border border-slate-100">
                     <div>
                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Fee Balance</p>
                       <p className="text-base font-bold text-rose-600">₹{parseFloat(student.total_pending?.toString() || '0').toLocaleString()}</p>
                     </div>
                     <div>
                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Locality</p>
-                      <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 truncate uppercase tracking-tight">{student.area || 'N/A'}</p>
+                      <p className="text-[11px] font-bold text-slate-700 truncate uppercase tracking-tight">{student.area || 'N/A'}</p>
                     </div>
                   </div>
 
@@ -1213,14 +1232,14 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                     <div className="flex gap-3">
                        <button
                         onClick={() => handleEdit(student)}
-                        className="flex-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 h-12 rounded-xl font-bold text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700 active:scale-95 transition-all"
+                        className="flex-1 bg-white text-slate-600 h-12 rounded-xl font-bold text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 border border-slate-200 active:scale-95 transition-all"
                       >
                         <Edit2 size={16} /> Edit
                       </button>
                       {canDelete && (
                          <button
                           onClick={() => handleDelete(student.id)}
-                          className="w-12 h-12 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center border border-rose-100 dark:border-rose-900/50 active:scale-95 transition-all"
+                          className="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center border border-rose-100 active:scale-95 transition-all"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -1228,7 +1247,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                     </div>
                     <button
                       onClick={() => setViewingStudentId(student.id)}
-                      className="w-full bg-slate-900 dark:bg-indigo-600 text-white h-12 sm:h-14 rounded-xl font-bold text-[11px] sm:text-[12px] uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl active:scale-[0.98] transition-all"
+                      className="w-full bg-slate-900 text-white h-12 sm:h-14 rounded-xl font-bold text-[11px] sm:text-[12px] uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl active:scale-[0.98] transition-all"
                     >
                       <User size={18} /> View Profile
                     </button>
@@ -1239,12 +1258,12 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-6 bg-white rounded-3xl border border-gray-100 shadow-sm">
                 <div className="flex-1">
-                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
                     Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalCount)} of {totalCount} students
                   </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  <p className="text-xs text-gray-400 mt-1">
                     Page {currentPage} of {totalPages}
                   </p>
                 </div>
@@ -1254,7 +1273,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                   <button
                     onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed font-medium text-sm uppercase tracking-widest active:scale-95"
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed font-medium text-sm uppercase tracking-widest active:scale-95"
                     title="Previous page"
                   >
                     ← Prev
@@ -1281,7 +1300,7 @@ export default function StudentsPage({ userRole, canEdit }: StudentsPageProps) {
                           className={`w-10 h-10 rounded-lg font-bold text-sm transition-all active:scale-95 ${
                             currentPage === pageNum
                               ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                           title={`Go to page ${pageNum}`}
                         >

@@ -289,7 +289,7 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
             ))}
           </div>
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1 font-inter">
+        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1 font-inter">
           <Info size={12} className="text-indigo-500" />
           Reports are strictly filtered for Summer Camp 2026 data
         </p>
@@ -658,24 +658,24 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
         </div>
         <div className="overflow-x-auto no-scrollbar hidden lg:block">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+            <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-3 sm:px-6 py-4 text-left text-[10px] sm:text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider font-poppins">Report Name</th>
-                <th className="px-3 sm:px-6 py-4 text-left text-[10px] sm:text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider font-poppins">Formats</th>
-                <th className="px-3 sm:px-6 py-4 text-left text-[10px] sm:text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell font-poppins">Refreshed</th>
-                <th className="px-3 sm:px-6 py-4 text-right text-[10px] sm:text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider font-poppins">Action</th>
+                <th className="px-3 sm:px-6 py-4 text-left text-[10px] sm:text-sm font-bold text-gray-600 uppercase tracking-wider font-poppins">Report Name</th>
+                <th className="px-3 sm:px-6 py-4 text-left text-[10px] sm:text-sm font-bold text-gray-600 uppercase tracking-wider font-poppins">Formats</th>
+                <th className="px-3 sm:px-6 py-4 text-left text-[10px] sm:text-sm font-bold text-gray-600 uppercase tracking-wider hidden sm:table-cell font-poppins">Refreshed</th>
+                <th className="px-3 sm:px-6 py-4 text-right text-[10px] sm:text-sm font-bold text-gray-600 uppercase tracking-wider font-poppins">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-gray-200">
               {reports.map((report) => (
-                <tr key={report.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <tr key={report.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-3 sm:px-6 py-4">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="p-1.5 sm:p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
-                        <FileText size={16} className="text-indigo-600 dark:text-indigo-400 sm:size-5" />
+                      <div className="p-1.5 sm:p-2 bg-indigo-50 rounded-lg">
+                        <FileText size={16} className="text-indigo-600 sm:size-5" />
                       </div>
                       <div>
-                        <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white font-inter">{report.name}</p>
+                        <p className="text-xs sm:text-sm font-bold text-gray-900 font-inter">{report.name}</p>
                         <p className="text-[10px] text-gray-500 line-clamp-1 font-inter">{report.desc}</p>
                       </div>
                     </div>
@@ -686,13 +686,13 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
                       <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-100 text-blue-800">PDF</span>
                     </div>
                   </td>
-                  <td className="px-3 sm:px-6 py-4 text-xs text-gray-500 dark:text-gray-400 hidden sm:table-cell font-inter">{report.date}</td>
+                  <td className="px-3 sm:px-6 py-4 text-xs text-gray-500 hidden sm:table-cell font-inter">{report.date}</td>
                   <td className="px-3 sm:px-6 py-4 text-right">
                     <div className="flex gap-2 justify-end">
                       <button
                         onClick={() => handleDownload(report.id, 'CSV')}
                         disabled={!!downloading}
-                        className="w-10 h-10 flex items-center justify-center hover:bg-green-50 text-green-600 dark:text-green-400 rounded-xl transition-all border border-transparent hover:border-green-100 dark:hover:border-green-900/50"
+                        className="w-10 h-10 flex items-center justify-center hover:bg-green-50 text-green-600 rounded-xl transition-all border border-transparent hover:border-green-100"
                         title="Download CSV"
                       >
                         <Download size={18} />
@@ -700,7 +700,7 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
                       <button
                         onClick={() => handleDownload(report.id, 'PDF')}
                         disabled={!!downloading}
-                        className="w-10 h-10 flex items-center justify-center hover:bg-indigo-50 text-indigo-600 dark:text-indigo-400 rounded-xl transition-all border border-transparent hover:border-indigo-100 dark:hover:border-indigo-900/50"
+                        className="w-10 h-10 flex items-center justify-center hover:bg-indigo-50 text-indigo-600 rounded-xl transition-all border border-transparent hover:border-indigo-100"
                         title="Download PDF"
                       >
                         <FileText size={18} />

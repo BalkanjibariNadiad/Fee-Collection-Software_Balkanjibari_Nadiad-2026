@@ -233,23 +233,23 @@ export default function StudentPayments() {
       case 'PAID':
         return {
           label: 'PAID',
-          className: 'text-emerald-600 dark:text-emerald-400'
+          className: 'text-emerald-600'
         }
       case 'PENDING_CONFIRMATION':
       case 'PENDING':
         return {
           label: 'PENDING',
-          className: 'text-amber-600 dark:text-amber-400'
+          className: 'text-amber-600'
         }
       case 'FAILED':
         return {
           label: 'FAILED',
-          className: 'text-rose-600 dark:text-rose-400'
+          className: 'text-rose-600'
         }
       default:
         return {
           label: normalized,
-          className: 'text-amber-600 dark:text-amber-400'
+          className: 'text-amber-600'
         }
     }
   }
@@ -269,32 +269,32 @@ export default function StudentPayments() {
           <h1 className="text-xl sm:text-2xl font-black text-slate-950 uppercase tracking-tight font-poppins">My Payment History</h1>
           <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest mt-1 font-inter">Verified Financial Transactions</p>
         </div>
-        <div className="flex items-center gap-3 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
-           <CreditCard size={14} className="text-indigo-600 dark:text-indigo-400" />
-           <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-widest font-inter">Institutional Ledger</span>
+        <div className="flex items-center gap-3 px-4 py-2 bg-indigo-50 rounded-2xl border border-indigo-100">
+           <CreditCard size={14} className="text-indigo-600" />
+           <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-widest font-inter">Institutional Ledger</span>
         </div>
       </div>
 
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-        <div className="bg-white dark:bg-slate-900 rounded-[28px] p-6 border border-slate-100 dark:border-slate-800 shadow-lg shadow-slate-200/10 ring-1 ring-blue-400/10 dark:ring-blue-400/5 group relative overflow-hidden">
+        <div className="bg-white rounded-[28px] p-6 border border-slate-100 shadow-lg shadow-slate-200/10 ring-1 ring-blue-400/10 group relative overflow-hidden">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 font-inter">Total Commitment</p>
-          <p className="text-2xl font-black text-slate-900 dark:text-white font-poppins">{formatCurrency(paymentHistory.reduce((acc, p) => acc + (p.status === 'SUCCESS' ? Number(p.amount) : 0), 0) + pendingFees.reduce((acc, f) => acc + Number(f.pending_amount), 0))}</p>
-          <div className="absolute top-4 right-4 p-2 bg-slate-50 dark:bg-slate-800/30 text-slate-500 rounded-xl">
+          <p className="text-2xl font-black text-slate-900 font-poppins">{formatCurrency(paymentHistory.reduce((acc, p) => acc + (p.status === 'SUCCESS' ? Number(p.amount) : 0), 0) + pendingFees.reduce((acc, f) => acc + Number(f.pending_amount), 0))}</p>
+          <div className="absolute top-4 right-4 p-2 bg-slate-50 text-slate-500 rounded-xl">
              <IndianRupee size={18} />
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-[28px] p-6 border border-slate-100 dark:border-slate-800 shadow-lg shadow-slate-200/10 ring-1 ring-blue-400/10 dark:ring-blue-400/5 group relative overflow-hidden">
+        <div className="bg-white rounded-[28px] p-6 border border-slate-100 shadow-lg shadow-slate-200/10 ring-1 ring-blue-400/10 group relative overflow-hidden">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 font-inter">Total Paid</p>
           <p className="text-2xl font-black text-emerald-600 font-poppins">{formatCurrency(paymentHistory.reduce((acc, p) => acc + (p.status === 'SUCCESS' ? Number(p.amount) : 0), 0))}</p>
-          <div className="absolute top-4 right-4 p-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 rounded-xl">
+          <div className="absolute top-4 right-4 p-2 bg-emerald-50 text-emerald-500 rounded-xl">
              <CheckCircle size={18} />
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-[28px] p-6 border border-slate-100 dark:border-slate-800 shadow-lg shadow-slate-200/10 ring-1 ring-blue-400/10 dark:ring-blue-400/5 group relative overflow-hidden">
+        <div className="bg-white rounded-[28px] p-6 border border-slate-100 shadow-lg shadow-slate-200/10 ring-1 ring-blue-400/10 group relative overflow-hidden">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 font-inter">Pending Dues</p>
           <p className="text-2xl font-black text-rose-600 font-poppins">{formatCurrency(pendingFees.reduce((acc, f) => acc + Number(f.pending_amount), 0))}</p>
-          <div className="absolute top-4 right-4 p-2 bg-rose-50 dark:bg-rose-900/30 text-rose-500 rounded-xl">
+          <div className="absolute top-4 right-4 p-2 bg-rose-50 text-rose-500 rounded-xl">
              <AlertCircle size={18} />
           </div>
         </div>
@@ -324,11 +324,11 @@ export default function StudentPayments() {
         </div>
 
         {outstandingFees.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 rounded-[24px] sm:rounded-[32px] p-10 sm:p-16 text-center border-dashed border-2 border-slate-100 dark:border-slate-800">
+          <div className="bg-white rounded-[24px] sm:rounded-[32px] p-10 sm:p-16 text-center border-dashed border-2 border-slate-100">
             <div className="inline-flex p-4 sm:p-5 rounded-full bg-emerald-50 text-emerald-600 mb-6 shadow-xl shadow-emerald-500/10">
               <CheckCircle size={32} className="sm:w-[44px] sm:h-[44px]" />
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white uppercase tracking-tight font-poppins">All Settled</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-tight font-poppins">All Settled</h3>
             <p className="text-slate-400 mt-2 max-w-sm mx-auto text-[10px] sm:text-xs font-bold uppercase tracking-widest leading-relaxed font-inter">No outstanding institutional dues detected.</p>
           </div>
         ) : (
@@ -337,10 +337,10 @@ export default function StudentPayments() {
               const dueStatus = getDueStatusMeta(fee.payment_status)
 
               return (
-              <div key={fee.id} className="bg-white dark:bg-slate-900 rounded-[32px] p-6 sm:p-10 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/20 ring-1 ring-blue-400/10 dark:ring-blue-400/5 group">
+              <div key={fee.id} className="bg-white rounded-[32px] p-6 sm:p-10 border border-slate-100 shadow-xl shadow-slate-200/20 ring-1 ring-blue-400/10 group">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
                   <div className="space-y-2">
-                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight font-poppins">{fee.subject_name}</h3>
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight font-poppins">{fee.subject_name}</h3>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-inter">ID: {fee.id}</span>
                       <span className="w-1 h-1 rounded-full bg-slate-300"></span>
@@ -353,10 +353,10 @@ export default function StudentPayments() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 font-inter">
+                <div className="grid grid-cols-2 gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100 font-inter">
                   <div>
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Fee Breakdown</p>
-                    <p className="text-xs font-black text-slate-900 dark:text-white">{formatCurrency(fee.total_fee)} (Total)</p>
+                    <p className="text-xs font-black text-slate-900">{formatCurrency(fee.total_fee)} (Total)</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
@@ -430,39 +430,39 @@ export default function StudentPayments() {
           {/* Mobile Card View */}
           <div className="lg:hidden grid grid-cols-1 gap-4">
             {paymentHistory.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 rounded-[24px] p-10 text-center border-dashed border-2 border-slate-100 dark:border-slate-800 opacity-50 font-inter">
+              <div className="bg-white rounded-[24px] p-10 text-center border-dashed border-2 border-slate-100 opacity-50 font-inter">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">No history found</p>
               </div>
             ) : (
               paymentHistory.map((payment) => (
-                <div key={payment.id} className="bg-white dark:bg-slate-900 rounded-[28px] p-6 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/10 space-y-4 group">
+                <div key={payment.id} className="bg-white rounded-[28px] p-6 border border-slate-100 shadow-xl shadow-slate-200/10 space-y-4 group">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-inter">Enrollment</p>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight leading-tight group-hover:text-indigo-600 transition-colors font-poppins">{payment.subject_name}</h4>
+                      <h4 className="text-sm font-bold text-slate-900 uppercase tracking-tight leading-tight group-hover:text-indigo-600 transition-colors font-poppins">{payment.subject_name}</h4>
                     </div>
                     {getStatusBadge(payment.status)}
                   </div>
-                  <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-50 dark:border-slate-800">
+                  <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-50">
                     <div className="space-y-1">
                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-inter">Date</p>
-                       <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest font-poppins">
+                       <p className="text-[10px] font-bold text-slate-700 uppercase tracking-widest font-poppins">
                          {new Date(payment.payment_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
                        </p>
                     </div>
                     <div className="space-y-1 text-center">
                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-inter">Mode</p>
-                       <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest font-poppins">{payment.payment_mode}</p>
+                       <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest font-poppins">{payment.payment_mode}</p>
                     </div>
                     <div className="text-right space-y-1">
                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-inter">Value</p>
-                       <p className="text-sm font-bold text-slate-900 dark:text-white tracking-tighter leading-none font-poppins">{formatCurrency(payment.amount)}</p>
+                       <p className="text-sm font-bold text-slate-900 tracking-tighter leading-none font-poppins">{formatCurrency(payment.amount)}</p>
                     </div>
                   </div>
                   {payment.status === 'SUCCESS' && (
                     <button
                       onClick={() => handleDownloadReceipt(payment.id)}
-                      className="w-full h-11 bg-slate-900 dark:bg-indigo-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-lg shadow-slate-900/10 dark:shadow-indigo-500/10 font-poppins"
+                      className="w-full h-11 bg-slate-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-lg shadow-slate-900/10 font-poppins"
                     >
                       <Download size={14} /> Download Receipt
                     </button>

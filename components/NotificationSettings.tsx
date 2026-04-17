@@ -52,13 +52,13 @@ export default function NotificationSettings() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
-            <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
-                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+                <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
                     <Bell size={24} />
                 </div>
                 <div>
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white font-poppins">Notification Preferences</h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 font-inter">Manage how you receive alerts and updates</p>
+                    <h2 className="text-xl font-bold text-slate-900 font-poppins">Notification Preferences</h2>
+                    <p className="text-slate-500 text-sm mt-1 font-inter">Manage how you receive alerts and updates</p>
                 </div>
             </div>
 
@@ -70,7 +70,7 @@ export default function NotificationSettings() {
                 </div>
             )}
 
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm divide-y divide-slate-100">
                 {/* Email Notifications */}
                 <div className="p-6 flex items-center justify-between">
                     <div className="flex gap-4">
@@ -90,7 +90,7 @@ export default function NotificationSettings() {
                     </button>
                 </div>
 
-                <div className="p-6 bg-slate-50/50 dark:bg-slate-800/20">
+                <div className="p-6 bg-slate-50/50">
                     <button
                         onClick={handleSave}
                         disabled={isSaving}

@@ -121,7 +121,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 overflow-hidden relative">
+    <div className="flex h-screen bg-gray-100 overflow-hidden relative">
       <Sidebar
         currentPage={currentPage}
           setCurrentPage={(page) => {
@@ -141,7 +141,7 @@ export default function DashboardLayout({
         />
       )}
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-slate-50 dark:bg-slate-900">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-slate-50">
         <TopNavbar
           onLogout={logout}
           onMenuToggle={() => setSidebarOpen(!sidebarOpen)}

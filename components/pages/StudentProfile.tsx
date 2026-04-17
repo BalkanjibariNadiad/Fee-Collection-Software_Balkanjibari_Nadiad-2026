@@ -127,7 +127,7 @@ export default function StudentProfile() {
   if (error || !student) {
     return (
       <div className="p-6">
-        <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 p-4 rounded-lg flex items-center gap-2 text-red-700 dark:text-red-400">
+        <div className="bg-red-50 border border-red-200 p-4 rounded-lg flex items-center gap-2 text-red-700">
           <AlertCircle size={20} />
           {error || 'Profile not found'}
         </div>
@@ -173,10 +173,10 @@ export default function StudentProfile() {
 
       <div className="relative px-2 sm:px-0">
         <div className="mx-2 xs:mx-4 sm:mx-0 relative z-10">
-          <div className="bg-white dark:bg-slate-900 p-4 xs:p-6 sm:p-10 rounded-[24px] sm:rounded-[32px] shadow-2xl shadow-slate-200/40 border border-slate-100 dark:border-slate-800 ring-1 ring-blue-400/10 dark:ring-blue-400/5 relative group transition-all duration-500">
+          <div className="bg-white p-4 xs:p-6 sm:p-10 rounded-[24px] sm:rounded-[32px] shadow-2xl shadow-slate-200/40 border border-slate-100 ring-1 ring-blue-400/10 relative group transition-all duration-500">
             <div className="flex flex-col md:flex-row items-center gap-4 xs:gap-6 sm:gap-12">
               <div className="relative group/photo shrink-0">
-                <div className={`h-24 w-24 xs:h-32 xs:w-32 sm:h-40 sm:w-40 rounded-[20px] xs:rounded-[24px] sm:rounded-[32px] border-[4px] sm:border-[6px] border-white dark:border-slate-800 shadow-2xl overflow-hidden transition-all duration-500 ${isEditing ? 'ring-4 ring-indigo-500/20' : ''} bg-slate-100 flex items-center justify-center text-slate-300 font-bold text-3xl xs:text-4xl sm:text-5xl font-poppins`}>
+                <div className={`h-24 w-24 xs:h-32 xs:w-32 sm:h-40 sm:w-40 rounded-[20px] xs:rounded-[24px] sm:rounded-[32px] border-[4px] sm:border-[6px] border-white shadow-2xl overflow-hidden transition-all duration-500 ${isEditing ? 'ring-4 ring-indigo-500/20' : ''} bg-slate-100 flex items-center justify-center text-slate-300 font-bold text-3xl xs:text-4xl sm:text-5xl font-poppins`}>
                   {(photoPreview || student?.photo) && !imgError ? (
                     <img 
                       src={photoPreview || getMediaUrl(student?.photo) || ''} 
@@ -200,13 +200,13 @@ export default function StudentProfile() {
                     </label>
                   )}
                 </div>
-                <div className="absolute -bottom-1 -right-1 bg-emerald-500 border-[3px] xs:border-[4px] sm:border-[6px] border-white dark:border-slate-800 h-6 w-6 xs:h-8 xs:w-8 sm:h-10 sm:w-10 rounded-full shadow-lg"></div>
+                <div className="absolute -bottom-1 -right-1 bg-emerald-500 border-[3px] xs:border-[4px] sm:border-[6px] border-white h-6 w-6 xs:h-8 xs:w-8 sm:h-10 sm:w-10 rounded-full shadow-lg"></div>
               </div>
               
               <div className="flex-1 text-center md:text-left space-y-1 xs:space-y-2">
-                <h2 className="text-2xl xs:text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight font-poppins line-clamp-2 uppercase">{student.name}</h2>
+                <h2 className="text-2xl xs:text-3xl sm:text-5xl font-black text-slate-900 tracking-tight font-poppins line-clamp-2 uppercase">{student.name}</h2>
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 xs:gap-3 sm:gap-4 text-slate-900 font-black uppercase tracking-[0.2em] text-[10px] xs:text-[11px] font-inter">
-                  <p className="text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1 rounded-lg">{student.student_id}</p>
+                  <p className="text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">{student.student_id}</p>
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
                   <p className="lowercase font-inter">{student.email}</p>
                 </div>
@@ -226,15 +226,15 @@ export default function StudentProfile() {
               <div className="space-y-4 sm:space-y-5">
                 <div className="group">
                   <p className="text-[10px] sm:text-[13px] font-bold text-slate-900 uppercase tracking-widest mb-1 font-inter">Age & Gender</p>
-                  <p className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-white leading-tight font-poppins">{student.age} Years • <span className="capitalize">{student.gender?.toLowerCase() || 'N/A'}</span></p>
+                  <p className="text-sm sm:text-[15px] font-bold text-slate-900 leading-tight font-poppins">{student.age} Years • <span className="capitalize">{student.gender?.toLowerCase() || 'N/A'}</span></p>
                 </div>
                 <div className="group">
                   <p className="text-[10px] sm:text-[13px] font-bold text-slate-900 uppercase tracking-widest mb-1 font-inter">Blood Group</p>
-                  <p className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-white leading-tight font-poppins">{student.blood_group || 'N/A'}</p>
+                  <p className="text-sm sm:text-[15px] font-bold text-slate-900 leading-tight font-poppins">{student.blood_group || 'N/A'}</p>
                 </div>
                 <div className="group">
                   <p className="text-[10px] sm:text-[13px] font-bold text-slate-900 uppercase tracking-widest mb-1 font-inter">Parent / Guardian</p>
-                  <p className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-white leading-tight uppercase tracking-tight font-poppins">{student.parent_name || 'N/A'}</p>
+                  <p className="text-sm sm:text-[15px] font-bold text-slate-900 leading-tight uppercase tracking-tight font-poppins">{student.parent_name || 'N/A'}</p>
                 </div>
               </div>
             </div>
@@ -259,20 +259,20 @@ export default function StudentProfile() {
                       type="tel"
                       value={editData.phone}
                       onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                      className="w-full h-10 px-4 rounded-xl border-2 border-slate-100 dark:border-slate-800 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 font-inter"
+                      className="w-full h-10 px-4 rounded-xl border-2 border-slate-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-slate-900 bg-white font-inter"
                       maxLength={10}
                     />
                   ) : (
-                    <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight font-poppins">{student.phone}</p>
+                    <p className="text-sm font-bold text-slate-900 leading-tight font-poppins">{student.phone}</p>
                   )}
                 </div>
                 <div className="group">
                   <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-1 group-hover:text-indigo-500 transition-colors font-inter">Email Address</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate font-poppins">{student.email || 'N/A'}</p>
+                  <p className="text-sm font-bold text-slate-900 leading-tight truncate font-poppins">{student.email || 'N/A'}</p>
                 </div>
                 <div className="group">
                   <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-1 group-hover:text-indigo-500 transition-colors font-inter">Member Since</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight font-poppins">
+                  <p className="text-sm font-bold text-slate-900 leading-tight font-poppins">
                     {new Date(student.enrollment_date).toLocaleDateString('en-IN', {
                       year: 'numeric',
                       month: 'long',
@@ -291,7 +291,7 @@ export default function StudentProfile() {
               <div className="space-y-4 sm:space-y-5">
                 <div className="group">
                   <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-1 group-hover:text-indigo-500 transition-colors font-inter">Area</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight uppercase tracking-tight font-poppins">{student.area}</p>
+                  <p className="text-sm font-bold text-slate-900 leading-tight uppercase tracking-tight font-poppins">{student.area}</p>
                 </div>
                 <div className="relative">
                   <div className="flex items-center justify-between mb-1">
@@ -307,10 +307,10 @@ export default function StudentProfile() {
                       value={editData.address}
                       onChange={(e) => setEditData({ ...editData, address: e.target.value })}
                       rows={3}
-                      className="w-full px-4 py-2 border-2 border-slate-100 dark:border-slate-800 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 resize-none text-[11px] font-inter"
+                      className="w-full px-4 py-2 border-2 border-slate-100 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-slate-900 bg-white resize-none text-[11px] font-inter"
                     />
                   ) : (
-                    <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 leading-relaxed uppercase tracking-tight font-inter">
+                    <p className="text-[11px] font-bold text-slate-500 leading-relaxed uppercase tracking-tight font-inter">
                       {student.address}
                     </p>
                   )}
@@ -322,19 +322,19 @@ export default function StudentProfile() {
 
       {/* Login & Enrollment details */}
       <div className="px-4">
-        <div className="bg-white dark:bg-slate-900 rounded-[32px] p-6 sm:p-10 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/30 ring-1 ring-blue-400/10 dark:ring-blue-400/5">
-            <h3 className="text-[16px] sm:text-[20px] font-black text-slate-900 dark:text-white uppercase tracking-[0.1em] mb-8 flex items-center gap-3 font-poppins">
+        <div className="bg-white rounded-[32px] p-6 sm:p-10 border border-slate-100 shadow-xl shadow-slate-200/30 ring-1 ring-blue-400/10">
+            <h3 className="text-[16px] sm:text-[20px] font-black text-slate-900 uppercase tracking-[0.1em] mb-8 flex items-center gap-3 font-poppins">
                 <BookOpen size={20} className="text-blue-600" /> Account & Enrollment Details
             </h3>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="space-y-6">
-                    <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-[24px] border border-slate-100 dark:border-slate-700">
+                    <div className="p-6 bg-slate-50 rounded-[24px] border border-slate-100">
                         <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 font-inter">Login Credentials</p>
                         <div className="space-y-4">
                             <div className="flex justify-between items-center pb-3 border-b border-slate-200/50">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Username</span>
-                                <span className="text-sm font-black text-slate-900 dark:text-white font-mono">{student.login_username || 'N/A'}</span>
+                                <span className="text-sm font-black text-slate-900 font-mono">{student.login_username || 'N/A'}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Password Hint</span>
@@ -343,7 +343,7 @@ export default function StudentProfile() {
                         </div>
                     </div>
 
-                    <div className="p-6 bg-blue-50/50 dark:bg-blue-900/10 rounded-[24px] border border-blue-100 dark:border-blue-900/30">
+                    <div className="p-6 bg-blue-50/50 rounded-[24px] border border-blue-100">
                         <div className="flex justify-between items-center">
                             <p className="text-[11px] font-black text-blue-600 uppercase tracking-widest font-inter">Overall Financial Standing</p>
                             <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm font-inter ${
@@ -365,19 +365,19 @@ export default function StudentProfile() {
                             student.enrollments.map((enr: any, idx: number) => {
                                 const matchedPayment = payments.find(p => p.enrollment === enr.id);
                                 return (
-                                    <div key={idx} className="p-5 bg-white dark:bg-slate-800 rounded-[24px] border border-slate-100 dark:border-slate-700 shadow-sm ring-1 ring-blue-400/5">
+                                    <div key={idx} className="p-5 bg-white rounded-[24px] border border-slate-100 shadow-sm ring-1 ring-blue-400/5">
                                         <div className="flex justify-between items-start mb-3">
-                                            <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{enr.subject_name}</h4>
-                                            <span className="text-[9px] font-black text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-lg border border-indigo-100 dark:border-indigo-900/50">{enr.status}</span>
+                                            <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight">{enr.subject_name}</h4>
+                                            <span className="text-[9px] font-black text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">{enr.status}</span>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Receipt No</p>
-                                                <p className="text-[11px] font-black text-slate-700 dark:text-slate-300 font-mono italic">{matchedPayment?.receipt_number || 'N/A'}</p>
+                                                <p className="text-[11px] font-black text-slate-700 font-mono italic">{matchedPayment?.receipt_number || 'N/A'}</p>
                                             </div>
                                             <div>
                                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Reference ID</p>
-                                                <p className="text-[11px] font-black text-slate-700 dark:text-slate-300 font-mono truncate">{matchedPayment?.transaction_id || matchedPayment?.razorpay_payment_id || 'REGISTERED'}</p>
+                                                <p className="text-[11px] font-black text-slate-700 font-mono truncate">{matchedPayment?.transaction_id || matchedPayment?.razorpay_payment_id || 'REGISTERED'}</p>
                                             </div>
                                         </div>
                                     </div>

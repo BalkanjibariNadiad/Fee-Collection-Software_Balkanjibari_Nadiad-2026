@@ -630,18 +630,18 @@ export default function RegisterPage() {
   }
 
   // Styles
-  const inputCls = "font-inter w-full px-4 py-2.5 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none transition bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-blue-400 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 text-[15px] transition-all shadow-sm tracking-[0.3px]"
-  const labelCls = "font-inter block text-[13px] font-semibold text-slate-600 dark:text-slate-400 mb-1 tracking-[0.3px]"
-  const sectionTitle = "font-poppins text-[20px] font-bold text-blue-950 dark:text-indigo-300 uppercase tracking-[0.8px] mb-4 border-b-2 border-blue-100 dark:border-white/10 pb-2 w-full transition-colors flex items-center justify-center gap-2"
+  const inputCls = "font-inter w-full px-4 py-2.5 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none transition bg-slate-50 border border-slate-200 focus:border-blue-400 focus:bg-white text-[15px] transition-all shadow-sm tracking-[0.3px]"
+  const labelCls = "font-inter block text-[13px] font-semibold text-slate-600 mb-1 tracking-[0.3px]"
+  const sectionTitle = "font-poppins text-[20px] font-bold text-blue-950 uppercase tracking-[0.8px] mb-4 border-b-2 border-blue-100 pb-2 w-full transition-colors flex items-center justify-center gap-2"
 
 
   // ===================== SUCCESS SCREEN =====================
   if (successData) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 py-6 px-4 flex items-center justify-center transition-colors">
+      <div className="min-h-screen bg-slate-50 bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-6 px-4 flex items-center justify-center transition-colors">
         <div className="w-full max-w-lg">
           {/* Success header */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-indigo-100 dark:border-indigo-900/30 overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-2xl border border-indigo-100 overflow-hidden">
             <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-6 text-center">
               <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg border border-white/20">
                 <CheckCircle className="text-white" size={32} />
@@ -652,45 +652,45 @@ export default function RegisterPage() {
 
             <div className="p-5 space-y-4">
               {/* Credentials box */}
-              <div className="bg-indigo-50 dark:bg-indigo-950/30 rounded-2xl p-4 border border-indigo-100 dark:border-indigo-900/30 shadow-sm">
-                <p className="text-primary dark:text-indigo-400 text-[10px] font-bold uppercase tracking-widest mb-2">Your Login Credentials</p>
+              <div className="bg-indigo-50 rounded-2xl p-4 border border-indigo-100 shadow-sm">
+                <p className="text-primary text-[10px] font-bold uppercase tracking-widest mb-2">Your Login Credentials</p>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-primary dark:text-indigo-300 text-sm font-medium">Student ID</span>
-                    <span className="text-slate-900 dark:text-white font-bold text-lg">{successData.student_id}</span>
+                    <span className="text-primary text-sm font-medium">Student ID</span>
+                    <span className="text-slate-900 font-bold text-lg">{successData.student_id}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-primary dark:text-indigo-300 text-sm font-medium">Username</span>
-                    <span className="text-slate-900 dark:text-white font-bold font-mono">{successData.username}</span>
+                    <span className="text-primary text-sm font-medium">Username</span>
+                    <span className="text-slate-900 font-bold font-mono">{successData.username}</span>
                   </div>
-                  <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl p-3 mt-2 border border-amber-100 dark:border-amber-900/30">
+                  <div className="bg-amber-50 rounded-xl p-3 mt-2 border border-amber-100">
                     <div className="flex items-center justify-between">
-                      <span className="text-amber-700 dark:text-amber-400 text-sm font-bold flex items-center gap-1"><Lock size={13} /> Password</span>
-                      <span className="text-amber-800 dark:text-amber-300 font-bold font-mono text-lg">{successData.password}</span>
+                      <span className="text-amber-700 text-sm font-bold flex items-center gap-1"><Lock size={13} /> Password</span>
+                      <span className="text-amber-800 font-bold font-mono text-lg">{successData.password}</span>
                     </div>
-                    <p className="text-amber-600 dark:text-amber-500 text-[10px] mt-1 font-medium">Save this password — it will not be shown again.</p>
+                    <p className="text-amber-600 text-[10px] mt-1 font-medium">Save this password — it will not be shown again.</p>
                   </div>
                 </div>
               </div>
 
               {/* Subjects enrolled */}
               <div>
-                <p className="text-slate-500 dark:text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Subjects Enrolled</p>
+                <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Subjects Enrolled</p>
                 <div className="space-y-2">
                   {successData.enrolled_subjects.map((s, i) => (
-                    <div key={i} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 rounded-xl px-4 py-2.5 border border-slate-100 dark:border-slate-800">
+                    <div key={i} className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-2.5 border border-slate-100">
                       <div className="flex items-center gap-2">
                         <BookOpen size={14} className="text-primary" />
-                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{s.subject}</span>
-                        <span className="text-xs text-slate-400 dark:text-slate-500">({s.batch_time})</span>
+                        <span className="text-sm font-semibold text-slate-800">{s.subject}</span>
+                        <span className="text-xs text-slate-400">({s.batch_time})</span>
                       </div>
-                      <span className="text-sm font-bold text-primary dark:text-indigo-400">₹{s.fee.toFixed(0)}</span>
+                      <span className="text-sm font-bold text-primary">₹{s.fee.toFixed(0)}</span>
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center justify-between mt-2 px-4 py-2.5 bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-900/30">
-                  <span className="text-sm font-bold text-blue-700 dark:text-blue-400 flex items-center gap-2"><CreditCard size={14} />Total Paid</span>
-                  <span className="text-base font-bold text-blue-700 dark:text-blue-400">₹{successData.total_paid.toFixed(0)}</span>
+                <div className="flex items-center justify-between mt-2 px-4 py-2.5 bg-blue-50 rounded-xl border border-blue-200">
+                  <span className="text-sm font-bold text-blue-700 flex items-center gap-2"><CreditCard size={14} />Total Paid</span>
+                  <span className="text-base font-bold text-blue-700">₹{successData.total_paid.toFixed(0)}</span>
                 </div>
               </div>
 
@@ -716,17 +716,17 @@ export default function RegisterPage() {
               </div>
 
               {/* Thank you */}
-              <div className="text-center py-4 border-t border-slate-100 dark:border-slate-800 mt-2 transition-colors font-inter">
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl mb-4 border border-blue-100 dark:border-blue-900/30">
-                  <p className="text-sm font-bold text-blue-900 dark:text-blue-300">🪪 Student ID Card Collection</p>
-                  <p className="text-xs text-blue-800 dark:text-blue-400 mt-1">Collect your ID card from the office between <span className="font-black">1 May to 3 May 2026</span>.</p>
+              <div className="text-center py-4 border-t border-slate-100 mt-2 transition-colors font-inter">
+                <div className="bg-blue-50 p-3 rounded-xl mb-4 border border-blue-100">
+                  <p className="text-sm font-bold text-blue-900">🪪 Student ID Card Collection</p>
+                  <p className="text-xs text-blue-800 mt-1">Collect your ID card from the office between <span className="font-black">1 May to 3 May 2026</span>.</p>
                 </div>
                 
-                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Important</p>
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 underline decoration-amber-400 decoration-2 underline-offset-4">Remember your credentials and take a screenshot of this page.</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Important</p>
+                <p className="text-sm font-semibold text-slate-700 underline decoration-amber-400 decoration-2 underline-offset-4">Remember your credentials and take a screenshot of this page.</p>
                 
-                <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 italic">
-                  <p className="text-slate-600 dark:text-slate-400 font-medium max-w-sm mx-auto">
+                <div className="mt-6 pt-4 border-t border-slate-100 italic">
+                  <p className="text-slate-600 font-medium max-w-sm mx-auto">
                     Your enrollment for Summer Camp 2026 has been successfully processed. 
                     {normalizedEmail ? (
                       <>A confirmation mail is being sent to <strong>{normalizedEmail}</strong></>
@@ -749,28 +749,28 @@ export default function RegisterPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-2 sm:py-6 px-3 sm:px-4 transition-colors">
+    <div className="min-h-screen bg-slate-50 py-2 sm:py-6 px-3 sm:px-4 transition-colors">
       <div className="relative z-10 max-w-2xl mx-auto">
 
         {/* Header */}
         <div className="flex items-center gap-4 mb-4">
           <button
             onClick={() => router.push('/')}
-            className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-indigo-400 hover:bg-blue-50 dark:hover:bg-indigo-950 transition border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 shadow-sm"
+            className="p-1.5 rounded-xl text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition border border-slate-200 bg-white shrink-0 shadow-sm"
           >
             <ArrowLeft size={18} />
           </button>
           <div className="flex items-center gap-3">
-            <img src="/logo.jpeg" alt="Logo" className="w-12 h-12 rounded-full object-contain border border-indigo-100 dark:border-indigo-900/30 shadow-sm" />
+            <img src="/logo.jpeg" alt="Logo" className="w-12 h-12 rounded-full object-contain border border-indigo-100 shadow-sm" />
             <div>
-              <h1 className="font-poppins text-[26px] font-black text-slate-900 dark:text-white leading-tight uppercase tracking-[0.5px]">NEW STUDENT REGISTRATION Form</h1>
-              <p className="font-inter text-blue-600 dark:text-indigo-400 text-[15px] font-bold tracking-[0.5px] uppercase">BALKAN-JI-BARI, NADIAD</p>
+              <h1 className="font-poppins text-[26px] font-black text-slate-900 leading-tight uppercase tracking-[0.5px]">NEW STUDENT REGISTRATION Form</h1>
+              <p className="font-inter text-blue-600 text-[15px] font-bold tracking-[0.5px] uppercase">BALKAN-JI-BARI, NADIAD</p>
             </div>
           </div>
         </div>
 
         {/* Form Card */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 shadow-xl border border-slate-200 dark:border-slate-800 relative overflow-hidden transition-colors">
+        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xl border border-slate-200 relative overflow-hidden transition-colors">
 
 
           <div className="space-y-5">
@@ -780,19 +780,19 @@ export default function RegisterPage() {
               <h2 className={sectionTitle}>
                 Enrollment Date & Time
               </h2>
-              <div className="w-full px-5 py-1.5 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-indigo-950/30 border border-indigo-200 dark:border-indigo-900/40 flex items-center justify-between shadow-sm transition-all">
+              <div className="w-full px-5 py-1.5 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-indigo-200 flex items-center justify-between shadow-sm transition-all">
                 {/* Date on Left */}
                 <div className="flex flex-col items-start font-inter">
-                  <span className="text-[10px] font-bold text-blue-400 dark:text-indigo-400 uppercase tracking-widest leading-none mb-1">DATE</span>
-                  <span className="text-lg font-black text-blue-900 dark:text-white tracking-tight">
+                  <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest leading-none mb-1">DATE</span>
+                  <span className="text-lg font-black text-blue-900 tracking-tight">
                     {todayDisplay}
                   </span>
                 </div>
                 {/* Time on Right */}
                 <div className="flex items-center gap-2 font-inter">
                   <div className="flex flex-col items-end">
-                    <span className="text-[10px] font-bold text-blue-400 dark:text-indigo-400 uppercase tracking-widest leading-none mb-1">TIME</span>
-                    <span className="text-lg font-black text-blue-900 dark:text-white flex items-center gap-1">
+                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest leading-none mb-1">TIME</span>
+                    <span className="text-lg font-black text-blue-900 flex items-center gap-1">
                       {currentIST ? (() => {
                         const timePart = currentIST.split(',')[1].trim()
                         const [time, ampm] = timePart.split(' ')
@@ -833,7 +833,7 @@ export default function RegisterPage() {
                       value={form.date_of_birth}
                       onChange={e => handleDobChange(e.target.value)}
                     />
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 font-medium italic">Format: DD-MM-YYYY</p>
+                    <p className="text-[11px] text-slate-400 mt-1 font-medium italic">Format: DD-MM-YYYY</p>
                   </div>
                   
                   {/* Age (Auto-calculated) */}
@@ -843,7 +843,7 @@ export default function RegisterPage() {
                       <input
                         type="text"
                         readOnly
-                        className={`${inputCls} bg-slate-50 dark:bg-slate-800/50 font-black text-blue-700 dark:text-indigo-400 cursor-not-allowed`}
+                        className={`${inputCls} bg-slate-50 font-black text-blue-700 cursor-not-allowed`}
                         value={form.age ? `${form.age} Years` : 'Enter DOB'}
                       />
                     </div>
@@ -936,10 +936,10 @@ export default function RegisterPage() {
                 <h2 className={sectionTitle}>Subject Enrollment</h2>
               
               {/* Template Download Button */}
-              <div className="mb-4 bg-blue-50 dark:bg-blue-950/30 p-3 rounded-xl border border-blue-100 dark:border-blue-900/30 flex items-center justify-between">
+              <div className="mb-4 bg-blue-50 p-3 rounded-xl border border-blue-100 flex items-center justify-between">
                 <div>
-                  <p className="text-[12px] font-bold text-blue-900 dark:text-blue-300 uppercase tracking-[1.5px]">Activity Guide</p>
-                  <p className="text-[10px] text-blue-700 dark:text-blue-400">Download the full Summer Camp subject schedule & rules.</p>
+                  <p className="text-[12px] font-bold text-blue-900 uppercase tracking-[1.5px]">Activity Guide</p>
+                  <p className="text-[10px] text-blue-700">Download the full Summer Camp subject schedule & rules.</p>
                 </div>
                 <button
                   type="button"
@@ -951,11 +951,11 @@ export default function RegisterPage() {
               </div>
 
               <div className="flex items-center justify-between mb-3 pt-2">
-                <p className="font-inter text-sm text-slate-500 dark:text-slate-400 font-medium italic">Select subjects <span className="text-slate-400 dark:text-slate-500">(max 4)</span></p>
+                <p className="font-inter text-sm text-slate-500 font-medium italic">Select subjects <span className="text-slate-400">(max 4)</span></p>
                 <button
                   type="button"
                   onClick={addSubject}
-                  className="font-inter flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold text-primary dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition border border-indigo-200 dark:border-indigo-900/50 shadow-sm"
+                  className="font-inter flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold text-primary hover:bg-indigo-50 transition border border-indigo-200 shadow-sm"
                 >
                   <Plus size={14} /> Add Subject
                 </button>
@@ -978,13 +978,13 @@ export default function RegisterPage() {
                   return (
                     <div key={idx} className={`p-4 rounded-xl border transition-all duration-300 shadow-sm ${
                       !isEligible 
-                        ? 'bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/50' 
-                        : 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800'
+                        ? 'bg-rose-50 border-rose-200' 
+                        : 'bg-slate-50 border-slate-200'
                     }`}>
                       {!isEligible && (
-                        <div className="flex items-center gap-2 mb-3 py-1.5 px-3 bg-white dark:bg-slate-900/50 rounded-lg border border-rose-100 dark:border-rose-900/30 animate-in fade-in slide-in-from-top-2">
+                        <div className="flex items-center gap-2 mb-3 py-1.5 px-3 bg-white rounded-lg border border-rose-100 animate-in fade-in slide-in-from-top-2">
                           <AlertCircle size={14} className="text-rose-500 shrink-0" />
-                          <p className="text-[11px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-wider">
+                          <p className="text-[11px] font-black text-rose-600 uppercase tracking-wider">
                             Ineligible: Subject requires age {subData?.age_limit} (Student: {form.age})
                           </p>
                         </div>
@@ -993,9 +993,9 @@ export default function RegisterPage() {
                       <div className="flex items-start gap-3">
                         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
-                            <label className="text-xs font-bold text-slate-500 dark:text-slate-500 mb-1 block uppercase tracking-wider">Subject</label>
+                            <label className="text-xs font-bold text-slate-500 mb-1 block uppercase tracking-wider">Subject</label>
                             <select
-                              className="w-full px-3 py-2.5 rounded-lg text-slate-800 dark:text-white text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-indigo-400 dark:focus:border-indigo-500 focus:outline-none shadow-sm transition-all font-inter"
+                              className="w-full px-3 py-2.5 rounded-lg text-slate-800 text-sm bg-white border border-slate-200 focus:border-indigo-400 focus:outline-none shadow-sm transition-all font-inter"
                               value={sub.subject_id}
                               onChange={e => updateSubject(idx, 'subject_id', e.target.value)}
                             >
@@ -1016,7 +1016,7 @@ export default function RegisterPage() {
                               )}
                             </select>
                             {sub.subject_id > 0 && (
-                              <p className="text-[12px] text-blue-600 dark:text-indigo-400 mt-1 font-bold uppercase tracking-tighter">
+                              <p className="text-[12px] text-blue-600 mt-1 font-bold uppercase tracking-tighter">
                                 Selected: Rs.{subFee.toFixed(0)} + Rs.{libFee} Library
                               </p>
                             )}
@@ -1025,9 +1025,9 @@ export default function RegisterPage() {
                            {/* Batch Time - Only show when subject is selected */}
                           {sub.subject_id > 0 ? (
                             <div className="animate-in fade-in slide-in-from-top-1 duration-300">
-                              <label className="text-[11px] font-bold text-slate-500 dark:text-slate-500 mb-1 block uppercase tracking-wider">Batch Time</label>
+                              <label className="text-[11px] font-bold text-slate-500 mb-1 block uppercase tracking-wider">Batch Time</label>
                               <select
-                                className="w-full px-3 py-2.5 rounded-lg text-slate-800 dark:text-white text-sm bg-indigo-50 dark:bg-slate-900 border border-indigo-200 dark:border-indigo-700 focus:border-indigo-400 dark:focus:border-indigo-500 focus:outline-none shadow-sm transition-all font-inter font-bold"
+                                className="w-full px-3 py-2.5 rounded-lg text-slate-800 text-sm bg-indigo-50 border border-indigo-200 focus:border-indigo-400 focus:outline-none shadow-sm transition-all font-inter font-bold"
                                 value={sub.batch_time}
                                 onChange={e => updateSubject(idx, 'batch_time', e.target.value)}
                               >
@@ -1095,37 +1095,37 @@ export default function RegisterPage() {
                 <div className="mt-8 font-inter">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="h-0.5 w-8 bg-blue-600/30 rounded-full"></div>
-                    <p className="text-slate-400 dark:text-slate-500 text-[11px] font-black uppercase tracking-[2px]">Enrollment Summary</p>
+                    <p className="text-slate-400 text-[11px] font-black uppercase tracking-[2px]">Enrollment Summary</p>
                   </div>
                   
-                  <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+                  <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
                     <table className="w-full text-left border-collapse">
-                      <thead className="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+                      <thead className="bg-slate-50/80 border-b border-slate-200">
                         <tr>
-                          <th className="px-4 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Subject</th>
-                          <th className="px-4 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Batch</th>
-                          <th className="px-4 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest text-right">Fee</th>
-                          <th className="px-4 py-3 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest text-right">Library</th>
-                          <th className="px-4 py-3 text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest text-right">Total</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Subject</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Batch</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Fee</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Library</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-blue-600 uppercase tracking-widest text-right">Total</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      <tbody className="divide-y divide-slate-100">
                         {feeBreakdown.filter(f => f.subject_id > 0).map((f, i) => (
-                          <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                            <td className="px-4 py-3.5 font-bold text-slate-800 dark:text-slate-200 text-sm">{f.subject_name}</td>
-                            <td className="px-4 py-3.5 text-[12px] text-slate-500 dark:text-slate-400 font-medium">{f.batch_time}</td>
-                            <td className="px-4 py-3.5 text-right font-medium text-slate-600 dark:text-slate-400 text-sm">₹{f.subFee.toFixed(0)}</td>
-                            <td className="px-4 py-3.5 text-right font-medium text-slate-600 dark:text-slate-400 text-sm">₹{f.libFee.toFixed(0)}</td>
-                            <td className="px-4 py-3.5 text-right font-black text-slate-900 dark:text-white text-sm">₹{f.total.toFixed(0)}</td>
+                          <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="px-4 py-3.5 font-bold text-slate-800 text-sm">{f.subject_name}</td>
+                            <td className="px-4 py-3.5 text-[12px] text-slate-500 font-medium">{f.batch_time}</td>
+                            <td className="px-4 py-3.5 text-right font-medium text-slate-600 text-sm">₹{f.subFee.toFixed(0)}</td>
+                            <td className="px-4 py-3.5 text-right font-medium text-slate-600 text-sm">₹{f.libFee.toFixed(0)}</td>
+                            <td className="px-4 py-3.5 text-right font-black text-slate-900 text-sm">₹{f.total.toFixed(0)}</td>
                           </tr>
                         ))}
                       </tbody>
-                      <tfoot className="border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/20">
+                      <tfoot className="border-t-2 border-slate-100 bg-slate-50/30">
                         <tr>
-                          <td colSpan={4} className="px-4 py-5 text-right font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest text-[11px]">
+                          <td colSpan={4} className="px-4 py-5 text-right font-black text-slate-500 uppercase tracking-widest text-[11px]">
                             Total Amount Payable
                           </td>
-                          <td className="px-4 py-5 text-right font-black text-blue-600 dark:text-white text-[22px]">
+                          <td className="px-4 py-5 text-right font-black text-blue-600 text-[22px]">
                             ₹{grandTotal.toFixed(0)}
                           </td>
                         </tr>
@@ -1135,7 +1135,7 @@ export default function RegisterPage() {
 
                   <div className="flex items-start gap-2 px-1 mt-4">
                     <AlertCircle size={14} className="text-blue-500 mt-0.5 shrink-0" />
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 italic leading-relaxed">
+                    <p className="text-[11px] text-slate-400 italic leading-relaxed">
                       Your fee includes a one-time ₹10 library charge. Total amount is final and inclusive of all taxes.
                     </p>
                   </div>

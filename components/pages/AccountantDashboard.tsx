@@ -70,11 +70,11 @@ export default function AccountantDashboard({ setCurrentPage }: AccountantDashbo
             </div>
             <div>
                 <p className="text-[8px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 font-inter">{title}</p>
-                <div className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight font-poppins">
+                <div className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight font-poppins">
                     {isCurrency ? `₹${Number(value).toLocaleString()}` : Number(value).toLocaleString()}
                 </div>
                 {subValue && (
-                    <p className="text-[8px] sm:text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-semibold uppercase tracking-tighter font-inter">
+                    <p className="text-[8px] sm:text-[10px] text-slate-400 mt-1 font-semibold uppercase tracking-tighter font-inter">
                         {subValue}
                     </p>
                 )}
@@ -99,8 +99,8 @@ export default function AccountantDashboard({ setCurrentPage }: AccountantDashbo
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
                 <div>
-                    <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white uppercase tracking-tight font-poppins">Accounts Console</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-0.5 text-[10px] sm:text-sm font-medium font-inter">Financial overview and fee collection tracking</p>
+                    <h1 className="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-tight font-poppins">Accounts Console</h1>
+                    <p className="text-slate-500 mt-0.5 text-[10px] sm:text-sm font-medium font-inter">Financial overview and fee collection tracking</p>
                 </div>
                 <button
                     onClick={() => setCurrentPage('reports')}
@@ -229,29 +229,29 @@ export default function AccountantDashboard({ setCurrentPage }: AccountantDashbo
 
             <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
                 {/* Recent Transactions */}
-                <Card className="rounded-2xl border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
-                    <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-gray-50 dark:border-gray-700">
-                        <CardTitle className="text-sm sm:text-base font-bold uppercase tracking-widest flex items-center gap-2 text-gray-900 dark:text-white font-poppins">
+                <Card className="rounded-2xl border-gray-100 shadow-sm overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-gray-50">
+                        <CardTitle className="text-sm sm:text-base font-bold uppercase tracking-widest flex items-center gap-2 text-gray-900 font-poppins">
                             <History className="w-5 h-5 text-indigo-500" />
                             Recent Transactions
                         </CardTitle>
                         <button
                             onClick={() => setCurrentPage('payments')}
-                            className="btn-standard h-9 px-4 text-[10px] bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 font-medium uppercase tracking-widest font-poppins"
+                            className="btn-standard h-9 px-4 text-[10px] bg-indigo-50 text-indigo-600 border border-indigo-100 font-medium uppercase tracking-widest font-poppins"
                         >
                             View All
                         </button>
                     </CardHeader>
                     <CardContent className="p-0">
-                        <div className="divide-y divide-gray-50 dark:divide-gray-700">
+                        <div className="divide-y divide-gray-50">
                             {stats?.recent_transactions.map((tx: any) => (
-                                <div key={tx.id} className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors group">
+                                <div key={tx.id} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors group">
                                     <div className="flex items-center gap-3 min-w-0">
-                                        <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-gray-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors border border-gray-100 dark:border-gray-600">
+                                        <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors border border-gray-100">
                                             {tx.payment_mode === 'CASH' ? <CreditCard size={18} /> : <TrendingUp size={18} />}
                                         </div>
                                         <div className="min-w-0 font-inter">
-                                            <p className="font-bold text-xs sm:text-sm text-gray-900 dark:text-white uppercase truncate">{tx.student_name}</p>
+                                            <p className="font-bold text-xs sm:text-sm text-gray-900 uppercase truncate">{tx.student_name}</p>
                                             <p className="text-[10px] font-medium text-gray-400 uppercase truncate">{tx.subject_name} • {tx.payment_id}</p>
                                         </div>
                                     </div>
@@ -263,7 +263,7 @@ export default function AccountantDashboard({ setCurrentPage }: AccountantDashbo
                             ))}
                             {(!stats?.recent_transactions || stats.recent_transactions.length === 0) && (
                                 <div className="text-center py-12">
-                                    <History className="mx-auto w-10 h-10 text-gray-200 dark:text-gray-700 mb-3" />
+                                    <History className="mx-auto w-10 h-10 text-gray-200 mb-3" />
                                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No recent transactions</p>
                                 </div>
                             )}
@@ -282,7 +282,7 @@ export default function AccountantDashboard({ setCurrentPage }: AccountantDashbo
                     <CardContent className="grid gap-4">
                         <button
                             onClick={() => setCurrentPage('payments')}
-                            className="flex items-center justify-between p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/30 dark:bg-indigo-900/10 hover:bg-indigo-100 dark:hover:bg-indigo-900/20 transition-all active:scale-[0.98]"
+                            className="flex items-center justify-between p-4 rounded-xl border border-indigo-100 bg-indigo-50/30 hover:bg-indigo-100 transition-all active:scale-[0.98]"
                         >
                             <div className="flex items-center gap-3">
                                 <CreditCard className="text-indigo-600" />
@@ -296,7 +296,7 @@ export default function AccountantDashboard({ setCurrentPage }: AccountantDashbo
 
                         <button
                             onClick={() => setCurrentPage('analytics')}
-                            className="flex items-center justify-between p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-all active:scale-[0.98]"
+                            className="flex items-center justify-between p-4 rounded-xl border border-emerald-100 bg-emerald-50/30 hover:bg-emerald-100 transition-all active:scale-[0.98]"
                         >
                             <div className="flex items-center gap-3">
                                 <FileText className="text-emerald-600" />
@@ -310,7 +310,7 @@ export default function AccountantDashboard({ setCurrentPage }: AccountantDashbo
 
                         <button
                             onClick={() => setCurrentPage('reports')}
-                            className="flex items-center justify-between p-4 rounded-xl border border-blue-100 dark:border-blue-900/30 bg-blue-50/30 dark:bg-blue-900/10 hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-all active:scale-[0.98]"
+                            className="flex items-center justify-between p-4 rounded-xl border border-blue-100 bg-blue-50/30 hover:bg-blue-100 transition-all active:scale-[0.98]"
                         >
                             <div className="flex items-center gap-3">
                                 <Download className="text-blue-600" />

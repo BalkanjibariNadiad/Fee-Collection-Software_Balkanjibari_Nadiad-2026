@@ -30,10 +30,6 @@
     --radius: 1rem;
   }
 
-  /* Disable dark theme - Light theme only */
-  .dark {
-    display: none !important;
-  }
 }
 
 @layer base {
@@ -103,7 +99,7 @@
 @layer components {
   /* Students Management Design Tokens */
   .card-standard {
-    @apply bg-white dark:bg-gray-800 rounded-[24px] sm:rounded-[32px] border border-slate-100 dark:border-gray-700 shadow-sm transition-all duration-300;
+    @apply bg-white rounded-[24px] sm:rounded-[32px] border border-slate-100 shadow-sm transition-all duration-300;
   }
 
   .card-hover {
@@ -111,7 +107,7 @@
   }
 
   .input-standard {
-    @apply h-11 sm:h-10 px-4 rounded-lg border border-slate-200 bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-inter font-medium text-sm text-slate-900 dark:text-white dark:bg-slate-800;
+    @apply h-11 sm:h-10 px-4 rounded-lg border border-slate-200 bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none font-inter font-medium text-sm text-slate-900;
   }
 
   .btn-standard {
@@ -119,7 +115,7 @@
   }
 
   .mobile-card {
-    @apply flex flex-col p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all;
+    @apply flex flex-col p-4 bg-white rounded-2xl border border-slate-100 shadow-sm transition-all;
   }
 
   .touch-target {
@@ -134,10 +130,6 @@
   /* Glassmorphism Utilities */
   .glass-premium {
     @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-xl;
-  }
-  
-  .glass-dark {
-    @apply bg-slate-900/70 backdrop-blur-xl border border-white/5 shadow-2xl;
   }
 
   /* Responsive Utilities */
@@ -175,14 +167,6 @@
   border-radius: 10px;
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-}
-
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.2);
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
 }

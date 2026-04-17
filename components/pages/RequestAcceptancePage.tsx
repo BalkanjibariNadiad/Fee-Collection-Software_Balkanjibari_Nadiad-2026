@@ -534,35 +534,35 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
       {/* Reject Confirmation Modal */}
       {rejectConfirm.show && rejectConfirm.request && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center">
                 <AlertCircle size={24} className="text-rose-600" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-900 dark:text-white">Reject Request?</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">{rejectConfirm.request.student_name}</p>
+                <h3 className="font-bold text-slate-900">Reject Request?</h3>
+                <p className="text-sm text-slate-600">{rejectConfirm.request.student_name}</p>
               </div>
             </div>
 
-            <div className="bg-rose-50 dark:bg-rose-900/20 rounded-xl p-4 border border-rose-200 dark:border-rose-800">
-              <p className="text-sm text-slate-700 dark:text-slate-300">
+            <div className="bg-rose-50 rounded-xl p-4 border border-rose-200">
+              <p className="text-sm text-slate-700">
                 <span className="font-semibold">Subject:</span> {rejectConfirm.request.subject}
               </p>
-              <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">
+              <p className="text-sm text-slate-700 mt-1">
                 <span className="font-semibold">Amount:</span> ₹{Number(rejectConfirm.request.total_fees || 0).toLocaleString('en-IN')}
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Reason for Rejection (Optional)
               </label>
               <textarea
                 value={rejectConfirm.reason}
                 onChange={(e) => setRejectConfirm({ ...rejectConfirm, reason: e.target.value })}
                 placeholder="e.g., Duplicate registration, Student withdrew, Invalid documents..."
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none"
                 rows={3}
               />
             </div>
@@ -570,7 +570,7 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setRejectConfirm({ show: false, request: null, reason: '' })}
-                className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors"
               >
                 Cancel
               </button>
@@ -598,19 +598,19 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
 
       {/* Duplicates Warning */}
       {getDuplicateStudents.size > 0 && (
-        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-2xl p-4 space-y-3">
+        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 space-y-3">
           <div className="flex items-center gap-2">
-            <AlertCircle size={20} className="text-orange-600 dark:text-orange-400 flex-shrink-0" />
-            <h3 className="font-bold text-orange-900 dark:text-orange-100">⚠️ Duplicate Registrations Detected</h3>
+            <AlertCircle size={20} className="text-orange-600 flex-shrink-0" />
+            <h3 className="font-bold text-orange-900">⚠️ Duplicate Registrations Detected</h3>
           </div>
-          <p className="text-sm text-orange-800 dark:text-orange-200">
+          <p className="text-sm text-orange-800">
             {getDuplicateStudents.size} student(s) have multiple registrations. Review the entries marked with ⚠️ above and reject or delete duplicates.
           </p>
           <div className="grid gap-2">
             {Array.from(getDuplicateStudents.entries()).map(([studentId, requests]) => (
-              <div key={studentId} className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-orange-100 dark:border-orange-800">
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">{requests[0].student_name} ({requests.length} entries)</p>
-                <div className="text-xs text-slate-600 dark:text-slate-400 mt-1 space-y-1">
+              <div key={studentId} className="bg-white p-3 rounded-lg border border-orange-100">
+                <p className="text-sm font-semibold text-slate-900">{requests[0].student_name} ({requests.length} entries)</p>
+                <div className="text-xs text-slate-600 mt-1 space-y-1">
                   {requests.map((req, idx) => (
                     <div key={req.request_id} className="flex items-center justify-between">
                       <span>Entry {idx + 1}: {req.subject} - ₹{Number(req.total_fees).toLocaleString('en-IN')}</span>
@@ -633,14 +633,14 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
       )}
 
       {/* Right-side Slider for Accepted Credentials */}
-      <div className={`fixed right-0 top-0 h-screen w-80 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-lg transform transition-transform duration-300 z-40 overflow-y-auto ${showSlider ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between">
-          <h3 className="font-bold text-slate-900 dark:text-white text-sm uppercase tracking-widest">
+      <div className={`fixed right-0 top-0 h-screen w-80 bg-white border-l border-slate-200 shadow-lg transform transition-transform duration-300 z-40 overflow-y-auto ${showSlider ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="sticky top-0 bg-white border-b border-slate-200 p-4 flex items-center justify-between">
+          <h3 className="font-bold text-slate-900 text-sm uppercase tracking-widest">
             Recently Accepted ({acceptedCredentials.length})
           </h3>
           <button
             onClick={() => setShowSlider(false)}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            className="text-slate-400 hover:text-slate-600 transition-colors"
           >
             <ChevronLeft size={20} />
           </button>
@@ -654,12 +654,12 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
         ) : (
           <div className="space-y-2 p-4">
             {acceptedCredentials.map((cred, idx) => (
-              <div key={idx} className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-xl p-4 border border-emerald-200 dark:border-emerald-800">
+              <div key={idx} className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-xl p-4 border border-emerald-200">
                 <div className="flex items-start justify-between mb-3">
                   <div className="min-w-0 flex-1">
-                    <p className="font-bold text-slate-900 dark:text-white text-sm truncate">{cred.student_name}</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 truncate">{cred.subject}</p>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
+                    <p className="font-bold text-slate-900 text-sm truncate">{cred.student_name}</p>
+                    <p className="text-xs text-slate-600 truncate">{cred.subject}</p>
+                    <p className="text-[10px] text-slate-500 mt-1">
                       {cred.accepted_at.toLocaleTimeString()}
                     </p>
                   </div>
@@ -668,17 +668,17 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
                   </div>
                 </div>
 
-                <div className="space-y-2 bg-white dark:bg-slate-800 rounded-lg p-3 border border-emerald-100 dark:border-emerald-900">
+                <div className="space-y-2 bg-white rounded-lg p-3 border border-emerald-100">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Username/ID</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Username/ID</p>
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-mono font-semibold text-slate-900 dark:text-white truncate">{cred.username}</p>
+                      <p className="text-sm font-mono font-semibold text-slate-900 truncate">{cred.username}</p>
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(cred.username || '')
                           notifySuccess('Copied to clipboard')
                         }}
-                        className="text-xs text-blue-600 dark:text-blue-400 hover:underline shrink-0"
+                        className="text-xs text-blue-600 hover:underline shrink-0"
                       >
                         Copy
                       </button>
@@ -687,18 +687,18 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
 
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Password Hint</p>
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Password Hint</p>
                       <button
                         onClick={() => {
                           setAcceptedCredentials(prev => prev.map((c, i) => i === idx ? { ...c, visible: !c.visible } : c))
                         }}
-                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                        className="text-slate-400 hover:text-slate-600"
                       >
                         {cred.visible ? <EyeOff size={14} /> : <Eye size={14} />}
                       </button>
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-mono font-semibold text-slate-900 dark:text-white truncate">
+                      <p className="text-sm font-mono font-semibold text-slate-900 truncate">
                         {cred.visible ? cred.password_hint : '••••••••'}
                       </p>
                       {cred.visible && (
@@ -707,7 +707,7 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
                             navigator.clipboard.writeText(cred.password_hint || '')
                             notifySuccess('Copied to clipboard')
                           }}
-                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline shrink-0"
+                          className="text-xs text-blue-600 hover:underline shrink-0"
                         >
                           Copy
                         </button>
@@ -734,7 +734,7 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
       {/* Semi-transparent Overlay when Slider is open */}
       {showSlider && (
         <div
-          className="fixed inset-0 bg-black/20 dark:bg-black/40 z-30"
+          className="fixed inset-0 bg-black/20 z-30"
           onClick={() => setShowSlider(false)}
         />
       )}
