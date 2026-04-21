@@ -14,6 +14,16 @@ class PaymentsConfig(AppConfig):
         # Initialize APScheduler for payment syncing
         try:
             from apps.payments.scheduler import init_scheduler
+        except ModuleNotFoundError as e:
+            if e.name in {'apscheduler', 'apps.payments.scheduler'}:
+                logger.debug('APScheduler is not installed; skipping scheduled payment sync.')
+                return
+            raise
+        except ImportError as e:
+            logger.debug('APScheduler import failed; skipping scheduled payment sync: %s', e)
+            return
+
+        try:
             init_scheduler()
         except Exception as e:
             logger.warning(f'Could not initialize APScheduler: {e}')

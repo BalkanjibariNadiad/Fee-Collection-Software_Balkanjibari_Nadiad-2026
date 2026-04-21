@@ -17,7 +17,6 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.production')
 try:
     from django.core.wsgi import get_wsgi_application
     application = get_wsgi_application()
-    print(">>> WSGI Application Loaded Successfully from backend/config")
 except Exception as e:
     print(f">>> ERROR: Failed to load WSGI application: {e}")
     import traceback
