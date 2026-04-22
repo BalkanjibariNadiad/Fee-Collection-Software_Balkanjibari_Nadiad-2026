@@ -63,12 +63,30 @@ export interface SubjectWiseDailyFeeReport {
 }
 
 export interface SubjectBatchEnrollmentReportRow {
+<<<<<<< HEAD
     subject_name: string;
     batch_time: string;
     student_name: string;
     student_id: string;
     login_id: string;
     enrollment_date: string;
+=======
+    sr_no: number;
+    student_name: string;
+    student_id: string;
+    subject: string;
+    batch_time: string;
+    enrollment_date: string;
+    paid_amount: number;
+    pending_amount: number;
+    payment_mode: string;
+    payment_status: string;
+    payment_id: string;
+    payment_reference_no: string;
+    phone_number: string;
+    receipt_id: string;
+    total_fee: number;
+>>>>>>> cdf9366 (Expand reports with full batch data)
 }
 
 export interface SubjectBatchEnrollmentReport {
@@ -79,8 +97,19 @@ export interface SubjectBatchEnrollmentReport {
     end_date: string;
     generated_at: string;
     rows: SubjectBatchEnrollmentReportRow[];
+<<<<<<< HEAD
     totals_by_batch: Array<{ batch_time: string; total_students: number }>;
     total_students: number;
+=======
+    summary: {
+        total_students: number;
+        total_enrolled: number;
+        total_paid: number;
+        total_pending: number;
+        online_payments: number;
+        offline_payments: number;
+    };
+>>>>>>> cdf9366 (Expand reports with full batch data)
 }
 
 export const analyticsApi = {

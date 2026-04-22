@@ -103,7 +103,7 @@ class Command(BaseCommand):
                 "name": "Western Dance",
                 "fee": 700,
                 "category": "DANCE",
-                "age": "10 to 16",
+                "age": "7 to 16",
                 "default_batch_timing": "10:00 AM - 11:00 AM",
                 "batches": [{"time": "10:00 AM - 11:00 AM", "limit": 40}]
             },

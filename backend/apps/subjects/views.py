@@ -154,17 +154,67 @@ class SubjectViewSet(viewsets.ModelViewSet):
         try:
             subject = self.get_object()
             
-            # Get all batch configurations for this subject
-            batch_configs = SubjectBatch.objects.filter(
-                subject=subject,
-                is_active=True
-            ).order_by('batch_time')
-            
-            serializer = SubjectBatchSerializer(batch_configs, many=True)
-            
+            # Get all configured batches for this subject.
+            batch_configs = list(
+                SubjectBatch.objects.filter(subject=subject).order_by('batch_time')
+            )
+
+            # Also include any batch times that exist in enrollments but are not configured
+            # in the subject_batches table. This keeps the report filter aligned with real data.
+            from apps.enrollments.models import Enrollment
+
+            enrollment_batch_times = list(
+                Enrollment.objects.filter(
+                    subject=subject,
+                    is_deleted=False
+                ).exclude(batch_time__isnull=True).exclude(batch_time='').values_list('batch_time', flat=True).distinct().order_by('batch_time')
+            )
+
+            configured_batch_times = {batch.batch_time for batch in batch_configs}
+            missing_batch_times = [batch_time for batch_time in enrollment_batch_times if batch_time not in configured_batch_times]
+
+            merged_batches = [
+                {
+                    'id': batch.id,
+                    'subject': batch.subject_id,
+                    'batch_time': batch.batch_time,
+                    'capacity_limit': batch.capacity_limit,
+                    'min_age': getattr(batch, 'min_age', None),
+                    'max_age': getattr(batch, 'max_age', None),
+                    'is_active': batch.is_active,
+                    'enrolled_count': batch.enrolled_count,
+                    'available_seats': batch.available_seats,
+                    'is_full': batch.available_seats <= 0,
+                    'created_at': batch.created_at,
+                    'updated_at': batch.updated_at,
+                }
+                for batch in batch_configs
+            ]
+
+            for index, batch_time in enumerate(missing_batch_times, start=len(merged_batches) + 1):
+                enrollment_count = Enrollment.objects.filter(
+                    subject=subject,
+                    batch_time=batch_time,
+                    is_deleted=False
+                ).count()
+                merged_batches.append({
+                    'id': index,
+                    'subject': subject.id,
+                    'batch_time': batch_time,
+                    'capacity_limit': enrollment_count,
+                    'min_age': None,
+                    'max_age': None,
+                    'is_active': True,
+                    'enrolled_count': enrollment_count,
+                    'available_seats': 0,
+                    'is_full': False,
+                    'created_at': subject.created_at,
+                    'updated_at': subject.created_at,
+                })
+
             return Response({
                 'success': True,
-                'data': serializer.data
+                'data': merged_batches
             }, status=status.HTTP_200_OK)
         except Exception as e:
             logger.exception(f"Error fetching batches for subject {pk}")
@@ -310,12 +360,67 @@ class SubjectBatchViewSet(viewsets.ModelViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            batches = SubjectBatch.objects.filter(subject_id=subject_id)
-            serializer = SubjectBatchSerializer(batches, many=True)
-            
+            subject_batches = list(SubjectBatch.objects.filter(subject_id=subject_id).order_by('batch_time'))
+
+            from apps.enrollments.models import Enrollment
+
+            enrollment_batch_times = list(
+                Enrollment.objects.filter(
+                    subject_id=subject_id,
+                    is_deleted=False
+                ).exclude(batch_time__isnull=True).exclude(batch_time='').values_list('batch_time', flat=True).distinct().order_by('batch_time')
+            )
+
+            configured_batch_times = {batch.batch_time for batch in subject_batches}
+            subject = subject_batches[0].subject if subject_batches else None
+            if subject is None:
+                from apps.subjects.models import Subject
+                subject = Subject.objects.filter(id=subject_id).first()
+
+            merged_batches = [
+                {
+                    'id': batch.id,
+                    'subject': batch.subject_id,
+                    'batch_time': batch.batch_time,
+                    'capacity_limit': batch.capacity_limit,
+                    'min_age': getattr(batch, 'min_age', None),
+                    'max_age': getattr(batch, 'max_age', None),
+                    'is_active': batch.is_active,
+                    'enrolled_count': batch.enrolled_count,
+                    'available_seats': batch.available_seats,
+                    'is_full': batch.available_seats <= 0,
+                    'created_at': batch.created_at,
+                    'updated_at': batch.updated_at,
+                }
+                for batch in subject_batches
+            ]
+
+            for index, batch_time in enumerate(enrollment_batch_times, start=len(merged_batches) + 1):
+                if batch_time in configured_batch_times:
+                    continue
+                enrollment_count = Enrollment.objects.filter(
+                    subject_id=subject_id,
+                    batch_time=batch_time,
+                    is_deleted=False
+                ).count()
+                merged_batches.append({
+                    'id': index,
+                    'subject': int(subject_id),
+                    'batch_time': batch_time,
+                    'capacity_limit': enrollment_count,
+                    'min_age': None,
+                    'max_age': None,
+                    'is_active': True,
+                    'enrolled_count': enrollment_count,
+                    'available_seats': 0,
+                    'is_full': False,
+                    'created_at': getattr(subject, 'created_at', None),
+                    'updated_at': getattr(subject, 'created_at', None),
+                })
+
             return Response({
                 'success': True,
-                'data': serializer.data
+                'data': merged_batches
             }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({
