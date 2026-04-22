@@ -1,7 +1,7 @@
 'use client'
 
 import { Download, FileText, Loader2, Calendar } from 'lucide-react'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Fragment } from 'react'
 import { analyticsApi, subjectsApi } from '@/lib/api'
 import { useNotifications } from '@/hooks/useNotifications'
 
@@ -153,12 +153,25 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
     }).format(amount)
   }
 
+  const isAllBatch = selectedBatch === 'ALL'
+
+  const batchGroups: Record<string, any[]> = {}
+  if (batchReportData?.rows) {
+    for (const row of batchReportData.rows) {
+      const bn = row.batch_time || 'Unknown'
+      if (!batchGroups[bn]) batchGroups[bn] = []
+      batchGroups[bn].push(row)
+    }
+  }
+  const sortedBatchNames = Object.keys(batchGroups).sort()
+  const totalStudents = batchReportData?.rows?.length ?? 0
+
   return (
     <div className="p-2.5 sm:p-6 space-y-4">
       <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div className="mb-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-tight font-poppins">Enrollment & Payment Report</h1>
-          <p className="text-slate-500 text-sm mt-1 font-medium font-inter">Generate detailed enrollment and payment reports with subject and batch filters.</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-tight font-poppins">Subject-Wise Batch-Wise Enrollment Report</h1>
+          <p className="text-slate-500 text-sm mt-1 font-medium font-inter">Generate a student list for a subject and batch within a date range.</p>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-4">
@@ -259,8 +272,10 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
               <p className="mt-1 text-sm font-bold text-slate-900">{batchReportData.subject_name}</p>
             </div>
             <div className="rounded-2xl border border-slate-100 bg-blue-50 p-3">
-              <p className="text-[10px] uppercase tracking-widest text-blue-600">Total Students</p>
-              <p className="mt-1 text-2xl font-bold text-blue-900">{batchReportData.summary?.total_students || 0}</p>
+              <p className="text-[10px] uppercase tracking-widest text-blue-600">
+                {isAllBatch ? 'Total Students' : `Students in ${selectedBatch}`}
+              </p>
+              <p className="mt-1 text-2xl font-bold text-blue-900">{totalStudents}</p>
             </div>
             <div className="rounded-2xl border border-slate-100 bg-green-50 p-3">
               <p className="text-[10px] uppercase tracking-widest text-green-600">Total Paid</p>
@@ -297,67 +312,61 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
             <table className="min-w-full divide-y divide-slate-200 text-xs">
               <thead className="bg-slate-900 text-white sticky top-0">
                 <tr>
-                  <th className="px-3 py-2 text-left text-[9px] font-bold uppercase tracking-widest">Sr. No.</th>
-                  <th className="px-3 py-2 text-left text-[9px] font-bold uppercase tracking-widest">Student Name</th>
-                  <th className="px-3 py-2 text-left text-[9px] font-bold uppercase tracking-widest">Student ID</th>
-                  <th className="px-3 py-2 text-left text-[9px] font-bold uppercase tracking-widest">Subject</th>
-                  <th className="px-3 py-2 text-left text-[9px] font-bold uppercase tracking-widest">Batch</th>
-                  <th className="px-3 py-2 text-left text-[9px] font-bold uppercase tracking-widest">Enrollment Date</th>
-                  <th className="px-3 py-2 text-right text-[9px] font-bold uppercase tracking-widest">Total Fee</th>
-                  <th className="px-3 py-2 text-right text-[9px] font-bold uppercase tracking-widest">Paid Amount</th>
-                  <th className="px-3 py-2 text-right text-[9px] font-bold uppercase tracking-widest">Pending</th>
-                  <th className="px-3 py-2 text-left text-[9px] font-bold uppercase tracking-widest">Payment Mode</th>
-                  <th className="px-3 py-2 text-left text-[9px] font-bold uppercase tracking-widest">Payment Status</th>
-                  <th className="px-3 py-2 text-left text-[9px] font-bold uppercase tracking-widest">Payment ID</th>
-                  <th className="px-3 py-2 text-left text-[9px] font-bold uppercase tracking-widest">Ref. No</th>
-                  <th className="px-3 py-2 text-left text-[9px] font-bold uppercase tracking-widest">Phone</th>
-                  <th className="px-3 py-2 text-left text-[9px] font-bold uppercase tracking-widest">Receipt ID</th>
+                  <th className="px-4 py-3 text-center text-[9px] font-bold uppercase tracking-widest w-16">Sr. No.</th>
+                  <th className="px-4 py-3 text-left text-[9px] font-bold uppercase tracking-widest">Student Name</th>
+                  <th className="px-4 py-3 text-center text-[9px] font-bold uppercase tracking-widest w-36">Student ID</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {batchReportData.rows?.length > 0 ? (
-                  batchReportData.rows.map((row: any, index: number) => (
-                    <tr key={`${row.student_id}-${index}`} className="bg-white hover:bg-slate-50 transition">
-                      <td className="px-3 py-2 font-semibold text-slate-700">{row.sr_no || index + 1}</td>
-                      <td className="px-3 py-2 font-medium text-slate-900">{row.student_name}</td>
-                      <td className="px-3 py-2 text-slate-700">{row.student_id}</td>
-                      <td className="px-3 py-2 text-slate-700">{row.subject}</td>
-                      <td className="px-3 py-2 text-slate-700">{row.batch_time}</td>
-                      <td className="px-3 py-2 text-slate-700">{row.enrollment_date}</td>
-                      <td className="px-3 py-2 text-right font-medium text-slate-900">{formatCurrency(row.total_fee || 0)}</td>
-                      <td className="px-3 py-2 text-right font-medium text-green-600">{formatCurrency(row.paid_amount || 0)}</td>
-                      <td className="px-3 py-2 text-right font-medium text-red-600">{formatCurrency(row.pending_amount || 0)}</td>
-                      <td className="px-3 py-2">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest ${
-                          row.payment_mode === 'Online'
-                            ? 'bg-blue-100 text-blue-700'
-                            : row.payment_mode === 'Offline'
-                            ? 'bg-orange-100 text-orange-700'
-                            : 'bg-slate-100 text-slate-700'
-                        }`}>
-                          {row.payment_mode}
-                        </span>
+                {totalStudents > 0 ? (
+                  <>
+                    {isAllBatch ? (
+                      sortedBatchNames.map((batchName) => {
+                        const batchRows = batchGroups[batchName]
+                        return (
+                          <Fragment key={`batch-${batchName}`}>
+                            <tr className="bg-indigo-50 border-t-2 border-indigo-100">
+                              <td colSpan={3} className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-indigo-700">
+                                {batchName} &nbsp;•&nbsp; {batchRows.length} Student{batchRows.length !== 1 ? 's' : ''}
+                              </td>
+                            </tr>
+                            {batchRows.map((row: any, index: number) => (
+                              <tr
+                                key={`${row.student_id}-${index}`}
+                                className={index % 2 === 0 ? 'bg-white hover:bg-slate-50 transition' : 'bg-slate-50 hover:bg-slate-100 transition'}
+                              >
+                                <td className="px-4 py-3 text-center font-semibold text-slate-500">{row.sr_no || index + 1}</td>
+                                <td className="px-4 py-3 font-medium text-slate-900 break-words">{row.student_name}</td>
+                                <td className="px-4 py-3 text-center text-slate-700 font-mono">{row.student_id}</td>
+                              </tr>
+                            ))}
+                          </Fragment>
+                        )
+                      })
+                    ) : (
+                      batchReportData.rows.map((row: any, index: number) => (
+                        <tr
+                          key={`${row.student_id}-${index}`}
+                          className={index % 2 === 0 ? 'bg-white hover:bg-slate-50 transition' : 'bg-slate-50 hover:bg-slate-100 transition'}
+                        >
+                          <td className="px-4 py-3 text-center font-semibold text-slate-500">{row.sr_no || index + 1}</td>
+                          <td className="px-4 py-3 font-medium text-slate-900 break-words">{row.student_name}</td>
+                          <td className="px-4 py-3 text-center text-slate-700 font-mono">{row.student_id}</td>
+                        </tr>
+                      ))
+                    )}
+                    <tr className="bg-slate-800 text-white">
+                      <td colSpan={3} className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest">
+                        {isAllBatch
+                          ? `Total: ${totalStudents} Student${totalStudents !== 1 ? 's' : ''} across ${sortedBatchNames.length} Batch${sortedBatchNames.length !== 1 ? 'es' : ''}`
+                          : `Total: ${totalStudents} Student${totalStudents !== 1 ? 's' : ''} in ${selectedBatch}`
+                        }
                       </td>
-                      <td className="px-3 py-2">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest ${
-                          row.payment_status === 'Success'
-                            ? 'bg-green-100 text-green-700'
-                            : row.payment_status === 'Pending'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-slate-100 text-slate-700'
-                        }`}>
-                          {row.payment_status}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-slate-700 font-mono text-[8px]">{row.payment_id}</td>
-                      <td className="px-3 py-2 text-slate-700 font-mono text-[8px]">{row.payment_reference_no}</td>
-                      <td className="px-3 py-2 text-slate-700">{row.phone_number}</td>
-                      <td className="px-3 py-2 text-slate-700 font-mono text-[8px]">{row.receipt_id}</td>
                     </tr>
-                  ))
+                  </>
                 ) : (
                   <tr>
-                    <td colSpan={15} className="px-4 py-8 text-center text-slate-500">
+                    <td colSpan={3} className="px-4 py-8 text-center text-slate-500">
                       No enrollment records found for the selected criteria.
                     </td>
                   </tr>

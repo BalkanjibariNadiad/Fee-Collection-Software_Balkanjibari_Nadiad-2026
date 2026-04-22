@@ -137,21 +137,42 @@ def generate_pdf_report(title, headers, data):
         alignment=0,
     )
 
+    section_style = ParagraphStyle(
+        'SectionHeader',
+        parent=styles['Normal'],
+        fontSize=9,
+        fontName='Helvetica-Bold',
+        alignment=0,
+        textColor=NAVY_BLUE,
+        leading=12,
+        wordWrap='LTR',
+    )
+
+    col_count = len(headers)
     elements = []
 
     wrapped_headers = [Paragraph(str(h), header_style) for h in headers]
 
+    section_row_indices = []
     wrapped_data = []
     for row in data:
-        wrapped_row = []
-        for i, cell in enumerate(row):
-            style = cell_style_left if i == 1 or (isinstance(cell, str) and len(str(cell)) > 20) else cell_style
-            wrapped_row.append(Paragraph(str(cell) if cell is not None else "", style))
-        wrapped_data.append(wrapped_row)
+        table_row_idx = len(wrapped_data) + 1  # +1 because header is row 0
+        if len(row) == 1:
+            # Single-element row → full-width section/batch header
+            section_row_indices.append(table_row_idx)
+            wrapped_data.append(
+                [Paragraph(str(row[0]) if row[0] is not None else '', section_style)]
+                + [Paragraph('', cell_style)] * (col_count - 1)
+            )
+        else:
+            wrapped_row = []
+            for i, cell in enumerate(row):
+                style = cell_style_left if i == 1 or (isinstance(cell, str) and len(str(cell)) > 20) else cell_style
+                wrapped_row.append(Paragraph(str(cell) if cell is not None else '', style))
+            wrapped_data.append(wrapped_row)
 
     table_data = [wrapped_headers] + wrapped_data
 
-    col_count = len(headers)
     available_width = A4[0] - 30*mm
 
     if col_count == 3:
@@ -162,6 +183,8 @@ def generate_pdf_report(title, headers, data):
     t = Table(table_data, colWidths=col_widths, repeatRows=1, splitByRow=1)
 
     row_count = len(table_data)
+    section_row_set = set(section_row_indices)
+
     style_cmds = [
         ('BACKGROUND', (0, 0), (-1, 0), NAVY_BLUE),
         ('TEXTCOLOR', (0, 0), (-1, 0), white),
@@ -173,9 +196,23 @@ def generate_pdf_report(title, headers, data):
         ('LEFTPADDING', (0, 0), (-1, -1), 6),
         ('RIGHTPADDING', (0, 0), (-1, -1), 6),
     ]
+
+    # Alternating colors only for normal data rows
     for i in range(1, row_count):
-        bg = colors.white if i % 2 == 1 else colors.HexColor('#F0F0F8')
-        style_cmds.append(('BACKGROUND', (0, i), (-1, i), bg))
+        if i not in section_row_set:
+            bg = colors.white if i % 2 == 1 else colors.HexColor('#F0F0F8')
+            style_cmds.append(('BACKGROUND', (0, i), (-1, i), bg))
+
+    # Section header rows: span all columns + distinct lavender background
+    for idx in section_row_indices:
+        style_cmds.extend([
+            ('SPAN', (0, idx), (-1, idx)),
+            ('BACKGROUND', (0, idx), (-1, idx), HexColor('#E8EAF6')),
+            ('ALIGN', (0, idx), (-1, idx), 'LEFT'),
+            ('TEXTCOLOR', (0, idx), (-1, idx), NAVY_BLUE),
+            ('TOPPADDING', (0, idx), (-1, idx), 6),
+            ('BOTTOMPADDING', (0, idx), (-1, idx), 6),
+        ])
 
     t.setStyle(TableStyle(style_cmds))
     
