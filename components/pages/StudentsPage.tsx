@@ -175,7 +175,7 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
     payment_method: 'CASH'
   })
   const [availableSubjects, setAvailableSubjects] = useState<any[]>([])
-  const [batchData, setBatchData] = useState<Record<number, any[]>>({})
+  const [batchData, setBatchData] = useState<Record<string, any[]>>({})
 
   const checkAgeEligibility = (age: number | string, minAge: number, maxAge: number) => {
     const n = typeof age === 'string' ? parseInt(age) : age
@@ -301,7 +301,7 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
       if (!enr.subject_id) continue
       const sub = availableSubjects.find((s: any) => s.id === Number(enr.subject_id))
       if (!sub) continue
-      const batchInfo = (batchData[enr.subject_id] || []).find((b: any) => b.batch_time === enr.batch_time)
+      const batchInfo = (batchData[String(enr.subject_id)] || []).find((b: any) => b.batch_time === enr.batch_time)
       const minAge = batchInfo?.min_age ?? sub.min_age ?? 0
       const maxAge = batchInfo?.max_age ?? sub.max_age ?? 100
       if (!checkAgeEligibility(formData.age, minAge, maxAge)) {
@@ -504,7 +504,7 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
             .then(r => r.json())
             .then(data => {
               const batches = data.data || data.results || []
-              setBatchData(prev => ({ ...prev, [subId]: batches }))
+              setBatchData(prev => ({ ...prev, [String(subId)]: batches }))
             })
             .catch(() => {})
         }
@@ -597,14 +597,14 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
           batch_time: timings.length > 0 ? timings[0] : (sub.default_batch_timing || '')
         }
         // Fetch batch capacity data if not already loaded
-        if (subjectValue && !batchData[subjectValue]) {
+        if (subjectValue && !batchData[String(subjectValue)]) {
           fetch(`${API_BASE_URL}/api/v1/subjects/${subjectValue}/batches/`, {
             headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
           })
             .then(r => r.json())
             .then(data => {
               const batches = data.data || data.results || []
-              setBatchData(prev => ({ ...prev, [subjectValue]: batches }))
+              setBatchData(prev => ({ ...prev, [String(subjectValue)]: batches }))
             })
             .catch(() => {})
         }
@@ -616,7 +616,7 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
       const subjId = newEnrollments[index].subject_id
       const batchKey = subjId !== undefined && subjId !== null ? String(subjId) : subjId
       if (batchKey && value) {
-        const batches = batchData[batchKey] || []
+        const batches = batchData[String(batchKey)] || []
         const selectedBatch = batches.find(b => b.batch_time === value)
         if (selectedBatch && selectedBatch.is_full) {
           notifyError(`Sorry, the batch "${value}" is currently full. Please select another batch.`)
@@ -1025,7 +1025,7 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
                           {enr.subject_id && (() => {
                             const sub = availableSubjects.find((s: any) => s.id === Number(enr.subject_id))
                             if (!sub) return null
-                            const batchInfo = (batchData[enr.subject_id] || []).find((b: any) => b.batch_time === enr.batch_time)
+                            const batchInfo = (batchData[String(enr.subject_id)] || []).find((b: any) => b.batch_time === enr.batch_time)
                             const minAge = batchInfo?.min_age ?? sub.min_age ?? 0
                             const maxAge = batchInfo?.max_age ?? sub.max_age ?? 100
                             if (!checkAgeEligibility(formData.age, minAge, maxAge)) {
@@ -1051,7 +1051,7 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
                             {(() => {
                                 const sub = availableSubjects.find(s => s.id === Number(enr.subject_id))
                                 const timings = sub ? getUniqueBatchTimings(sub) : []
-                                const batches: any[] = batchData[Number(enr.subject_id)] || []
+                                const batches: any[] = batchData[String(enr.subject_id)] || []
                                 return timings.map(t => {
                                     const batchInfo = batches.find((b: any) => b.batch_time === t)
                                     const isFull = batchInfo?.is_full

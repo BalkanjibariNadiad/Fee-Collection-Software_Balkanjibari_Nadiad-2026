@@ -35,19 +35,19 @@ export interface PaymentStatusDistribution {
 }
 
 export interface DateWiseFeeReportRow {
+    sr_no: number;
     date: string;
     online_fees: number;
     offline_fees: number;
     total_fees: number;
-    cumulative_total: number;
 }
 
 export interface DateWiseFeeReport {
     start_date: string;
     end_date: string;
+    payment_mode: 'ALL' | 'ONLINE' | 'OFFLINE';
     rows: DateWiseFeeReportRow[];
     grand_total: number;
-    final_cumulative_total: number;
 }
 
 export interface SubjectWiseDailyFeeReportRow {
@@ -232,19 +232,31 @@ export const analyticsApi = {
     exportTimeIntervalReportPdf: async (start_hour: number, end_hour: number) =>
         analyticsApi.downloadFile('/api/v1/analytics/export_time_interval_report_pdf/', 'timing_report.pdf', { start_hour, end_hour }),
 
-    getDateWiseFeeReport: async (start_date: string, end_date: string): Promise<ApiResponse<DateWiseFeeReport>> => {
+    getDateWiseFeeReport: async (
+        start_date: string,
+        end_date: string,
+        payment_mode: 'ALL' | 'ONLINE' | 'OFFLINE' = 'ALL'
+    ): Promise<ApiResponse<DateWiseFeeReport>> => {
         const response = await apiClient.get<ApiResponse<DateWiseFeeReport>>(
             '/api/v1/analytics/date_wise_fee_report/',
-            { params: { start_date, end_date } }
+            { params: { start_date, end_date, payment_mode } }
         );
         return response.data;
     },
 
-    exportDateWiseFeeReportCsv: async (start_date: string, end_date: string) =>
-        analyticsApi.downloadFile('/api/v1/analytics/export_date_wise_fee_report_csv/', `fee-report-${start_date}-to-${end_date}.csv`, { start_date, end_date }),
+    exportDateWiseFeeReportCsv: async (
+        start_date: string,
+        end_date: string,
+        payment_mode: 'ALL' | 'ONLINE' | 'OFFLINE' = 'ALL'
+    ) =>
+        analyticsApi.downloadFile('/api/v1/analytics/export_date_wise_fee_report_csv/', `fee-report-${start_date}-to-${end_date}.csv`, { start_date, end_date, payment_mode }),
 
-    exportDateWiseFeeReportPdf: async (start_date: string, end_date: string) =>
-        analyticsApi.downloadFile('/api/v1/analytics/export_date_wise_fee_report_pdf/', `fee-report-${start_date}-to-${end_date}.pdf`, { start_date, end_date }),
+    exportDateWiseFeeReportPdf: async (
+        start_date: string,
+        end_date: string,
+        payment_mode: 'ALL' | 'ONLINE' | 'OFFLINE' = 'ALL'
+    ) =>
+        analyticsApi.downloadFile('/api/v1/analytics/export_date_wise_fee_report_pdf/', `fee-report-${start_date}-to-${end_date}.pdf`, { start_date, end_date, payment_mode }),
 
     getSubjectWiseDailyFeeReport: async (date: string): Promise<ApiResponse<SubjectWiseDailyFeeReport>> => {
         const response = await apiClient.get<ApiResponse<SubjectWiseDailyFeeReport>>(

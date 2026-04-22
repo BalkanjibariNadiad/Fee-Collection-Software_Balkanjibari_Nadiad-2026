@@ -55,7 +55,8 @@ export default function DashboardLayout({
     }
     
     // Prefetch pages in background when idle for faster navigation
-    setupPagePrefetching(user?.id)
+    const prefetchUserId = user?.id == null ? undefined : String(user.id)
+    setupPagePrefetching(prefetchUserId)
   }, [user?.id])
 
   const renderPage = () => {

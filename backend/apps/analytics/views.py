@@ -247,7 +247,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
             start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         return start_date
 
-    def _build_date_wise_fee_report(self, start_date, end_date):
+    def _build_date_wise_fee_report(self, start_date, end_date, payment_mode='ALL'):
         """Build date-wise fee report payload for a date range (inclusive)."""
         base_qs = Payment.objects.filter(
             is_deleted=False,
@@ -255,9 +255,15 @@ class AnalyticsViewSet(viewsets.ViewSet):
             payment_date__range=(start_date, end_date)
         )
 
+        selected_mode = (payment_mode or 'ALL').upper()
+        if selected_mode == 'ONLINE':
+            base_qs = base_qs.filter(payment_mode='ONLINE')
+        elif selected_mode == 'OFFLINE':
+            base_qs = base_qs.filter(payment_mode='CASH')
+
         daily_aggregates = base_qs.values('payment_date').annotate(
             online_total=Sum('amount', filter=Q(payment_mode='ONLINE')),
-            offline_total=Sum('amount', filter=~Q(payment_mode='ONLINE')),
+            offline_total=Sum('amount', filter=Q(payment_mode='CASH')),
             total_fees=Sum('amount')
         ).order_by('payment_date')
 
@@ -270,30 +276,24 @@ class AnalyticsViewSet(viewsets.ViewSet):
             for item in daily_aggregates
         }
 
-        previous_total = Payment.objects.filter(
-            is_deleted=False,
-            status='SUCCESS',
-            payment_date__lt=start_date
-        ).aggregate(total=Sum('amount'))['total'] or 0
-
-        running_cumulative = float(previous_total)
         rows = []
         current_date = start_date
+        sr_no = 1
         while current_date <= end_date:
             day_data = by_date.get(current_date, {
                 'online_fees': 0.0,
                 'offline_fees': 0.0,
                 'total_fees': 0.0,
             })
-            running_cumulative += day_data['total_fees']
 
             rows.append({
+                'sr_no': sr_no,
                 'date': current_date.strftime('%Y-%m-%d'),
                 'online_fees': day_data['online_fees'],
                 'offline_fees': day_data['offline_fees'],
                 'total_fees': day_data['total_fees'],
-                'cumulative_total': float(running_cumulative),
             })
+            sr_no += 1
             current_date += timedelta(days=1)
 
         grand_total = sum(row['total_fees'] for row in rows)
@@ -301,9 +301,9 @@ class AnalyticsViewSet(viewsets.ViewSet):
         return {
             'start_date': start_date.strftime('%Y-%m-%d'),
             'end_date': end_date.strftime('%Y-%m-%d'),
+            'payment_mode': selected_mode,
             'rows': rows,
             'grand_total': float(grand_total),
-            'final_cumulative_total': float(running_cumulative),
         }
 
     @action(detail=False, methods=['get'])
@@ -312,6 +312,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
         try:
             start_date_str = request.query_params.get('start_date')
             end_date_str = request.query_params.get('end_date')
+            payment_mode = request.query_params.get('payment_mode', 'ALL')
 
             if end_date_str:
                 end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
@@ -326,7 +327,11 @@ class AnalyticsViewSet(viewsets.ViewSet):
             if start_date > end_date:
                 return Response({'success': False, 'error': {'message': 'Start date cannot be after end date.'}}, status=400)
 
-            report = self._build_date_wise_fee_report(start_date, end_date)
+            allowed_payment_modes = {'ALL', 'ONLINE', 'OFFLINE'}
+            if payment_mode.upper() not in allowed_payment_modes:
+                return Response({'success': False, 'error': {'message': 'payment_mode must be one of ALL, ONLINE, OFFLINE.'}}, status=400)
+
+            report = self._build_date_wise_fee_report(start_date, end_date, payment_mode)
 
             return Response({
                 'success': True,
@@ -341,6 +346,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
         try:
             start_date_str = request.query_params.get('start_date')
             end_date_str = request.query_params.get('end_date')
+            payment_mode = request.query_params.get('payment_mode', 'ALL')
 
             if end_date_str:
                 end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
@@ -355,24 +361,28 @@ class AnalyticsViewSet(viewsets.ViewSet):
             if start_date > end_date:
                 return Response({'success': False, 'error': {'message': 'Start date cannot be after end date.'}}, status=400)
 
-            report = self._build_date_wise_fee_report(start_date, end_date)
+            allowed_payment_modes = {'ALL', 'ONLINE', 'OFFLINE'}
+            if payment_mode.upper() not in allowed_payment_modes:
+                return Response({'success': False, 'error': {'message': 'payment_mode must be one of ALL, ONLINE, OFFLINE.'}}, status=400)
+
+            report = self._build_date_wise_fee_report(start_date, end_date, payment_mode)
             file_date = f"{report['start_date']}-to-{report['end_date']}"
 
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = f'attachment; filename="fee-report-{file_date}.csv"'
 
             writer = csv.writer(response)
-            writer.writerow(['Date', 'Online Fees', 'Offline Fees', 'Total Fees'])
+            writer.writerow(['Sr. No.', 'Date', 'Offline Fees', 'Online Fees', 'Total Fees'])
             for row in report['rows']:
                 writer.writerow([
+                    row['sr_no'],
                     row['date'],
-                    f"{row['online_fees']:.2f}",
                     f"{row['offline_fees']:.2f}",
+                    f"{row['online_fees']:.2f}",
                     f"{row['total_fees']:.2f}",
                 ])
             writer.writerow([])
-            writer.writerow(['Grand Total', f"{report['grand_total']:.2f}"])
-            writer.writerow(['Final Cumulative Total', f"{report['final_cumulative_total']:.2f}"])
+            writer.writerow(['', 'Grand Total', '', '', f"{report['grand_total']:.2f}"])
 
             return response
         except Exception as e:
@@ -384,6 +394,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
         try:
             start_date_str = request.query_params.get('start_date')
             end_date_str = request.query_params.get('end_date')
+            payment_mode = request.query_params.get('payment_mode', 'ALL')
 
             if end_date_str:
                 end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
@@ -398,21 +409,25 @@ class AnalyticsViewSet(viewsets.ViewSet):
             if start_date > end_date:
                 return Response({'success': False, 'error': {'message': 'Start date cannot be after end date.'}}, status=400)
 
-            report = self._build_date_wise_fee_report(start_date, end_date)
+            allowed_payment_modes = {'ALL', 'ONLINE', 'OFFLINE'}
+            if payment_mode.upper() not in allowed_payment_modes:
+                return Response({'success': False, 'error': {'message': 'payment_mode must be one of ALL, ONLINE, OFFLINE.'}}, status=400)
+
+            report = self._build_date_wise_fee_report(start_date, end_date, payment_mode)
             file_date = f"{report['start_date']}-to-{report['end_date']}"
 
-            headers = ['Date', 'Online Fees', 'Offline Fees', 'Total Fees']
+            headers = ['Sr. No.', 'Date', 'Offline Fees', 'Online Fees', 'Total Fees']
             data = []
             for row in report['rows']:
                 data.append([
+                    row['sr_no'],
                     row['date'],
-                    f"Rs. {row['online_fees']:,.2f}",
                     f"Rs. {row['offline_fees']:,.2f}",
+                    f"Rs. {row['online_fees']:,.2f}",
                     f"Rs. {row['total_fees']:,.2f}",
                 ])
             data.append([])
-            data.append(['Grand Total', '', '', f"Rs. {report['grand_total']:,.2f}"])
-            data.append(['Final Cumulative Total', '', '', f"Rs. {report['final_cumulative_total']:,.2f}"])
+            data.append(['', 'Grand Total', '', '', f"Rs. {report['grand_total']:,.2f}"])
 
             pdf_content = generate_pdf_report(f"Date-wise Fee Report ({report['start_date']} to {report['end_date']})", headers, data)
             response = HttpResponse(pdf_content, content_type='application/pdf')
