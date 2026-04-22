@@ -70,6 +70,7 @@ export interface SubjectBatchEnrollmentReportRow {
     student_id: string;
     login_id: string;
     enrollment_date: string;
+<<<<<<< HEAD
 =======
     sr_no: number;
     student_name: string;
@@ -77,6 +78,11 @@ export interface SubjectBatchEnrollmentReportRow {
     subject: string;
     batch_time: string;
     enrollment_date: string;
+=======
+    enrollment_id: string;
+    password: string;
+    total_fee: number;
+>>>>>>> d19a4a217565b1920e81f5f26088291777334ef9
     paid_amount: number;
     pending_amount: number;
     payment_mode: string;
@@ -85,8 +91,13 @@ export interface SubjectBatchEnrollmentReportRow {
     payment_reference_no: string;
     phone_number: string;
     receipt_id: string;
+<<<<<<< HEAD
     total_fee: number;
 >>>>>>> cdf9366 (Expand reports with full batch data)
+=======
+    payment_date: string;
+    payment_time: string;
+>>>>>>> d19a4a217565b1920e81f5f26088291777334ef9
 }
 
 export interface SubjectBatchEnrollmentReport {
@@ -98,18 +109,27 @@ export interface SubjectBatchEnrollmentReport {
     generated_at: string;
     rows: SubjectBatchEnrollmentReportRow[];
 <<<<<<< HEAD
+<<<<<<< HEAD
     totals_by_batch: Array<{ batch_time: string; total_students: number }>;
     total_students: number;
 =======
     summary: {
         total_students: number;
+=======
+    summary: {
+        total_students: number;
+        total_fees: number;
+>>>>>>> d19a4a217565b1920e81f5f26088291777334ef9
         total_enrolled: number;
         total_paid: number;
         total_pending: number;
         online_payments: number;
         offline_payments: number;
     };
+<<<<<<< HEAD
 >>>>>>> cdf9366 (Expand reports with full batch data)
+=======
+>>>>>>> d19a4a217565b1920e81f5f26088291777334ef9
 }
 
 export const analyticsApi = {

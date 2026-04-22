@@ -2,7 +2,6 @@
 
 import { Download, FileText, Loader2, Calendar } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
-<<<<<<< HEAD
 import { analyticsApi, subjectsApi } from '@/lib/api'
 =======
 import { analyticsApi, paymentsApi, studentsApi, subjectsApi } from '@/lib/api'
@@ -84,6 +83,11 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
         ? data.results
         : []
 
+      setSubjectBatches(
+        batches
+          .map((batch: any) => batch?.batch_time || batch?.name || String(batch || ''))
+          .filter(Boolean)
+      )
     } catch (error) {
       console.error('Failed to load batches for selected subject:', error)
       setSubjectBatches([])
@@ -362,15 +366,34 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
     }
   }
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+    }).format(amount)
+  }
+
+  const isAllBatch = selectedBatch === 'ALL'
+
+  const batchGroups: Record<string, any[]> = {}
+  if (batchReportData?.rows) {
+    for (const row of batchReportData.rows) {
+      const bn = row.batch_time || 'Unknown'
+      if (!batchGroups[bn]) batchGroups[bn] = []
+      batchGroups[bn].push(row)
+    }
+  }
+  const sortedBatchNames = Object.keys(batchGroups).sort()
+  const totalStudents = batchReportData?.rows?.length ?? 0
+
   return (
     <div className="p-2.5 sm:p-6 space-y-4">
       <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div className="mb-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-tight font-poppins">Subject-wise Batch-wise Enrollment Report</h1>
-          <p className="text-slate-500 text-sm mt-1 font-medium font-inter">Generate live student enrollment data grouped by batch and subject, with export options for CSV and PDF.</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-tight font-poppins">Subject-Wise Batch-Wise Enrollment Report</h1>
+          <p className="text-slate-500 text-sm mt-1 font-medium font-inter">Generate a student list for a subject and batch within a date range.</p>
         </div>
 
-<<<<<<< HEAD
         <div className="grid gap-4 lg:grid-cols-3">
           <div>
             <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Subject</label>
@@ -409,80 +432,6 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
                 onChange={(event) => setStartReportDate(event.target.value)}
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-900"
               />
-=======
-      {/* Activity Type Filter */}
-      <div className="card-standard p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-          <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest font-inter">Filter Global Data:</h3>
-          <div className="flex flex-wrap gap-2">
-            {[
-              { id: 'SUMMER_CAMP', label: 'Summer Camp' },
-            ].map((bt) => (
-              <button
-                key={bt.id}
-                onClick={() => setActivityType(bt.id as any)}
-                className={`h-11 px-6 rounded-xl font-medium flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-xs uppercase tracking-widest font-poppins ${activityType === bt.id
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                  : 'bg-slate-50 text-slate-500 border border-slate-100 hover:bg-slate-100'
-                  }`}
-              >
-                {bt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1 font-inter">
-          <Info size={12} className="text-indigo-500" />
-          Reports are strictly filtered for Summer Camp 2026 data
-        </p>
-      </div>
-
-      {/* Quick Generate Section */}
-      <div className="card-standard p-6">
-        <h2 className="text-base font-bold text-slate-900 mb-6 uppercase tracking-widest pt-1 font-poppins">Generate Instant Reports</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6">
-          {[
-            { id: 'daily', title: 'Daily Collection', icon: Calendar, color: 'text-orange-600', bgColor: 'bg-orange-50' },
-            { id: 'payment', title: 'Monthly Collection', icon: BarChart3, color: 'text-blue-600', bgColor: 'bg-blue-50' },
-            { id: 'subject_detailed', title: 'Subject Detailed', icon: BookOpen, color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
-            { id: 'total_detailed', title: 'Enrollment List', icon: Users, color: 'text-purple-600', bgColor: 'bg-purple-50' },
-          ].map((report) => (
-            <div
-              key={report.id}
-              className="group bg-white p-6 rounded-2xl transition-all text-center space-y-4 border border-slate-50 shadow-sm hover:shadow-md"
-            >
-              <div className={`w-12 h-12 flex items-center justify-center rounded-2xl ${report.bgColor} ${report.color} mx-auto transition-transform group-hover:scale-110`}>
-                <report.icon size={24} />
-              </div>
-              <p className="font-bold text-xs text-slate-900 uppercase tracking-tight truncate font-inter">{report.title}</p>
-              <div className="flex gap-2 justify-center">
-                <button
-                  onClick={() => handleDownload(report.id, 'CSV')}
-                  disabled={!!downloading}
-                  className="h-8 px-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-[10px] uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100/50 flex-1 font-poppins"
-                >
-                  {downloading === `${report.id}_CSV` ? <Loader2 size={12} className="animate-spin" /> : 'CSV'}
-                </button>
-                <button
-                  onClick={() => handleDownload(report.id, 'PDF')}
-                  disabled={!!downloading}
-                  className="h-8 px-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-[10px] uppercase tracking-widest bg-indigo-50 text-indigo-600 border border-indigo-100/50 flex-1 font-poppins"
-                >
-                  {downloading === `${report.id}_PDF` ? <Loader2 size={12} className="animate-spin" /> : 'PDF'}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Bulk Data Management (Importer) */}
-      <div className="card-standard p-6 bg-gradient-to-br from-indigo-50/50 to-white">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-indigo-200">
-              <Upload size={24} />
->>>>>>> cdf9366 (Expand reports with full batch data)
             </div>
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">End Date</label>
@@ -501,7 +450,7 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
           <button
             onClick={generateSubjectBatchReport}
             disabled={batchReportLoading}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800 disabled:opacity-50"
           >
             {batchReportLoading ? <Loader2 size={16} className="animate-spin" /> : <Calendar size={16} />}
             Generate Report
@@ -514,187 +463,6 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
                 onClick={() => handleBatchReportDownload('CSV')}
                 disabled={!!downloading}
                 className="inline-flex items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-xs font-bold uppercase tracking-widest text-emerald-600 border border-emerald-100"
-=======
-      {/* Available Reports Table */}
-      <div className="card-standard overflow-hidden">
-        <div className="bg-slate-50 border-b border-slate-100 p-6">
-          <h2 className="text-base font-bold text-slate-900 uppercase tracking-widest font-poppins">Report Catalog</h2>
-        </div>
-        <div className="overflow-x-auto no-scrollbar hidden lg:block">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-3 sm:px-6 py-4 text-left text-[10px] sm:text-sm font-bold text-gray-600 uppercase tracking-wider font-poppins">Report Name</th>
-                <th className="px-3 sm:px-6 py-4 text-left text-[10px] sm:text-sm font-bold text-gray-600 uppercase tracking-wider font-poppins">Formats</th>
-                <th className="px-3 sm:px-6 py-4 text-left text-[10px] sm:text-sm font-bold text-gray-600 uppercase tracking-wider hidden sm:table-cell font-poppins">Refreshed</th>
-                <th className="px-3 sm:px-6 py-4 text-right text-[10px] sm:text-sm font-bold text-gray-600 uppercase tracking-wider font-poppins">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {reports.map((report) => (
-                <tr key={report.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-3 sm:px-6 py-4">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="p-1.5 sm:p-2 bg-indigo-50 rounded-lg">
-                        <FileText size={16} className="text-indigo-600 sm:size-5" />
-                      </div>
-                      <div>
-                        <p className="text-xs sm:text-sm font-bold text-gray-900 font-inter">{report.name}</p>
-                        <p className="text-[10px] text-gray-500 line-clamp-1 font-inter">{report.desc}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-3 sm:px-6 py-4">
-                    <div className="flex gap-1">
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-800">CSV</span>
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-100 text-blue-800">PDF</span>
-                    </div>
-                  </td>
-                  <td className="px-3 sm:px-6 py-4 text-xs text-gray-500 hidden sm:table-cell font-inter">{report.date}</td>
-                  <td className="px-3 sm:px-6 py-4 text-right">
-                    <div className="flex gap-2 justify-end">
-                      <button
-                        onClick={() => handleDownload(report.id, 'CSV')}
-                        disabled={!!downloading}
-                        className="w-10 h-10 flex items-center justify-center hover:bg-green-50 text-green-600 rounded-xl transition-all border border-transparent hover:border-green-100"
-                        title="Download CSV"
-                      >
-                        <Download size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDownload(report.id, 'PDF')}
-                        disabled={!!downloading}
-                        className="w-10 h-10 flex items-center justify-center hover:bg-indigo-50 text-indigo-600 rounded-xl transition-all border border-transparent hover:border-indigo-100"
-                        title="Download PDF"
-                      >
-                        <FileText size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Card View for Reports */}
-        <div className="lg:hidden divide-y divide-slate-100">
-            {reports.map((report) => (
-                <div key={report.id} className="p-4 space-y-4 hover:bg-slate-50/50 transition-colors">
-                    <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-50 rounded-xl">
-                                <FileText size={18} className="text-indigo-600" />
-                            </div>
-                            <div>
-                                <p className="text-[11px] font-bold text-slate-900 uppercase tracking-tight font-poppins">{report.name}</p>
-                                <p className="text-[9px] font-medium text-slate-400 mt-0.5 line-clamp-1 font-inter">{report.desc}</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-1.5 grayscale opacity-60">
-                            <span className="px-1.5 py-0.5 rounded-[4px] text-[8px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">CSV</span>
-                            <span className="px-1.5 py-0.5 rounded-[4px] text-[8px] font-bold bg-blue-50 text-blue-700 border border-blue-100">PDF</span>
-                        </div>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => handleDownload(report.id, 'CSV')}
-                            disabled={!!downloading}
-                            className="flex-1 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 font-medium text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 font-poppins"
-                        >
-                            {downloading === `${report.id}_CSV` ? <Loader2 size={12} className="animate-spin" /> : <Download size={14} />}
-                            Download CSV
-                        </button>
-                        <button
-                            onClick={() => handleDownload(report.id, 'PDF')}
-                            disabled={!!downloading}
-                            className="flex-1 h-10 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 font-medium text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 font-poppins"
-                        >
-                            {downloading === `${report.id}_PDF` ? <Loader2 size={12} className="animate-spin" /> : <FileText size={14} />}
-                            Download PDF
-                        </button>
-                    </div>
-                </div>
-            ))}
-        </div>
-      </div>
-
-      {/* Subject & Batch-wise Student Report - NEW */}
-      <div className="card-standard p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 uppercase tracking-widest font-poppins">Subject & Batch-wise Student Report</h2>
-            <p className="text-xs text-slate-500 mt-1 font-inter">Filter students by subject and batch time, then export as CSV/PDF</p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {/* Dropdown Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-            {/* Subject Dropdown */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-widest font-inter">Select Subject *</label>
-              <select
-                value={selectedSubject}
-                onChange={(e) => handleSubjectSelect(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-white focus:outline-none focus:border-indigo-400"
-              >
-                <option value="">Choose a subject...</option>
-                {allSubjects.map((subject: any) => (
-                  <option key={subject.id} value={subject.id}>
-                    {subject.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Batch Dropdown */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-widest font-inter">Select Batch</label>
-              <select
-                value={selectedBatch}
-                onChange={(e) => setSelectedBatch(e.target.value)}
-                disabled={!selectedSubject}
-                className="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-white focus:outline-none focus:border-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <option value="ALL">All batches</option>
-                {subjectBatches.map((batch: string) => (
-                  <option key={batch} value={batch}>
-                    {batch}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-widest font-inter">Start Date</label>
-              <input
-                type="date"
-                value={startReportDate}
-                onChange={(e) => setStartReportDate(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-white focus:outline-none focus:border-indigo-400"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-widest font-inter">End Date</label>
-              <input
-                type="date"
-                value={endReportDate}
-                onChange={(e) => setEndReportDate(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-white focus:outline-none focus:border-indigo-400"
-              />
-            </div>
-
-            {/* Generate Button */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-widest font-inter invisible">Action</label>
-              <button
-                onClick={generateSubjectBatchReport}
-                disabled={!selectedSubject || subjectBatchReportLoading || !!downloading}
-                className="w-full h-10 px-4 rounded-xl bg-indigo-600 text-white text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed font-poppins"
->>>>>>> cdf9366 (Expand reports with full batch data)
               >
                 {downloading === 'subject_batch_CSV' ? <Loader2 size={12} className="animate-spin" /> : <Download size={14} />}
                 Download CSV
@@ -702,7 +470,7 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
               <button
                 onClick={() => handleBatchReportDownload('PDF')}
                 disabled={!!downloading}
-                className="inline-flex items-center gap-2 rounded-2xl bg-indigo-50 px-4 py-3 text-xs font-bold uppercase tracking-widest text-indigo-600 border border-indigo-100"
+                className="inline-flex items-center gap-2 rounded-2xl bg-indigo-50 px-4 py-3 text-xs font-bold uppercase tracking-widest text-indigo-600 border border-indigo-100 disabled:opacity-50"
               >
                 {downloading === 'subject_batch_PDF' ? <Loader2 size={12} className="animate-spin" /> : <FileText size={14} />}
                 Download PDF
@@ -872,61 +640,112 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
         </div>
       ) : batchReportData ? (
         <div className="space-y-4">
-          <div className="grid gap-3 lg:grid-cols-4">
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-[10px] uppercase tracking-widest text-slate-500">Selected Subject</p>
-              <p className="mt-2 text-lg font-bold text-slate-900">{batchReportData.subject_name}</p>
-              <p className="text-xs text-slate-500">{batchReportData.batch === 'ALL' ? 'All batches' : batchReportData.batch}</p>
+          {/* Summary Stats */}
+          <div className="grid gap-3 lg:grid-cols-6">
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+              <p className="text-[10px] uppercase tracking-widest text-slate-500">Subject</p>
+              <p className="mt-1 text-sm font-bold text-slate-900">{batchReportData.subject_name}</p>
             </div>
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-[10px] uppercase tracking-widest text-slate-500">Date Range</p>
-              <p className="mt-2 text-lg font-bold text-slate-900">{batchReportData.start_date} → {batchReportData.end_date}</p>
+            <div className="rounded-2xl border border-slate-100 bg-blue-50 p-3">
+              <p className="text-[10px] uppercase tracking-widest text-blue-600">
+                {isAllBatch ? 'Total Students' : `Students in ${selectedBatch}`}
+              </p>
+              <p className="mt-1 text-2xl font-bold text-blue-900">{totalStudents}</p>
             </div>
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-[10px] uppercase tracking-widest text-slate-500">Total Students</p>
-              <p className="mt-2 text-3xl font-bold text-slate-900">{batchReportData.total_students}</p>
+            <div className="rounded-2xl border border-slate-100 bg-green-50 p-3">
+              <p className="text-[10px] uppercase tracking-widest text-green-600">Total Paid</p>
+              <p className="mt-1 text-sm font-bold text-green-900">{formatCurrency(batchReportData.summary?.total_paid || 0)}</p>
             </div>
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-[10px] uppercase tracking-widest text-slate-500">Generated</p>
-              <p className="mt-2 text-lg font-bold text-slate-900">{batchReportData.generated_at}</p>
+            <div className="rounded-2xl border border-slate-100 bg-red-50 p-3">
+              <p className="text-[10px] uppercase tracking-widest text-red-600">Total Pending</p>
+              <p className="mt-1 text-sm font-bold text-red-900">{formatCurrency(batchReportData.summary?.total_pending || 0)}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-100 bg-purple-50 p-3">
+              <p className="text-[10px] uppercase tracking-widest text-purple-600">Total Fees</p>
+              <p className="mt-1 text-sm font-bold text-purple-900">{formatCurrency(batchReportData.summary?.total_enrolled || 0)}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+              <p className="text-[10px] uppercase tracking-widest text-slate-600">Generated</p>
+              <p className="mt-1 text-xs font-bold text-slate-900">{batchReportData.generated_at}</p>
             </div>
           </div>
 
-          {batchReportData.totals_by_batch?.length > 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {batchReportData.totals_by_batch.map((entry: any) => (
-                <div key={entry.batch_time} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-500">Batch</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">{entry.batch_time}</p>
-                  <p className="mt-3 text-2xl font-bold text-slate-900">{entry.total_students}</p>
-                </div>
-              ))}
+          {/* Payment Mode Breakdown */}
+          <div className="grid gap-3 lg:grid-cols-2">
+            <div className="rounded-2xl border border-slate-100 bg-cyan-50 p-4">
+              <p className="text-[10px] uppercase tracking-widest text-cyan-600 font-bold">Online Payments</p>
+              <p className="mt-2 text-2xl font-bold text-cyan-900">{formatCurrency(batchReportData.summary?.online_payments || 0)}</p>
             </div>
-          ) : null}
+            <div className="rounded-2xl border border-slate-100 bg-orange-50 p-4">
+              <p className="text-[10px] uppercase tracking-widest text-orange-600 font-bold">Offline Payments</p>
+              <p className="mt-2 text-2xl font-bold text-orange-900">{formatCurrency(batchReportData.summary?.offline_payments || 0)}</p>
+            </div>
+          </div>
 
+          {/* Data Table */}
           <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white shadow-sm">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-slate-50">
+            <table className="min-w-full divide-y divide-slate-200 text-xs">
+              <thead className="bg-slate-900 text-white sticky top-0">
                 <tr>
-                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">Sr. No.</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">Student Name</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">Login ID</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">Subject</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">Batch</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">Enrollment Date</th>
+                  <th className="px-4 py-3 text-center text-[9px] font-bold uppercase tracking-widest w-16">Sr. No.</th>
+                  <th className="px-4 py-3 text-left text-[9px] font-bold uppercase tracking-widest">Student Name</th>
+                  <th className="px-4 py-3 text-center text-[9px] font-bold uppercase tracking-widest w-36">Student ID</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {batchReportData.rows?.map((row: any, index: number) => (
-                  <tr key={`${row.student_id}-${index}`} className="bg-white">
-                    <td className="px-4 py-3 text-xs font-semibold text-slate-700">{index + 1}</td>
-                    <td className="px-4 py-3 text-xs font-medium text-slate-900">{row.student_name}</td>
-                    <td className="px-4 py-3 text-xs text-slate-700">{row.login_id}</td>
-                    <td className="px-4 py-3 text-xs text-slate-700">{row.subject_name}</td>
-                    <td className="px-4 py-3 text-xs text-slate-700">{row.batch_time}</td>
-                    <td className="px-4 py-3 text-xs text-slate-700">{row.enrollment_date}</td>
+                {totalStudents > 0 ? (
+                  <>
+                    {isAllBatch ? (
+                      sortedBatchNames.map((batchName) => {
+                        const batchRows = batchGroups[batchName]
+                        return (
+                          <Fragment key={`batch-${batchName}`}>
+                            <tr className="bg-indigo-50 border-t-2 border-indigo-100">
+                              <td colSpan={3} className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-indigo-700">
+                                {batchName} &nbsp;•&nbsp; {batchRows.length} Student{batchRows.length !== 1 ? 's' : ''}
+                              </td>
+                            </tr>
+                            {batchRows.map((row: any, index: number) => (
+                              <tr
+                                key={`${row.student_id}-${index}`}
+                                className={index % 2 === 0 ? 'bg-white hover:bg-slate-50 transition' : 'bg-slate-50 hover:bg-slate-100 transition'}
+                              >
+                                <td className="px-4 py-3 text-center font-semibold text-slate-500">{row.sr_no || index + 1}</td>
+                                <td className="px-4 py-3 font-medium text-slate-900 break-words">{row.student_name}</td>
+                                <td className="px-4 py-3 text-center text-slate-700 font-mono">{row.student_id}</td>
+                              </tr>
+                            ))}
+                          </Fragment>
+                        )
+                      })
+                    ) : (
+                      batchReportData.rows.map((row: any, index: number) => (
+                        <tr
+                          key={`${row.student_id}-${index}`}
+                          className={index % 2 === 0 ? 'bg-white hover:bg-slate-50 transition' : 'bg-slate-50 hover:bg-slate-100 transition'}
+                        >
+                          <td className="px-4 py-3 text-center font-semibold text-slate-500">{row.sr_no || index + 1}</td>
+                          <td className="px-4 py-3 font-medium text-slate-900 break-words">{row.student_name}</td>
+                          <td className="px-4 py-3 text-center text-slate-700 font-mono">{row.student_id}</td>
+                        </tr>
+                      ))
+                    )}
+                    <tr className="bg-slate-800 text-white">
+                      <td colSpan={3} className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest">
+                        {isAllBatch
+                          ? `Total: ${totalStudents} Student${totalStudents !== 1 ? 's' : ''} across ${sortedBatchNames.length} Batch${sortedBatchNames.length !== 1 ? 'es' : ''}`
+                          : `Total: ${totalStudents} Student${totalStudents !== 1 ? 's' : ''} in ${selectedBatch}`
+                        }
+                      </td>
+                    </tr>
+                  </>
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-8 text-center text-slate-500">
+                      No enrollment records found for the selected criteria.
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
