@@ -503,30 +503,34 @@ class AnalyticsViewSet(viewsets.ViewSet):
             response['Content-Disposition'] = f'attachment; filename="subject_batch_enrollment_report_{subject_id}_{batch}_{file_date}.csv"'
             writer = csv.writer(response)
 
-            writer.writerow(['Sr. No.', 'Enrollment ID', 'Student Name', 'Student ID', 'Login ID', 'Password', 'Subject Name', 'Batch Name', 'Enrollment Date', 'Total Fee', 'Paid Amount', 'Pending Amount', 'Payment Mode', 'Payment Status', 'Payment ID', 'Payment Ref. No', 'Phone Number', 'Receipt ID', 'Payment Date', 'Payment Time'])
-            for row in report['rows']:
-                writer.writerow([
-                    row.get('sr_no', ''),
-                    row.get('enrollment_id', ''),
-                    row.get('student_name', ''),
-                    row.get('student_id', ''),
-                    row.get('login_id', ''),
-                    row.get('password', ''),
-                    row.get('subject_name', ''),
-                    row.get('batch_time', ''),
-                    row.get('enrollment_date', ''),
-                    f"{float(row.get('total_fee', 0) or 0):.2f}",
-                    f"{float(row.get('paid_amount', 0) or 0):.2f}",
-                    f"{float(row.get('pending_amount', 0) or 0):.2f}",
-                    row.get('payment_mode', ''),
-                    row.get('payment_status', ''),
-                    row.get('payment_id', ''),
-                    row.get('payment_reference_no', ''),
-                    row.get('phone_number', ''),
-                    row.get('receipt_id', ''),
-                    row.get('payment_date', ''),
-                    row.get('payment_time', ''),
-                ])
+            def _group_by_batch(rows):
+                groups = {}
+                for row in rows:
+                    bn = row.get('batch_time', 'N/A')
+                    groups.setdefault(bn, []).append(row)
+                return groups
+
+            if batch.upper() == 'ALL':
+                batch_groups = _group_by_batch(report['rows'])
+                for bn in sorted(batch_groups.keys()):
+                    batch_rows = batch_groups[bn]
+                    c = len(batch_rows)
+                    writer.writerow([f"Batch: {bn}"])
+                    writer.writerow(['Sr. No.', 'Student Name', 'Student ID'])
+                    for row in batch_rows:
+                        writer.writerow([row.get('sr_no', ''), row.get('student_name', ''), row.get('student_id', '')])
+                    writer.writerow([f"Batch Count: {c} Student{'s' if c != 1 else ''}"])
+                    writer.writerow([])
+                total = len(report['rows'])
+                nb = len(batch_groups)
+                writer.writerow([f"Total: {total} Student{'s' if total != 1 else ''} across {nb} Batch{'es' if nb != 1 else ''}"])
+            else:
+                writer.writerow(['Sr. No.', 'Student Name', 'Student ID'])
+                for row in report['rows']:
+                    writer.writerow([row.get('sr_no', ''), row.get('student_name', ''), row.get('student_id', '')])
+                c = len(report['rows'])
+                writer.writerow([])
+                writer.writerow([f"Batch Count: {c} Student{'s' if c != 1 else ''}"])
 
             return response
         except Exception as e:
@@ -546,31 +550,32 @@ class AnalyticsViewSet(viewsets.ViewSet):
             report = self._build_subject_batch_enrollment_report(subject_id, batch, start_date_str, end_date_str)
             file_date = timezone.now().strftime('%Y-%m-%d')
 
-            headers = ['Sr. No.', 'Enrollment ID', 'Student Name', 'Student ID', 'Login ID', 'Password', 'Subject Name', 'Batch Name', 'Enrollment Date', 'Total Fee', 'Paid Amount', 'Pending Amount', 'Payment Mode', 'Payment Status', 'Payment ID', 'Payment Ref. No', 'Phone Number', 'Receipt ID', 'Payment Date', 'Payment Time']
+            headers = ['Sr. No.', 'Student Name', 'Student ID']
             data = []
-            for row in report['rows']:
-                data.append([
-                    row.get('sr_no', ''),
-                    row.get('enrollment_id', ''),
-                    row.get('student_name', ''),
-                    row.get('student_id', ''),
-                    row.get('login_id', ''),
-                    row.get('password', ''),
-                    row.get('subject_name', ''),
-                    row.get('batch_time', ''),
-                    row.get('enrollment_date', ''),
-                    f"₹{float(row.get('total_fee', 0) or 0):,.2f}",
-                    f"₹{float(row.get('paid_amount', 0) or 0):,.2f}",
-                    f"₹{float(row.get('pending_amount', 0) or 0):,.2f}",
-                    row.get('payment_mode', ''),
-                    row.get('payment_status', ''),
-                    row.get('payment_id', ''),
-                    row.get('payment_reference_no', ''),
-                    row.get('phone_number', ''),
-                    row.get('receipt_id', ''),
-                    row.get('payment_date', ''),
-                    row.get('payment_time', ''),
-                ])
+
+            def _group_by_batch_pdf(rows):
+                groups = {}
+                for row in rows:
+                    bn = row.get('batch_time', 'N/A')
+                    groups.setdefault(bn, []).append(row)
+                return groups
+
+            if batch.upper() == 'ALL':
+                batch_groups = _group_by_batch_pdf(report['rows'])
+                for bn in sorted(batch_groups.keys()):
+                    batch_rows = batch_groups[bn]
+                    c = len(batch_rows)
+                    data.append([f"Batch: {bn}  •  {c} Student{'s' if c != 1 else ''}"])
+                    for row in batch_rows:
+                        data.append([row.get('sr_no', ''), row.get('student_name', ''), row.get('student_id', '')])
+                total = len(report['rows'])
+                nb = len(batch_groups)
+                data.append([f"Total: {total} Student{'s' if total != 1 else ''} across {nb} Batch{'es' if nb != 1 else ''}"])
+            else:
+                c = len(report['rows'])
+                data.append([f"Batch: {batch}  •  {c} Student{'s' if c != 1 else ''}"])
+                for row in report['rows']:
+                    data.append([row.get('sr_no', ''), row.get('student_name', ''), row.get('student_id', '')])
 
             title = f"Subject-wise Batch-wise Enrollment Report ({report['subject_name']})"
             pdf_content = generate_pdf_report(title, headers, data)
