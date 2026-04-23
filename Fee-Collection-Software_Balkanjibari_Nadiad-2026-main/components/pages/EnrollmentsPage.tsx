@@ -42,18 +42,19 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
   const [classMode, setClassMode] = useState<'ONLINE' | 'OFFLINE' | 'ALL'>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState('')
   const [refundConfirm, setRefundConfirm] = useState<{ show: boolean; enrollment: Enrollment | null }>({ show: false, enrollment: null })
   const [processing, setProcessing] = useState(false)
 
   const getRecentEnrollmentCount = () => {
-    const now = new Date()
-    const startDate = new Date(now.getFullYear(), now.getMonth(), 15)
-    return allEnrollments.filter((enrollment) => {
-      const date = new Date(enrollment.enrollment_date || '')
-      return date >= startDate && date <= now
-    }).length
+    // If we have allEnrollments, return its length as the total
+    if (allEnrollments && allEnrollments.length > 0) {
+      return allEnrollments.length
+    }
+    // Fallback to totalCount from paginated API
+    return totalCount
   }
 
   // Pagination
@@ -64,27 +65,19 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
   // Fetch ALL enrollments for search (no pagination)
   const fetchAllEnrollments = async () => {
     try {
+      setIsSyncing(true)
       const enrollmentParams = {
-        ...(activityType !== 'ALL' && { activity_type: activityType }),
-        page_size: 10000  // Fetch all enrollments at once for search functionality
+        // Remove activity_type filter to allow searching across ALL enrollments
+        page_size: 5000  // Reduced from 10000 to be safer, still covers your 782 records
       }
 
       const enrollmentsRes = await enrollmentsApi.getAll(enrollmentParams)
       const enrollmentsData = enrollmentsRes?.results || enrollmentsRes?.data || (Array.isArray(enrollmentsRes) ? enrollmentsRes : [])
-      
-      // Sort by enrollment_date descending (latest first)
-      const sortedEnrollments = [...enrollmentsData].sort((a, b) => {
-        const aDate = new Date(a.enrollment_date || 0).getTime()
-        const bDate = new Date(b.enrollment_date || 0).getTime()
-        return bDate - aDate
-      })
-
-      setAllEnrollments(sortedEnrollments)
-      return sortedEnrollments
-    } catch (err: any) {
+      setAllEnrollments(enrollmentsData)
+    } catch (err) {
       console.error('Fetch All Enrollments Error:', err)
-      setError(err.message || 'Failed to load enrollments for search')
-      return []
+    } finally {
+      setIsSyncing(false)
     }
   }
 
@@ -255,9 +248,7 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
       <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
         <div>
           <h1 className="text-xl sm:text-3xl font-bold text-slate-900 font-poppins uppercase tracking-tight">Active Enrollments: Summer Camp 2026</h1>
-          <p className="text-slate-500 text-[10px] sm:text-sm mt-1 font-medium font-inter uppercase tracking-widest">
-            Total Students Enrolled: {allEnrollments.length > 0 ? getRecentEnrollmentCount() : enrollments.length}
-          </p>
+            Total Students Enrolled: {totalCount > 0 ? totalCount : (allEnrollments.length || enrollments.length)}
         </div>
 
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end">
@@ -275,6 +266,9 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full h-11 pl-10 pr-8 input-standard text-xs sm:text-sm font-medium uppercase tracking-wider font-inter"
               />
+              {isSyncing && (
+                <Loader2 className="absolute right-3 top-3 w-4 h-4 text-slate-400 animate-spin" />
+              )}
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
@@ -286,7 +280,7 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
               )}
             </div>
             <p className="text-[9px] text-slate-400 mt-1 font-inter">
-              {searchTerm ? `${filteredEnrollments.length} of ${allEnrollments.length || enrollments.length} results` : `Showing all ${allEnrollments.length || enrollments.length} enrollments`}
+              {searchTerm ? `${filteredEnrollments.length} of ${allEnrollments.length || totalCount} results` : `Showing all ${allEnrollments.length || totalCount} enrollments`}
             </p>
           </div>
 
@@ -438,11 +432,14 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                               <button
                                 onClick={async () => {
                                   try {
-                                    await enrollmentsApi.update(enrollment.id, { payment_status: 'PAID' })
+                                    // Use clearPending to create a payment record and update amounts correctly
+                                    await enrollmentsApi.clearPending(enrollment.id, 'CASH')
                                     toast.success(`Payment marked as paid for ${enrollment.student?.name}`)
+                                    // Trigger a refetch of both paginated and search data
                                     fetchData()
+                                    fetchAllEnrollments()
                                   } catch (err: any) {
-                                    toast.error(err?.response?.data?.error || 'Failed to mark as paid')
+                                    toast.error(err?.response?.data?.error?.message || 'Failed to mark as paid')
                                   }
                                 }}
                                 className="px-3 py-1.5 text-xs font-bold bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all active:scale-95"
@@ -542,11 +539,14 @@ export default function EnrollmentsPage({ userRole, canEdit }: EnrollmentsPagePr
                       <button
                         onClick={async () => {
                           try {
-                            await enrollmentsApi.update(enrollment.id, { payment_status: 'PAID' })
+                            // Use clearPending to create a payment record and update amounts correctly
+                            await enrollmentsApi.clearPending(enrollment.id, 'CASH')
                             toast.success(`Payment marked as paid for ${enrollment.student?.name}`)
+                            // Trigger a refetch of both paginated and search data
                             fetchData()
+                            fetchAllEnrollments()
                           } catch (err: any) {
-                            toast.error(err?.response?.data?.error || 'Failed to mark as paid')
+                            toast.error(err?.response?.data?.error?.message || 'Failed to mark as paid')
                           }
                         }}
                         className="w-full h-12 rounded-xl text-[11px] bg-green-500 hover:bg-green-600 text-white font-bold uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all"

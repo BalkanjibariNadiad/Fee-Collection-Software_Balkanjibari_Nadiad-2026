@@ -61,9 +61,14 @@ class EnrollmentSerializer(serializers.ModelSerializer):
         return obj.payment_status
     
     def get_payment_mode(self, obj):
-        """Get payment mode (ONLINE/OFFLINE/CASH/CHEQUE) from related Payment object."""
-        from apps.payments.models import Payment
-        payment = obj.payments.filter(status__in=['SUCCESS', 'PENDING_CONFIRMATION', 'CREATED']).first()
+        """Get payment mode from related Payment object using prefetched data if available."""
+        # Use prefetched payments to avoid N+1 query
+        payments = list(obj.payments.all())
+        valid_statuses = ['SUCCESS', 'PENDING_CONFIRMATION', 'CREATED']
+        
+        # Find the first payment matching the criteria in the prefetched list
+        payment = next((p for p in payments if p.status in valid_statuses), None)
+        
         if payment:
             if payment.payment_mode in ['CASH', 'CHEQUE']:
                 return 'OFFLINE'

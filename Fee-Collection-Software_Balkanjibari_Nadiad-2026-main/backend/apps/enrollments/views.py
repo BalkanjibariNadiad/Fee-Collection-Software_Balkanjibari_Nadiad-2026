@@ -22,7 +22,9 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
     ViewSet for Enrollment CRUD operations.
     """
     
-    queryset = Enrollment.objects.filter(is_deleted=False).select_related('student', 'subject', 'student__user')
+    queryset = Enrollment.objects.filter(is_deleted=False).select_related(
+        'student', 'subject', 'student__user'
+    ).prefetch_related('payments')
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
 
@@ -57,6 +59,16 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
         activity_type = self.request.query_params.get('activity_type', None)
         if activity_type in ['SUMMER_CAMP', 'YEAR_ROUND']:
             queryset = queryset.filter(subject__activity_type=activity_type)
+        
+        # Search functionality
+        search = self.request.query_params.get('search', None)
+        if search:
+            queryset = queryset.filter(
+                Q(student__name__icontains=search) |
+                Q(student__student_id__icontains=search) |
+                Q(enrollment_id__icontains=search) |
+                Q(subject__name__icontains=search)
+            )
         
         return queryset
     

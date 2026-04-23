@@ -19,22 +19,22 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
   const [subjectBatches, setSubjectBatches] = useState<string[]>([])
   const [selectedSubject, setSelectedSubject] = useState<string>('')
   const [selectedBatch, setSelectedBatch] = useState<string>('ALL')
-  const [startReportDate, setStartReportDate] = useState(new Date().toISOString().split('T')[0])
+  const [startReportDate, setStartReportDate] = useState('2026-04-15')
   const [endReportDate, setEndReportDate] = useState(new Date().toISOString().split('T')[0])
 
   const startDateRef = useRef<HTMLInputElement>(null)
   const endDateRef = useRef<HTMLInputElement>(null)
 
-  // Ã¢â€â‚¬Ã¢â€â‚¬ Date-wise Fee Collection Report State Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-  const [dwStartDate, setDwStartDate] = useState(new Date().toISOString().split('T')[0])
+  // ── Date-wise Fee Collection Report State ─────────────────────────────────
+  const [dwStartDate, setDwStartDate] = useState('2026-04-15')
   const [dwEndDate, setDwEndDate] = useState(new Date().toISOString().split('T')[0])
   const [dwPaymentMode, setDwPaymentMode] = useState<'ALL' | 'OFFLINE' | 'ONLINE'>('ALL')
   const [dwLoading, setDwLoading] = useState(false)
   const [dwReportData, setDwReportData] = useState<any | null>(null)
   const [dwDownloading, setDwDownloading] = useState<string | null>(null)
 
-  // Ã¢â€â‚¬Ã¢â€â‚¬ Report 3: Date-wise Subject-wise Fee Collection State Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-  const [r3StartDate, setR3StartDate] = useState(new Date().toISOString().split('T')[0])
+  // ── Report 3: Date-wise Subject-wise Fee Collection State ─────────────────
+  const [r3StartDate, setR3StartDate] = useState('2026-04-15')
   const [r3EndDate, setR3EndDate] = useState(new Date().toISOString().split('T')[0])
   const [r3SelectedSubjectIds, setR3SelectedSubjectIds] = useState<number[]>([])
   const [r3SelectAll, setR3SelectAll] = useState(true)
@@ -44,23 +44,21 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
   const [r3SubjectDropOpen, setR3SubjectDropOpen] = useState(false)
   const [r3ExpandedSubjects, setR3ExpandedSubjects] = useState<Record<string, boolean>>({})
 
-  // Ã¢â€â‚¬Ã¢â€â‚¬ Report 4: Enrollment & Payment Report State Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-  const [r4StartDate, setR4StartDate] = useState(new Date().toISOString().split('T')[0])
+  // ── Report 4: Enrollment & Payment Report State ─────────────────────────────
+  const [r4StartDate, setR4StartDate] = useState('2026-04-15')
   const [r4EndDate, setR4EndDate] = useState(new Date().toISOString().split('T')[0])
   const [r4Loading, setR4Loading] = useState(false)
   const [r4ReportData, setR4ReportData] = useState<EnrollmentPaymentReport | null>(null)
   const [r4Downloading, setR4Downloading] = useState<string | null>(null)
 
   // Report 5: Subject-wise Total Summary
-  const [r5StartDate, setR5StartDate] = useState(new Date().toISOString().split('T')[0])
+  const [r5StartDate, setR5StartDate] = useState('2026-04-15')
   const [r5EndDate, setR5EndDate] = useState(new Date().toISOString().split('T')[0])
   const [r5SubjectIds, setR5SubjectIds] = useState<number[]>([])
   const [r5Loading, setR5Loading] = useState(false)
   const [r5ReportData, setR5ReportData] = useState<SubjectTotalSummaryReport | null>(null)
   const [r5Downloading, setR5Downloading] = useState<string | null>(null)
 
-  const [r5SubjectDropOpen, setR5SubjectDropOpen] = useState(false)
-  const [r5SelectAll, setR5SelectAll] = useState(true)
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
@@ -190,7 +188,7 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
     }).format(amount)
   }
 
-  // Ã¢â€â‚¬Ã¢â€â‚¬ Date-wise Fee Collection Handlers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // ── Date-wise Fee Collection Handlers ────────────────────────────────────
   const generateDateWiseFeeReport = async () => {
     if (dwStartDate > dwEndDate) {
       notifyError('Start date cannot be after end date')
@@ -227,7 +225,7 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
     }
   }
 
-  // Ã¢â€â‚¬Ã¢â€â‚¬ Report 3 Handlers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // ── Report 3 Handlers ────────────────────────────────────────────────────
   const toggleR3Subject = (id: number) => {
     setR3SelectedSubjectIds(prev => {
       const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
@@ -290,7 +288,7 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
     }
   }
 
-  // Ã¢â€â‚¬Ã¢â€â‚¬ Report 4 Generators Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // ── Report 4 Generators ───────────────────────────────────────────────────
   const generateR4Report = async () => {
     if (!r4StartDate || !r4EndDate) {
       notifyError('Please select both start and end dates')
@@ -327,62 +325,12 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
     }
   }
 
-  const generateR5Report = async () => {
-    setR5Loading(true)
-    try {
-      const response = await analyticsApi.getSubjectTotalSummaryReport(r5StartDate, r5EndDate, r5SubjectIds.map(String))
-      const data = (response as any)?.data || response
-      setR5ReportData(data || null)
-      if (!data || Object.keys(data).length === 0) {
-        notifyError('No data found for the selected criteria')
-      }
-    } catch (err) {
-      console.error('Report 5 generation failed:', err)
-      notifyError('Failed to generate Subject-wise Summary report')
-      setR5ReportData(null)
-    } finally {
-      setR5Loading(false)
-    }
-  }
-
-  const downloadR5Report = async (format: 'CSV' | 'PDF') => {
-    try {
-      setR5Downloading(format)
-      if (format === 'CSV') {
-        await analyticsApi.exportSubjectTotalSummaryCsv(r5StartDate, r5EndDate, r5SubjectIds.map(String))
-      } else {
-        await analyticsApi.exportSubjectTotalSummaryPdf(r5StartDate, r5EndDate, r5SubjectIds.map(String))
-      }
-      notifySuccess(`${format} downloaded successfully`)
-    } catch (err) {
-      console.error(`Failed to download Report 5 ${format}:`, err)
-      notifyError(`Failed to download ${format}`)
-    } finally {
-      setR5Downloading(null)
-    }
-  }
-
   // Filter rows client-side based on payment mode selection
   const dwFilteredRows: DateWiseFeeReportRow[] = (() => {
     const rows: DateWiseFeeReportRow[] = dwReportData?.rows ?? []
     if (dwPaymentMode === 'OFFLINE') {
       return rows.map((r) => ({ ...r, online_fees: 0, total_fees: r.offline_fees }))
     }
-  const toggleR5Subject = (id: number) => {
-    setR5SubjectIds(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    )
-  }
-
-  const toggleR5SelectAll = () => {
-    if (r5SelectAll) {
-      setR5SubjectIds([])
-      setR5SelectAll(false)
-    } else {
-      setR5SubjectIds(allSubjects.map((s: any) => s.id))
-      setR5SelectAll(true)
-    }
-  }
     if (dwPaymentMode === 'ONLINE') {
       return rows.map((r) => ({ ...r, offline_fees: 0, total_fees: r.online_fees }))
     }
@@ -572,7 +520,7 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
                           <Fragment key={`batch-${batchName}`}>
                             <tr className="bg-indigo-50 border-t-2 border-indigo-100">
                               <td colSpan={3} className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-indigo-700">
-                                {batchName} &nbsp;Ã¢â‚¬Â¢&nbsp; {batchRows.length} Student{batchRows.length !== 1 ? 's' : ''}
+                                {batchName} &nbsp;•&nbsp; {batchRows.length} Student{batchRows.length !== 1 ? 's' : ''}
                               </td>
                             </tr>
                             {batchRows.map((row: any, index: number) => (
@@ -626,9 +574,9 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
           <p className="mt-2 text-xs">Choose subject, batch, and date range above, then click Generate Report.</p>
         </div>
       )}
-      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+      {/* ════════════════════════════════════════════════════════════════
           REPORT 2: DATE-WISE FEE COLLECTION
-      Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+      ════════════════════════════════════════════════════════════════ */}
       <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div className="mb-4">
           <div className="flex items-center gap-3 mb-1">
@@ -711,11 +659,11 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
         )}
       </div>
 
-      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Date-wise Report Output Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      {/* ── Date-wise Report Output ─────────────────────────────────────── */}
       {dwLoading ? (
         <div className="rounded-2xl border border-slate-100 bg-white p-8 text-center text-slate-500 shadow-sm">
           <Loader2 size={18} className="mx-auto mb-3 animate-spin" />
-          <p className="text-sm font-semibold uppercase tracking-widest">Loading report dataÃ¢â‚¬Â¦</p>
+          <p className="text-sm font-semibold uppercase tracking-widest">Loading report data…</p>
         </div>
       ) : dwReportData ? (
         <div className="space-y-4">
@@ -724,7 +672,7 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
             <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
               <p className="text-[10px] uppercase tracking-widest text-slate-500">Date Range</p>
               <p className="mt-1 text-sm font-bold text-slate-900">
-                {dwReportData.start_date} Ã¢â€ â€™ {dwReportData.end_date}
+                {dwReportData.start_date} → {dwReportData.end_date}
               </p>
             </div>
             <div className="rounded-2xl border border-orange-100 bg-orange-50 p-4">
@@ -823,9 +771,9 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
         </div>
       )}
 
-      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+      {/* ════════════════════════════════════════════════════════════════
           REPORT 3: DATE-WISE SUBJECT-WISE FEE COLLECTION
-      Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+      ════════════════════════════════════════════════════════════════ */}
       <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div className="mb-5">
           <div className="flex items-center gap-3 mb-1">
@@ -837,7 +785,7 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
             </h2>
           </div>
           <p className="text-slate-500 text-sm mt-0.5 font-medium font-inter">
-            View fees collected per subject &amp; batch within the selected date range, sorted AÃ¢â€ â€™Z.
+            View fees collected per subject &amp; batch within the selected date range, sorted A→Z.
           </p>
         </div>
 
@@ -880,7 +828,7 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
                   {r3SelectAll
                     ? 'All Subjects'
                     : r3SelectedSubjectIds.length === 0
-                    ? 'Select subjectsÃ¢â‚¬Â¦'
+                    ? 'Select subjects…'
                     : `${r3SelectedSubjectIds.length} subject(s) selected`}
                 </span>
                 {r3SubjectDropOpen ? <ChevronUp size={16} className="text-slate-400 shrink-0" /> : <ChevronDown size={16} className="text-slate-400 shrink-0" />}
@@ -959,11 +907,11 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
         </div>
       </div>
 
-      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Report 3 Output Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      {/* ── Report 3 Output ─────────────────────────────────────────────── */}
       {r3Loading ? (
         <div className="rounded-2xl border border-slate-100 bg-white p-8 text-center text-slate-500 shadow-sm">
           <Loader2 size={18} className="mx-auto mb-3 animate-spin text-violet-500" />
-          <p className="text-sm font-semibold uppercase tracking-widest">Loading report dataÃ¢â‚¬Â¦</p>
+          <p className="text-sm font-semibold uppercase tracking-widest">Loading report data…</p>
         </div>
       ) : r3ReportData ? (
         <div className="space-y-4">
@@ -972,7 +920,7 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
             <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
               <p className="text-[10px] uppercase tracking-widest text-slate-500">Date Range</p>
               <p className="mt-1 text-sm font-bold text-slate-900">
-                {r3ReportData.start_date} Ã¢â€ â€™ {r3ReportData.end_date}
+                {r3ReportData.start_date} → {r3ReportData.end_date}
               </p>
             </div>
             <div className="rounded-2xl border border-violet-100 bg-violet-50 p-4">
@@ -1008,7 +956,7 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
                       const isExpanded = r3ExpandedSubjects[sub.subject_name] !== false
                       return (
                         <Fragment key={`sub-${sub.subject_name}`}>
-                          {/* Subject header row Ã¢â‚¬â€œ click to expand/collapse */}
+                          {/* Subject header row – click to expand/collapse */}
                           <tr
                             className="bg-violet-50 border-t-2 border-violet-100 cursor-pointer hover:bg-violet-100 transition"
                             onClick={() => setR3ExpandedSubjects(p => ({ ...p, [sub.subject_name]: !isExpanded }))}
@@ -1037,14 +985,14 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
                             </td>
                           </tr>
 
-                          {/* Batch rows Ã¢â‚¬â€œ only shown when expanded */}
+                          {/* Batch rows – only shown when expanded */}
                           {isExpanded && sub.batches.map((batch, batchIdx) => (
                             <tr
                               key={`${sub.subject_name}-${batch.batch_time}-${batchIdx}`}
                               className={batchIdx % 2 === 0 ? 'bg-white hover:bg-slate-50 transition' : 'bg-slate-50 hover:bg-slate-100 transition'}
                             >
                               <td className="px-4 py-3 text-center text-slate-400 font-medium pl-8">{batchIdx + 1}</td>
-                              <td className="px-4 py-3 text-slate-400 text-[10px] font-medium italic pl-6">Ã¢â€ Â³ {sub.subject_name}</td>
+                              <td className="px-4 py-3 text-slate-400 text-[10px] font-medium italic pl-6">↳ {sub.subject_name}</td>
                               <td className="px-4 py-3 text-slate-700 font-semibold">{batch.batch_time}</td>
                               <td className="px-4 py-3 text-right font-semibold text-slate-700">{batch.student_count}</td>
                               <td className="px-4 py-3 text-right font-bold text-green-800">
@@ -1088,9 +1036,9 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
         </div>
       )}
 
-      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+      {/* ════════════════════════════════════════════════════════════════
           REPORT 4: ENROLLMENT & PAYMENT REPORT (DATE-WISE)
-      Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+      ════════════════════════════════════════════════════════════════ */}
       <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div className="mb-5">
           <div className="flex items-center gap-3 mb-1">
@@ -1266,149 +1214,6 @@ export default function ReportsPage({ userRole }: ReportsPageProps) {
       ) : (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-slate-400">
           <Users size={32} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm font-semibold uppercase tracking-widest">No report generated yet</p>
-          <p className="mt-2 text-xs">Choose a date range above, then click Generate Report.</p>
-        </div>
-      )}
-
-            {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
-          REPORT 5: SUBJECT-WISE TOTAL SUMMARY REPORT
-      Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
-      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
-        <div className="mb-5">
-          <div className="flex items-center gap-3 mb-1">
-            <span className="inline-flex items-center justify-center rounded-xl bg-violet-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 shadow-sm shrink-0">
-              Report 5
-            </span>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-tight font-poppins">
-              Subject-wise Total Summary Report
-            </h2>
-          </div>
-          <p className="text-slate-500 text-sm mt-0.5 font-medium font-inter">
-            Subject-wise summary showing total students and total fees collected.
-          </p>
-        </div>
-
-        {/* Filters */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Start Date</label>
-            <input
-              type="date"
-              value={r5StartDate}
-              onChange={(e) => setR5StartDate(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">End Date</label>
-            <input
-              type="date"
-              value={r5EndDate}
-              onChange={(e) => setR5EndDate(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Subjects</label>
-            <select
-              multiple
-              value={r5SubjectIds.map(String)}
-              onChange={(e) => {
-                const vals = Array.from(e.target.selectedOptions, option => Number(option.value))
-                setR5SubjectIds(vals)
-              }}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition custom-scrollbar min-h-[80px]"
-            >
-              <option value="" disabled className="text-slate-400 italic font-medium bg-slate-100">Select subjects (Ctrl/Cmd+Click)...</option>
-              {allSubjects.map(s => (
-                <option key={s.id} value={String(s.id)} className="py-1">{s.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-end">
-            <button
-              onClick={generateR5Report}
-              disabled={r5Loading}
-              className="w-full rounded-2xl bg-violet-500 px-4 py-3 text-sm font-bold text-white shadow-sm hover:bg-violet-600 focus:ring-2 focus:ring-violet-500/30 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-            >
-              {r5Loading ? <Loader2 className="animate-spin" size={18} /> : <Calendar size={18} />}
-              Generate Report
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {r5ReportData ? (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col max-h-[800px]">
-          {/* Header & Export */}
-          <div className="border-b border-slate-100 p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
-            <div>
-              <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                <BookOpen size={18} className="text-violet-500" />
-                Report Preview
-              </h3>
-              <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider font-semibold">
-                {r5StartDate} to {r5EndDate}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => downloadR5Report('CSV')}
-                disabled={r5Downloading !== null}
-                className="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-700 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm"
-              >
-                {r5Downloading === 'CSV' ? <Loader2 size={16} className="animate-spin text-slate-400" /> : <Download size={16} className="text-slate-400" />}
-                Export CSV
-              </button>
-              <button
-                onClick={() => downloadR5Report('PDF')}
-                disabled={r5Downloading !== null}
-                className="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-700 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm"
-              >
-                {r5Downloading === 'PDF' ? <Loader2 size={16} className="animate-spin text-slate-400" /> : <Printer size={16} className="text-slate-400" />}
-                Export PDF
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 p-4 gap-4 bg-slate-50/30 border-b border-slate-100">
-            <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col justify-center items-center">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Total Enrollments</p>
-              <p className="text-2xl font-bold text-slate-900">{r5ReportData.summary.grand_students}</p>
-            </div>
-            <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col justify-center items-center">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Total Revenue</p>
-              <p className="text-2xl font-bold text-violet-600">Ã¢â€šÂ¹{r5ReportData.summary.grand_fees.toFixed(2)}</p>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto flex-1 custom-scrollbar">
-            <table className="w-full text-left border-collapse whitespace-nowrap min-w-max">
-              <thead className="bg-slate-50/80 sticky top-0 z-10 backdrop-blur-sm">
-                <tr>
-                  <th className="py-4 px-5 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200 w-16 text-center">Sr.</th>
-                  <th className="py-4 px-5 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200">Subject Name</th>
-                  <th className="py-4 px-5 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200 text-center">Total Students</th>
-                  <th className="py-4 px-5 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200 text-right">Total Fees Collected</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {r5ReportData.rows.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-3 px-5 text-sm font-semibold text-slate-400 text-center">{row.sr_no}</td>
-                    <td className="py-3 px-5 text-sm font-bold text-slate-700">{row.subject_name}</td>
-                    <td className="py-3 px-5 text-sm font-semibold text-slate-600 text-center bg-slate-50/30">{row.total_students}</td>
-                    <td className="py-3 px-5 text-sm font-bold text-emerald-600 text-right bg-emerald-50/10">Ã¢â€šÂ¹{row.total_fees.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-slate-400">
-          <BookOpen size={32} className="mx-auto mb-3 opacity-30" />
           <p className="text-sm font-semibold uppercase tracking-widest">No report generated yet</p>
           <p className="mt-2 text-xs">Choose a date range above, then click Generate Report.</p>
         </div>
