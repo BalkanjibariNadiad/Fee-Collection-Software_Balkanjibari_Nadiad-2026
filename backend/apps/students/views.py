@@ -266,7 +266,7 @@ class StudentViewSet(viewsets.ModelViewSet):
 
         try:
             with transaction.atomic():
-                instance = Student.objects.select_related('user').select_for_update().get(
+                instance = Student.objects.select_for_update().get(
                     pk=kwargs['pk'],
                     is_deleted=False,
                 )
