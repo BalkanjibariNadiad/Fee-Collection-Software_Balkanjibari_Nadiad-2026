@@ -2088,7 +2088,13 @@ class AnalyticsViewSet(viewsets.ViewSet):
             self._report_enrollment_queryset()
             .filter(enrollment_date__gte=start_date, enrollment_date__lte=end_date)
             .select_related('student', 'subject')
-            .prefetch_related('payments')
+            .prefetch_related(
+                Prefetch(
+                    'payments',
+                    queryset=self._report_payment_queryset().order_by('-created_at'),
+                    to_attr='latest_payments'
+                )
+            )
             .order_by('student__student_id')
         )
         if subject_id:
@@ -2100,13 +2106,8 @@ class AnalyticsViewSet(viewsets.ViewSet):
         sr = 1
         for enr in qs:
             student = enr.student
-            payment = enr.payments.filter(
-                is_deleted=False,
-                enrollment__student__is_deleted=False,
-                enrollment__student__status='ACTIVE',
-                enrollment__subject__is_deleted=False,
-                enrollment__subject__is_active=True,
-            ).order_by('-created_at').first()
+            payments = getattr(enr, 'latest_payments', [])
+            payment = payments[0] if payments else None
 
             total_fee   = float(enr.total_fee or 0)
             paid_amount = float(enr.paid_amount or 0)
@@ -2270,7 +2271,13 @@ class AnalyticsViewSet(viewsets.ViewSet):
             self._report_enrollment_queryset()
             .filter(enrollment_date__gte=start_date, enrollment_date__lte=end_date)
             .select_related('student', 'subject')
-            .prefetch_related('payments')
+            .prefetch_related(
+                Prefetch(
+                    'payments',
+                    queryset=self._report_payment_queryset().order_by('-created_at'),
+                    to_attr='latest_payments'
+                )
+            )
             .order_by('student__name')
         )
         if subject_id:
@@ -2284,7 +2291,8 @@ class AnalyticsViewSet(viewsets.ViewSet):
             student = enr.student
             
             # Get latest payment for mode
-            latest_payment = enr.payments.filter(is_deleted=False).order_by('-created_at').first()
+            payments = getattr(enr, 'latest_payments', [])
+            latest_payment = payments[0] if payments else None
             
             total_fee   = float(enr.total_fee or 0)
             paid_amount = float(enr.paid_amount or 0)
