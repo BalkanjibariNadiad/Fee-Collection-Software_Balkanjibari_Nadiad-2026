@@ -38,7 +38,6 @@ class AnalyticsViewSet(viewsets.ViewSet):
         return Enrollment.objects.filter(
             is_deleted=False,
             student__is_deleted=False,
-            student__status='ACTIVE',
             subject__is_deleted=False,
             subject__is_active=True,
             subject__activity_type='SUMMER_CAMP',
@@ -49,11 +48,13 @@ class AnalyticsViewSet(viewsets.ViewSet):
             is_deleted=False,
             enrollment__is_deleted=False,
             enrollment__student__is_deleted=False,
-            enrollment__student__status='ACTIVE',
             enrollment__subject__is_deleted=False,
             enrollment__subject__is_active=True,
             enrollment__subject__activity_type='SUMMER_CAMP',
         )
+
+    def _minimal_payment_queryset(self):
+        return Payment.objects.filter(is_deleted=False)
     def _report_student_queryset(self):
         return Student.objects.filter(is_deleted=False, status='ACTIVE')
 
@@ -69,7 +70,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
         enrollments = self._report_enrollment_queryset().filter(**filters).select_related('student', 'subject').prefetch_related(
             Prefetch(
                 'payments',
-                queryset=self._report_payment_queryset().order_by('-created_at'),
+                queryset=self._minimal_payment_queryset().order_by('-created_at'),
                 to_attr='report_payments'
             )
         ).order_by('batch_time', 'student__name')
