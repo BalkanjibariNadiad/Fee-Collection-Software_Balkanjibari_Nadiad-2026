@@ -175,6 +175,7 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
     payment_method: 'CASH'
   })
   const [availableSubjects, setAvailableSubjects] = useState<any[]>([])
+  const [isSubjectsLoading, setIsSubjectsLoading] = useState(false)
   const [batchData, setBatchData] = useState<Record<number, any[]>>({})
 
   const checkAgeEligibility = (age: number | string, minAge: number, maxAge: number) => {
@@ -192,16 +193,23 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
   // Fetch subjects for enrollment
   const fetchSubjects = async () => {
     try {
+      setIsSubjectsLoading(true)
       const response = await subjectsApi.getAll()
       // @ts-ignore
-      const data = response.data || response
-      if (Array.isArray(data)) {
-        setAvailableSubjects(data)
+      const resData = response.data || response
+      const finalData = Array.isArray(resData) ? resData : (resData?.data || [])
+      
+      if (Array.isArray(finalData) && finalData.length > 0) {
+        setAvailableSubjects(finalData)
+      } else if (Array.isArray(finalData)) {
+         setAvailableSubjects([])
       }
     } catch (err) {
       console.error('Failed to fetch subjects:', err)
       // Retry for cold starts
       setTimeout(fetchSubjects, 3000)
+    } finally {
+      setIsSubjectsLoading(false)
     }
   }
 
@@ -1016,7 +1024,7 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
                             required
                             disabled={editingStudent ? !allowEditEnrollments : false}
                           >
-                            <option value="">Select Subject</option>
+                            <option value="">{isSubjectsLoading ? '⌛ Loading subjects...' : 'Select Subject'}</option>
                             {availableSubjects.map((sub: any) => {
                               const eligible = checkAgeEligibility(formData.age, sub.min_age ?? 0, sub.max_age ?? 100)
                               const ageRange = (sub.min_age > 0 || sub.max_age < 100) ? ` · ${sub.min_age}–${sub.max_age} yrs` : ''
