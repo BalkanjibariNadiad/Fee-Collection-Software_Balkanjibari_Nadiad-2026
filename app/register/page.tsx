@@ -210,27 +210,7 @@ export default function RegisterPage() {
     pincode: '',
   })
 
-  // Load form from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('registration_form_draft')
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved)
-          setForm(prev => ({ ...prev, ...parsed }))
-        } catch (e) {
-          console.error('[Form] Failed to load draft:', e)
-        }
-      }
-    }
-  }, [])
-
-  // Save form to localStorage whenever it changes
-  useEffect(() => {
-    if (typeof window !== 'undefined' && form.name) {
-      localStorage.setItem('registration_form_draft', JSON.stringify(form))
-    }
-  }, [form])
+  // Form data is intentionally not persisted to localStorage to ensure it clears on refresh.
 
   const [isSubjectsLoading, setIsSubjectsLoading] = useState(true)
   const normalizedEmail = form.email.trim()
