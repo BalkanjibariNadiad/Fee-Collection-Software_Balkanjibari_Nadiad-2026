@@ -229,6 +229,21 @@ export default function DashboardPage({ setCurrentPage, userRole = 'staff' }: Da
     }
   }
 
+  const handleDeleteDue = async (enrollmentId: number, studentName: string) => {
+    if (!window.confirm(`Are you sure you want to DELETE this enrollment for ${studentName}? This will remove the due and cancel the enrollment. Any paid amount will be recorded as a refund.`)) return
+    
+    try {
+      setRefreshing(true)
+      await enrollmentsApi.processRefund(enrollmentId)
+      await fetchData(true)
+    } catch (err: any) {
+      console.error('Failed to delete enrollment', err)
+      setError(err?.response?.data?.error?.message || 'Failed to delete enrollment')
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto h-full bg-slate-50/50 dashboard-scrollbar">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
@@ -496,14 +511,23 @@ export default function DashboardPage({ setCurrentPage, userRole = 'staff' }: Da
                         >
                           View
                         </button>
-                        <button
-                          onClick={() => handleClearDue(enrollment.id)}
-                          disabled={clearingEnrollmentId === enrollment.id}
-                          className="h-8 px-3 rounded-lg bg-rose-500 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-rose-600 disabled:opacity-60 flex items-center gap-2"
-                        >
-                          <Trash2 size={12} />
-                          {clearingEnrollmentId === enrollment.id ? 'Clearing...' : 'Clear Due'}
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleClearDue(enrollment.id)}
+                            disabled={clearingEnrollmentId === enrollment.id}
+                            className="h-8 px-3 rounded-lg bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-600 disabled:opacity-60 flex items-center gap-2 transition-all active:scale-95 shadow-sm"
+                          >
+                            <IndianRupee size={12} />
+                            {clearingEnrollmentId === enrollment.id ? 'Clearing...' : 'Clear Due'}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDue(enrollment.id, enrollment.student_name)}
+                            className="h-8 w-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center hover:bg-rose-100 transition-all active:scale-95 border border-rose-100"
+                            title="Delete Enrollment"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))
