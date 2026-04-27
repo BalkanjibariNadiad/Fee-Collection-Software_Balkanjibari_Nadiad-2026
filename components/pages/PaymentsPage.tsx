@@ -143,6 +143,25 @@ export default function PaymentsPage({ userRole, canEdit }: PaymentsPageProps) {
 
   useEffect(() => {
     fetchPayments()
+
+    // Real-time update listener for cross-page sync
+    const handleSync = () => fetchPayments()
+    window.addEventListener('paymentConfirmed', handleSync)
+    
+    // Check if a payment was confirmed in another tab
+    const checkSync = () => {
+      if (localStorage.getItem('paymentConfirmed') === 'true') {
+        fetchPayments()
+        // Note: We don't remove the item here, let the last active page do it or handle it globally
+      }
+    }
+    
+    window.addEventListener('focus', checkSync)
+
+    return () => {
+      window.removeEventListener('paymentConfirmed', handleSync)
+      window.removeEventListener('focus', checkSync)
+    }
   }, [currentPage, searchTerm, paymentModeFilter, startDate, endDate])
 
   useEffect(() => {

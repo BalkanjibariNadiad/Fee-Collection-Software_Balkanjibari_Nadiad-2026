@@ -102,6 +102,25 @@ export default function DashboardPage({ setCurrentPage, userRole = 'staff' }: Da
 
   useEffect(() => {
     fetchData()
+
+    // Real-time update listener for cross-page sync
+    const handleSync = () => fetchData(true)
+    window.addEventListener('paymentConfirmed', handleSync)
+    
+    // Check if a payment was confirmed in another tab
+    const checkSync = () => {
+      if (localStorage.getItem('paymentConfirmed') === 'true') {
+        fetchData(true)
+        localStorage.removeItem('paymentConfirmed')
+      }
+    }
+    
+    window.addEventListener('focus', checkSync)
+
+    return () => {
+      window.removeEventListener('paymentConfirmed', handleSync)
+      window.removeEventListener('focus', checkSync)
+    }
   }, [])
 
   const summaryCards = [

@@ -352,6 +352,61 @@ class PaymentViewSet(viewsets.ModelViewSet):
         serializer = PaymentListSerializer(payments, many=True)
         return Response({'success': True, 'data': serializer.data})
 
+    @transaction.atomic
+    def destroy(self, request, *args, **kwargs):
+        """Soft delete a payment and adjust enrollment balance."""
+        instance = self.get_object()
+        
+        # Adjust enrollment balances if the payment was successful
+        if instance.status == 'SUCCESS':
+            enrollment = instance.enrollment
+            enrollment.paid_amount -= instance.amount
+            # Enrollment.save() will automatically recalculate pending_amount
+            enrollment.save()
+        
+        # Soft delete the payment
+        instance.is_deleted = True
+        instance.save()
+        
+        # Also soft delete related ledger entries
+        from .models import FeeLedgerEntry
+        FeeLedgerEntry.objects.filter(reference_payment=instance).update(is_deleted=True)
+            
+        return Response({
+            'success': True,
+            'message': 'Payment deleted successfully and enrollment balance adjusted.'
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], url_path='recalculate-dues')
+    @transaction.atomic
+    def recalculate_dues(self, request):
+        """Emergency action to fix any balance discrepancies across all active enrollments."""
+        from django.db.models import Sum
+        
+        # Filter for all non-deleted enrollments
+        enrollments = Enrollment.objects.filter(is_deleted=False)
+        updated_count = 0
+        
+        for enr in enrollments:
+            # Sum all successful, non-deleted payments for this enrollment
+            actual_paid = Payment.objects.filter(
+                enrollment=enr, 
+                status='SUCCESS', 
+                is_deleted=False
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            
+            # Check for discrepancy
+            if float(enr.paid_amount) != float(actual_paid):
+                enr.paid_amount = actual_paid
+                # enrollment.save() automatically recalculates pending_amount
+                enr.save()
+                updated_count += 1
+        
+        return Response({
+            'success': True,
+            'message': f'Dues recalculated. Fixed {updated_count} enrollment records.'
+        })
+
     @action(detail=False, methods=['get'], url_path='stats')
     def stats(self, request):
         """Get summary statistics for payments (Admin or Student)."""
@@ -370,8 +425,12 @@ class PaymentViewSet(viewsets.ModelViewSet):
         # Admin collection stats
         total_paid = Payment.objects.filter(status='SUCCESS', is_deleted=False).aggregate(Sum('amount'))['amount__sum'] or 0
         
-        # Total pending from all enrollments
-        total_pending = Enrollment.objects.filter(is_deleted=False, status='ACTIVE').aggregate(Sum('pending_amount'))['pending_amount__sum'] or 0
+        # Total pending from all active enrollments (excluding deleted students)
+        total_pending = Enrollment.objects.filter(
+            is_deleted=False, 
+            status='ACTIVE',
+            student__is_deleted=False
+        ).aggregate(Sum('pending_amount'))['pending_amount__sum'] or 0
         
         return Response({
             'success': True,
@@ -403,7 +462,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
         enrollments = Enrollment.objects.filter(
             is_deleted=False,
             status='ACTIVE',
-            pending_amount__gt=0
+            pending_amount__gt=0,
+            student__is_deleted=False
         ).select_related('student', 'subject').order_by('student__name')
 
         data = [
@@ -434,7 +494,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
         enrollments = Enrollment.objects.filter(
             is_deleted=False, 
             status='ACTIVE',
-            pending_amount__gt=0
+            pending_amount__gt=0,
+            student__is_deleted=False
         ).select_related('student', 'subject').order_by('student__name')
         
         response = HttpResponse(content_type='text/csv')
@@ -511,7 +572,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
             enrollments = Enrollment.objects.filter(
                 is_deleted=False, 
                 status='ACTIVE',
-                pending_amount__gt=0
+                pending_amount__gt=0,
+                student__is_deleted=False
             ).select_related('student', 'subject').order_by('student__name')
             
             headers = ['Student Name', 'ID', 'Subject', 'Total', 'Paid', 'Pending']

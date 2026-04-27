@@ -211,7 +211,8 @@ class SubjectBatch(models.Model):
             subject=self.subject,
             batch_time=self.batch_time,
             is_deleted=False,
-            status='ACTIVE'
+            status='ACTIVE',
+            student__is_deleted=False
         ).count()
     
     @property

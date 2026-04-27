@@ -30,7 +30,7 @@ class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.filter(is_deleted=False, is_active=True).annotate(
         enrolled_count_annotated=Count(
             'enrollments',
-            filter=Q(enrollments__is_deleted=False, enrollments__status='ACTIVE')
+            filter=Q(enrollments__is_deleted=False, enrollments__status='ACTIVE', enrollments__student__is_deleted=False)
         )
     ).prefetch_related('fee_structures')
     
