@@ -194,9 +194,14 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
     try {
       const response = await subjectsApi.getAll()
       // @ts-ignore
-      setAvailableSubjects(response.data || response)
+      const data = response.data || response
+      if (Array.isArray(data)) {
+        setAvailableSubjects(data)
+      }
     } catch (err) {
       console.error('Failed to fetch subjects:', err)
+      // Retry for cold starts
+      setTimeout(fetchSubjects, 3000)
     }
   }
 
@@ -1006,7 +1011,7 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
                           <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Subject</label>
                           <select
                             className={`w-full input-standard bg-white ${editingStudent && !allowEditEnrollments ? 'bg-gray-50/80 cursor-not-allowed' : ''}`}
-                            value={enr.subject_id}
+                            value={enr.subject_id ? String(enr.subject_id) : ""}
                             onChange={(e) => handleEnrollmentChange(index, 'subject_id', e.target.value)}
                             required
                             disabled={editingStudent ? !allowEditEnrollments : false}
@@ -1050,8 +1055,14 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
                             <option value="">Select Time</option>
                             {(() => {
                                 const sub = availableSubjects.find(s => s.id === Number(enr.subject_id))
-                                const timings = sub ? getUniqueBatchTimings(sub) : []
                                 const batches: any[] = batchData[Number(enr.subject_id)] || []
+                                
+                                // Use backend batches primarily, fallback to getUniqueBatchTimings
+                                let timings = batches.length > 0 ? batches.map(b => b.batch_time) : (sub ? getUniqueBatchTimings(sub) : [])
+                                
+                                // Unique timings only
+                                timings = Array.from(new Set(timings))
+
                                 return timings.map(t => {
                                     const batchInfo = batches.find((b: any) => b.batch_time === t)
                                     const isFull = batchInfo?.is_full
