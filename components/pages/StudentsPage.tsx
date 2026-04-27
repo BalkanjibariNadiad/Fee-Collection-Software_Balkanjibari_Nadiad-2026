@@ -1060,7 +1060,7 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
                             required
                             disabled={editingStudent ? !allowEditEnrollments : false}
                           >
-                            <option value="">Select Time</option>
+                            <option value="">{isSubjectsLoading ? '⌛ Loading timings...' : 'Select Time'}</option>
                             {(() => {
                                 const sub = availableSubjects.find(s => s.id === Number(enr.subject_id))
                                 const batches: any[] = batchData[Number(enr.subject_id)] || []
