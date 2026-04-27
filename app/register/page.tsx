@@ -140,7 +140,7 @@ export default function RegisterPage() {
   ])
   const [successData, setSuccessData] = useState<SuccessData | null>(null)
   const [isDownloadingReceipt, setIsDownloadingReceipt] = useState(false)
-  const [batchData, setBatchData] = useState<Record<number, any[]>>({})  // Store batch data by subject ID
+  const [batchData, setBatchData] = useState<Record<string | number, any[]>>({})  // Store batch data by subject ID
 
   const [todayDisplay, setTodayDisplay] = useState('')
   const [currentIST, setCurrentIST] = useState('')

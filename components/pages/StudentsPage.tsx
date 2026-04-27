@@ -176,7 +176,7 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
   })
   const [availableSubjects, setAvailableSubjects] = useState<any[]>([])
   const [isSubjectsLoading, setIsSubjectsLoading] = useState(false)
-  const [batchData, setBatchData] = useState<Record<number, any[]>>({})
+  const [batchData, setBatchData] = useState<Record<string | number, any[]>>({})
 
   const checkAgeEligibility = (age: number | string, minAge: number, maxAge: number) => {
     const n = typeof age === 'string' ? parseInt(age) : age
