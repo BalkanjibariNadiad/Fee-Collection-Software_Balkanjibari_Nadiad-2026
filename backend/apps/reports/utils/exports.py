@@ -106,8 +106,8 @@ def generate_payment_report_pdf(payments_data):
         pagesize=A4,
         rightMargin=10,
         leftMargin=10,
-        topMargin=20,
-        bottomMargin=20,
+        topMargin=15,
+        bottomMargin=15,
     )
     
     elements = []
@@ -119,11 +119,11 @@ def generate_payment_report_pdf(payments_data):
         parent=styles['Heading1'],
         fontSize=16,
         textColor=colors.HexColor('#1e40af'),
-        spaceAfter=20,
+        spaceAfter=10,
         alignment=TA_CENTER,
     )
     elements.append(Paragraph('Payment Report', title_style))
-    elements.append(Spacer(1, 0.2 * inch))
+    elements.append(Spacer(1, 0.1 * inch))
     
     # Report metadata
     report_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -132,11 +132,11 @@ def generate_payment_report_pdf(payments_data):
         parent=styles['Normal'],
         fontSize=9,
         textColor=colors.grey,
-        spaceAfter=10,
+        spaceAfter=5,
     )
     elements.append(Paragraph(f'Generated on: {report_date}', metadata_style))
     elements.append(Paragraph(f'Total Records: {len(payments_data)}', metadata_style))
-    elements.append(Spacer(1, 0.2 * inch))
+    elements.append(Spacer(1, 0.1 * inch))
     
     # Prepare table data
     table_data = [[
@@ -184,7 +184,8 @@ def generate_payment_report_pdf(payments_data):
         ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 9),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 0), (-1, 0), 8),
         
         # Row styling
         ('ALIGN', (0, 1), (-1, -1), 'LEFT'),
@@ -192,8 +193,8 @@ def generate_payment_report_pdf(payments_data):
         ('FONTSIZE', (0, 1), (-1, -1), 8),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f3f4f6')]),
         ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
-        ('TOPPADDING', (0, 1), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+        ('TOPPADDING', (0, 1), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
         
         # Number alignment
         ('ALIGN', (5, 1), (5, -1), 'RIGHT'),  # Amount column
@@ -219,8 +220,8 @@ def generate_enrollment_report_pdf(enrollments_data):
         pagesize=A4,
         rightMargin=10,
         leftMargin=10,
-        topMargin=20,
-        bottomMargin=20,
+        topMargin=15,
+        bottomMargin=15,
     )
     
     elements = []
@@ -232,11 +233,11 @@ def generate_enrollment_report_pdf(enrollments_data):
         parent=styles['Heading1'],
         fontSize=16,
         textColor=colors.HexColor('#1e40af'),
-        spaceAfter=20,
+        spaceAfter=10,
         alignment=TA_CENTER,
     )
     elements.append(Paragraph('Enrollment Report', title_style))
-    elements.append(Spacer(1, 0.2 * inch))
+    elements.append(Spacer(1, 0.1 * inch))
     
     # Report metadata
     report_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -245,11 +246,11 @@ def generate_enrollment_report_pdf(enrollments_data):
         parent=styles['Normal'],
         fontSize=9,
         textColor=colors.grey,
-        spaceAfter=10,
+        spaceAfter=5,
     )
     elements.append(Paragraph(f'Generated on: {report_date}', metadata_style))
     elements.append(Paragraph(f'Total Records: {len(enrollments_data)}', metadata_style))
-    elements.append(Spacer(1, 0.2 * inch))
+    elements.append(Spacer(1, 0.1 * inch))
     
     # Prepare table data - only Sr No, Student Name, Student ID
     table_data = [[
@@ -274,7 +275,7 @@ def generate_enrollment_report_pdf(enrollments_data):
         fontSize=9,
         fontName='Helvetica',
         alignment=TA_LEFT,
-        leading=12,  # Space between lines
+        leading=10,  # Space between lines
     )
     
     # Center style for Sr No and Student ID if needed, but keeping it flexible
@@ -314,15 +315,15 @@ def generate_enrollment_report_pdf(enrollments_data):
         # Header styling
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e40af')),
         ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('TOPPADDING', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 0), (-1, 0), 8),
         
         # Row styling
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f3f4f6')]),
         ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
-        ('TOPPADDING', (0, 1), (-1, -1), 10),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 10),
+        ('TOPPADDING', (0, 1), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 5),
         ('LEFTPADDING', (0, 0), (-1, -1), 8),
         ('RIGHTPADDING', (0, 0), (-1, -1), 8),
     ]))
