@@ -193,9 +193,12 @@ def generate_receipt_pdf(payment=None, student=None, order_id=None):
     lbl_s = ParagraphStyle('Label', fontSize=8, fontName='Helvetica-Bold', textColor=slate)
     val_s = ParagraphStyle('Value', fontSize=8.5, fontName='Helvetica-Bold', textColor=dark)
 
-    # Use enrollment date/time instead of receipt generation date
-    if payments and len(payments) > 0:
-        # Use the first (earliest) payment's receipt number and date for the student
+    # Use original Enrollment Date as requested by the user
+    if student and student.enrollment_date:
+        # Date of enrollment from student profile (usually from Supabase)
+        receipt_date = student.enrollment_date.strftime('%d %B %Y')
+    elif payments and len(payments) > 0:
+        # Use the first (earliest) payment's receipt number and date
         first_payment = payments[0]
         receipt_no = first_payment.receipt_number or f"REC-{first_payment.id:04d}"
         pay_mode = first_payment.payment_mode if len(payments) == 1 else "MULTIPLE"
