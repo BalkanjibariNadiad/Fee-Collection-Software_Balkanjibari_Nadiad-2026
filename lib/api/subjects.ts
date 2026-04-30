@@ -338,8 +338,8 @@ export const enrollmentsApi = {
                 window.open(url, '_blank');
             }
 
-            // Clean up the URL after a delay
-            setTimeout(() => window.URL.revokeObjectURL(url), 100);
+            // Clean up the URL after a safer delay (10s)
+            setTimeout(() => window.URL.revokeObjectURL(url), 10000);
         } catch (error: any) {
             if (error.response?.data instanceof Blob) {
                 const text = await error.response.data.text();
@@ -409,8 +409,8 @@ export const enrollmentsApi = {
                 window.open(url, '_blank');
             }
 
-            // Clean up the URL after a delay
-            setTimeout(() => window.URL.revokeObjectURL(url), 100);
+            // Clean up the URL after a safer delay (10s)
+            setTimeout(() => window.URL.revokeObjectURL(url), 10000);
         } catch (error: any) {
             if (error.response?.data instanceof Blob) {
                 const text = await error.response.data.text();

@@ -592,7 +592,7 @@ def generate_attendance_sheet_pdf(data, subject_name, batch_time):
     )
     
     elements.append(Paragraph('BALKANJI BARI SUMMER CAMP 2026', header_style))
-    elements.append(Paragraph('ATTENDANCE REPORT 2026', ParagraphStyle('SubHeader', parent=header_style, fontSize=12)))
+    elements.append(Paragraph('ATTENDANCE REPORT', ParagraphStyle('SubHeader', parent=header_style, fontSize=12)))
     elements.append(Spacer(1, 0.1 * inch))
     
     # Info line (Subject and Batch)

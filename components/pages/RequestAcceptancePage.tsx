@@ -430,23 +430,30 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
       const primaryEnrollmentId = enrollmentIds[0]
       const primaryPaymentId = paymentIds[0]
 
-      const docResults = await Promise.allSettled([
-        primaryReceiptTab && primaryPaymentId ? paymentsApi.openReceiptInNewTab(primaryPaymentId, primaryReceiptTab) : Promise.resolve(),
-        primaryIdCardTab && primaryEnrollmentId ? enrollmentsApi.openIdCardInNewTab(primaryEnrollmentId, primaryIdCardTab) : Promise.resolve(),
-        // Also trigger background downloads
-        ...paymentIds.map(pid => paymentsApi.downloadReceipt(pid)),
-        ...enrollmentIds.map(eid => enrollmentsApi.downloadIdCard(eid))
-      ])
-
-      // If there are more subjects, we try to open them too (might be blocked, but we try)
-      if (enrollmentIds.length > 1) {
-        for (let i = 1; i < enrollmentIds.length; i++) {
-           const eid = enrollmentIds[i]
-           const pid = paymentIds[i]
-           if (pid) paymentsApi.downloadReceipt(pid)
-           if (eid) enrollmentsApi.downloadIdCard(eid)
-        }
+      // 1. Open primary documents in new tabs
+      if (primaryReceiptTab && primaryPaymentId) {
+        await paymentsApi.openReceiptInNewTab(primaryPaymentId, primaryReceiptTab);
       }
+      
+      // Small delay before ID card
+      await new Promise(resolve => setTimeout(resolve, 600));
+      
+      if (primaryIdCardTab && primaryEnrollmentId) {
+        await enrollmentsApi.openIdCardInNewTab(primaryEnrollmentId, primaryIdCardTab);
+      }
+
+      // 2. Trigger background downloads for all subjects (if multiple)
+      setTimeout(async () => {
+        try {
+          await Promise.allSettled([
+            ...paymentIds.slice(1).map(pid => paymentsApi.downloadReceipt(pid)),
+            ...enrollmentIds.slice(1).map(eid => enrollmentsApi.downloadIdCard(eid))
+          ]);
+        } catch (e) {
+          console.error("Secondary downloads failed", e);
+        }
+      }, 2000);
+
 
       notifySuccess(`${isRegistration ? 'Registration' : 'Payment'} accepted and documents generated.`)
 

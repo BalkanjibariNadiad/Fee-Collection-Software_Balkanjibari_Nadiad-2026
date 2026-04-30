@@ -255,7 +255,12 @@ export const paymentsApi = {
         try {
             const response = await apiClient.get(
                 `/api/v1/payments/${id}/download_receipt/`,
-                { responseType: 'blob' }
+                { 
+                    responseType: 'blob',
+                    headers: {
+                        Accept: 'application/pdf, application/json, */*'
+                    }
+                }
             );
 
             // Create blob URL and open in new tab
@@ -267,8 +272,8 @@ export const paymentsApi = {
                 window.open(url, '_blank');
             }
 
-            // Clean up the URL after a delay
-            setTimeout(() => window.URL.revokeObjectURL(url), 100);
+            // Clean up the URL after a safer delay (10s)
+            setTimeout(() => window.URL.revokeObjectURL(url), 10000);
         } catch (error: any) {
             if (error.response?.data instanceof Blob) {
                 const text = await error.response.data.text();
