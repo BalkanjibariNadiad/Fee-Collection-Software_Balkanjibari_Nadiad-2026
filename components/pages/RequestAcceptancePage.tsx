@@ -58,6 +58,7 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
   const [syncing, setSyncing] = useState(false)
   const [focusedStudentId, setFocusedStudentId] = useState('')
   const [focusedRefreshCount, setFocusedRefreshCount] = useState(0)
+  const [acceptingStudentIds, setAcceptingStudentIds] = useState<Set<string>>(new Set())
 
   const canAccept = userRole === 'admin' || userRole === 'staff' || userRole === 'accountant'
 
@@ -378,6 +379,7 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
     }
 
     try {
+      setAcceptingStudentIds(prev => new Set(prev).add(groupedRequest.student_id))
       setProcessingId(uniqueRequests[0]?.request_id || 0)
       notifyInfo(`Processing ${isRegistration ? 'registration' : 'payment'} and generating documents...`)
 
@@ -455,6 +457,9 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
       }, 2000);
 
 
+      // Remove from local state immediately to avoid visual lag
+      setRows(prev => prev.filter(r => r.student_id !== groupedRequest.student_id))
+      
       notifySuccess(`${isRegistration ? 'Registration' : 'Payment'} accepted and documents generated.`)
 
       if ((primaryIdCardTab && primaryIdCardTab.closed) || !primaryIdCardTab) {
@@ -491,7 +496,14 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
       await fetchPendingCashRequests()
     } catch (err: any) {
       notifyError(err?.response?.data?.error?.message || err?.message || 'Action failed')
+      if (primaryReceiptTab) primaryReceiptTab.close()
+      if (primaryIdCardTab) primaryIdCardTab.close()
     } finally {
+      setAcceptingStudentIds(prev => {
+        const next = new Set(prev)
+        next.delete(groupedRequest.student_id)
+        return next
+      })
       setProcessingId(null)
     }
   }
@@ -699,21 +711,21 @@ export default function RequestAcceptancePage({ userRole }: RequestAcceptancePag
                       {group.all_pending ? (
                         <div className="flex items-center gap-2 justify-end">
                           <button
-                            disabled={!canAccept || processingId === group.requests[0]?.request_id}
+                            disabled={!canAccept || acceptingStudentIds.has(group.student_id)}
                             onClick={() => handleAcceptPayment(group)}
                             className="inline-flex items-center gap-1 px-3 h-9 rounded-lg bg-emerald-600 text-white text-[11px] font-bold uppercase tracking-widest hover:bg-emerald-700 disabled:opacity-60"
                             title="Accept all payments for this student"
                           >
-                            {processingId === group.requests[0]?.request_id ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
+                            {acceptingStudentIds.has(group.student_id) ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
                             Accept All
                           </button>
                           <button
-                            disabled={!canAccept || processingId === group.requests[0]?.request_id}
+                            disabled={!canAccept || acceptingStudentIds.has(group.student_id)}
                             onClick={() => handleRejectPayment(group)}
                             className="inline-flex items-center gap-1 px-3 h-9 rounded-lg bg-rose-600 text-white text-[11px] font-bold uppercase tracking-widest hover:bg-rose-700 disabled:opacity-60"
                             title="Reject all payments for this student"
                           >
-                            {processingId === group.requests[0]?.request_id ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
+                            {acceptingStudentIds.has(group.student_id) ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
                             Reject All
                           </button>
                         </div>

@@ -432,7 +432,8 @@ class StudentCreateSerializer(serializers.ModelSerializer):
             elif payment_method == 'CASH' and is_staff:
                 # Staff registration via CASH: set to PENDING_CONFIRMATION
                 # The cashier will confirm the money and mark it SUCCESS
-                paid_amount = total_fee
+                # IMPORTANT: Set paid_amount to 0 initially. The acceptance view will confirm it and update the amount.
+                paid_amount = Decimal('0.00')
                 payment_status = 'PENDING_CONFIRMATION'
             else:
                 # Default: unpaid

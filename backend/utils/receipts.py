@@ -325,7 +325,12 @@ def generate_receipt_pdf(payment=None, student=None, order_id=None):
 
     # Payment Status
     status_s = ParagraphStyle('PS', fontSize=9, fontName='Helvetica-Bold', textColor=green)
-    display_status = (payments[0].get_status_display() if payments else "PAID") if payments else "PAID"
+    
+    # Safety check for display status
+    display_status = "PAID"
+    if payments and len(payments) > 0 and payments[0]:
+        display_status = payments[0].get_status_display()
+    
     story.append(Paragraph(f"✅  PAYMENT STATUS: {display_status}", status_s))
     story.append(Spacer(1, 0.1 * cm))
 

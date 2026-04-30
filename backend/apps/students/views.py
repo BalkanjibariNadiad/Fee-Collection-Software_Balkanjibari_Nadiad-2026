@@ -486,6 +486,7 @@ class StudentRegistrationRequestViewSet(viewsets.ModelViewSet):
         return Response({'success': True, 'data': serializer.data})
 
     @action(detail=True, methods=['post'])
+    @transaction.atomic
     def accept(self, request, pk=None):
         """Admin: accept a registration request and create the student."""
         reg_request = self.get_object()
