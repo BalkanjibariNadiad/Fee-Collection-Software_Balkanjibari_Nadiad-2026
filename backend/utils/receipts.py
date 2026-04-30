@@ -193,15 +193,16 @@ def generate_receipt_pdf(payment=None, student=None, order_id=None):
     lbl_s = ParagraphStyle('Label', fontSize=8, fontName='Helvetica-Bold', textColor=slate)
     val_s = ParagraphStyle('Value', fontSize=8.5, fontName='Helvetica-Bold', textColor=dark)
 
-    # Use original Enrollment Date as requested by the user
-    if student and student.enrollment_date:
-        # Date of enrollment from student profile (usually from Supabase)
-        receipt_date = student.enrollment_date.strftime('%d %B %Y')
-    elif payments and len(payments) > 0:
-        # Use the first (earliest) payment's receipt number and date
+    # Determine Receipt Details (No, Mode, Date)
+    receipt_no = "N/A"
+    pay_mode = "N/A"
+    receipt_date = timezone.now().strftime('%d %B %Y %I:%M %p')
+
+    if payments and len(payments) > 0 and payments[0]:
         first_payment = payments[0]
         receipt_no = first_payment.receipt_number or f"REC-{first_payment.id:04d}"
         pay_mode = first_payment.payment_mode if len(payments) == 1 else "MULTIPLE"
+        
         if enrollments:
             earliest_enrollment = min(enrollments, key=lambda e: e.created_at or timezone.now())
             receipt_date = timezone.localtime(earliest_enrollment.created_at).strftime('%d %B %Y %I:%M %p')
@@ -213,10 +214,10 @@ def generate_receipt_pdf(payment=None, student=None, order_id=None):
         receipt_no = f"REG-2026-{student.id:04d}"
         pay_mode = "ONLINE"
         receipt_date = timezone.now().strftime('%d %B %Y %I:%M %p')
-    else:
-        receipt_no = "N/A"
-        pay_mode = "N/A"
-        receipt_date = timezone.now().strftime('%d %B %Y %I:%M %p')
+
+    # OVERRIDE: If student has an enrollment date, use it as the primary receipt date
+    if student and student.enrollment_date:
+        receipt_date = student.enrollment_date.strftime('%d %B %Y')
 
     col1 = [
         [Paragraph('<b>Student Name:</b>', lbl_s), Paragraph(student.name.upper() if student else 'N/A', val_s)],
