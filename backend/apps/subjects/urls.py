@@ -36,6 +36,6 @@ batch_urls = [
 ]
 
 urlpatterns = [
-    path('', include(router.urls)),
     path('', include(batch_urls)),
+    path('', include(router.urls)),
 ]

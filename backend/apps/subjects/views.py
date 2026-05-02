@@ -36,7 +36,7 @@ class SubjectViewSet(viewsets.ModelViewSet):
     
     def get_permissions(self):
         """Allow public access to list, retrieve, and batches actions."""
-        if self.action in ['list', 'retrieve', 'batches']:
+        if self.action in ['list', 'retrieve']:
             return [AllowAny()]
         return [IsAuthenticated(), IsStaffAccountantOrAdmin()]
     
@@ -148,29 +148,7 @@ class SubjectViewSet(viewsets.ModelViewSet):
             'message': 'Subject deleted successfully.'
         }, status=status.HTTP_200_OK)
     
-    @action(detail=True, methods=['get'], permission_classes=[AllowAny])
-    def batches(self, request, pk=None):
-        """Get all batches for a subject with availability info."""
-        try:
-            subject = self.get_object()
-            
-            # Get all batch configurations for this subject
-            batch_configs = SubjectBatch.objects.filter(
-                subject=subject
-            ).order_by('batch_time')
-            
-            serializer = SubjectBatchSerializer(batch_configs, many=True)
-            
-            return Response({
-                'success': True,
-                'data': serializer.data
-            }, status=status.HTTP_200_OK)
-        except Exception as e:
-            logger.exception(f"Error fetching batches for subject {pk}")
-            return Response({
-                'success': False,
-                'error': 'Failed to fetch batch information'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
     @action(detail=True, methods=['get'], url_path='download-bulk-id-cards')
     def download_bulk_id_cards(self, request, pk=None):
