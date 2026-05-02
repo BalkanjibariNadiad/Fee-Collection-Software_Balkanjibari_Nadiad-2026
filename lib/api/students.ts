@@ -2,7 +2,7 @@
  * Students API service
  */
 
-import apiClient from './client';
+import apiClient, { API_BASE_URL } from './client';
 import { ApiResponse } from './auth';
 
 export interface Student {
@@ -258,7 +258,7 @@ export interface RegistrationRequest {
     updated_at: string;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE = API_BASE_URL;
 
 export const registrationRequestsApi = {
     /** Public — submit a new registration request (no auth token) */
@@ -316,12 +316,9 @@ export const registrationRequestsApi = {
 
     /** Admin — list all requests, optionally filtered by status */
     list: async (status?: string): Promise<{ success: boolean; results?: RegistrationRequest[]; data?: RegistrationRequest[] }> => {
-        const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
-        const url = `${API_BASE}/api/v1/students/registration-requests/${status ? `?status=${status}` : ''}`;
-        const response = await fetch(url, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        return response.json();
+        const url = `/api/v1/students/registration-requests/${status ? `?status=${status}` : ''}`;
+        const response = await apiClient.get(url);
+        return response.data;
     },
 
     /** Admin — accept a request */
@@ -336,23 +333,14 @@ export const registrationRequestsApi = {
         payment_id?: number;
         error?: any
     }> => {
-        const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
-        const response = await fetch(`${API_BASE}/api/v1/students/registration-requests/${id}/accept/`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        return response.json();
+        const response = await apiClient.post(`/api/v1/students/registration-requests/${id}/accept/`);
+        return response.data;
     },
 
     /** Admin — reject a request */
     reject: async (id: number, reason: string): Promise<{ success: boolean; message?: string }> => {
-        const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
-        const response = await fetch(`${API_BASE}/api/v1/students/registration-requests/${id}/reject/`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason }),
-        });
-        return response.json();
+        const response = await apiClient.post(`/api/v1/students/registration-requests/${id}/reject/`, { reason });
+        return response.data;
     },
 };
 

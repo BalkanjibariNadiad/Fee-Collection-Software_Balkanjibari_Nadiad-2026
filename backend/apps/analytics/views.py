@@ -762,12 +762,14 @@ class AnalyticsViewSet(viewsets.ViewSet):
                 prev_end_date = end_date.replace(year=end_date.year - 1)
 
             revenue_stats = self._report_payment_queryset().filter( status='SUCCESS').aggregate(
-                total_revenue=Sum('amount', filter=Q(payment_date__range=(start_date.date(), end_date.date())) if start_date_str and end_date_str else Q(payment_date__gte=start_date.date()) if period != 'all' else Q()),
+                total_revenue=Sum('amount'),
+                period_revenue=Sum('amount', filter=Q(payment_date__range=(start_date.date(), end_date.date())) if start_date_str and end_date_str else Q(payment_date__gte=start_date.date()) if period != 'all' else Q()),
                 today_revenue=Sum('amount', filter=Q(payment_date=today_start)),
                 prev_revenue=Sum('amount', filter=Q(payment_date__range=(prev_start_date.date(), prev_end_date.date())) if prev_start_date and prev_end_date else Q(pk=None))
             )
 
             total_revenue = revenue_stats['total_revenue'] or 0
+            period_revenue = revenue_stats['period_revenue'] or 0
             today_revenue = revenue_stats['today_revenue'] or 0
             prev_period_revenue = revenue_stats['prev_revenue'] or 0
 
@@ -787,9 +789,9 @@ class AnalyticsViewSet(viewsets.ViewSet):
             ).aggregate(total=Sum('pending_amount'))['total'] or 0
 
             if prev_period_revenue > 0:
-                growth_rate = ((total_revenue - prev_period_revenue) / prev_period_revenue) * 100
+                growth_rate = ((period_revenue - prev_period_revenue) / prev_period_revenue) * 100
             else:
-                growth_rate = 100 if total_revenue > 0 else 0
+                growth_rate = 100 if period_revenue > 0 else 0
 
             return Response({
                 'success': True,

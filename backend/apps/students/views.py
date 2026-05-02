@@ -449,6 +449,29 @@ class StudentRegistrationRequestViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """Public endpoint — submit a new registration request."""
+        # Idempotency check: prevent duplicate requests within 5 minutes
+        phone = request.data.get('phone')
+        name = request.data.get('name')
+        
+        if phone and name:
+            from django.utils import timezone
+            from datetime import timedelta
+            from .models import StudentRegistrationRequest
+            
+            recent_duplicate = StudentRegistrationRequest.objects.filter(
+                phone=phone,
+                name__iexact=name,
+                status='PENDING',
+                created_at__gte=timezone.now() - timedelta(minutes=5)
+            ).first()
+            
+            if recent_duplicate:
+                return Response({
+                    'success': True,
+                    'message': 'Your registration request has been submitted. Admin will review and notify you.',
+                    'id': recent_duplicate.id,
+                }, status=status.HTTP_200_OK)
+
         # Robustness: Remove photo if it's not a file (handles Junk data like empty dicts {})
         data = request.data.copy() if hasattr(request.data, 'copy') else request.data
         if 'photo' in data and not hasattr(data.get('photo'), 'read'):

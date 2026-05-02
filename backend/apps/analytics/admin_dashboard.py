@@ -48,7 +48,7 @@ def admin_dashboard_comprehensive(self, request):
         ).count()
         
         # 2. FEE STATISTICS
-        payment_stats = Payment.objects.filter(is_deleted=False).aggregate(
+        payment_stats = Payment.objects.filter(is_deleted=False, status='SUCCESS').aggregate(
             total_collected=Sum('amount'),
             total_count=Count('id'),
             online_total=Sum('amount', filter=Q(payment_mode='ONLINE')),
@@ -102,6 +102,7 @@ def admin_dashboard_comprehensive(self, request):
         
         payment_trends = Payment.objects.filter(
             is_deleted=False,
+            status='SUCCESS',
             payment_date__gte=six_months_ago
         ).extra(
             select={'month': 'DATE_TRUNC(\'month\', payment_date)'}
@@ -145,6 +146,7 @@ def admin_dashboard_comprehensive(self, request):
         
         today_payments = Payment.objects.filter(
             is_deleted=False,
+            status='SUCCESS',
             payment_date__range=(today_start, today_end)
         ).aggregate(
             total=Sum('amount'),
@@ -215,7 +217,7 @@ def admin_dashboard_summary(self, request):
         # Quick aggregates
         stats = {
             'total_students': Student.objects.filter(is_deleted=False).count(),
-            'total_revenue': float(Payment.objects.filter(is_deleted=False).aggregate(total=Sum('amount'))['total'] or 0),
+            'total_revenue': float(Payment.objects.filter(is_deleted=False, status='SUCCESS').aggregate(total=Sum('amount'))['total'] or 0),
             'pending_fees': float(Enrollment.objects.filter(is_deleted=False, status='ACTIVE').aggregate(total=Sum('pending_amount'))['total'] or 0),
             'total_enrollments': Enrollment.objects.filter(is_deleted=False).count(),
         }

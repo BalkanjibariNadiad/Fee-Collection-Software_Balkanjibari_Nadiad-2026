@@ -231,8 +231,9 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
       setError('')
       const response = await studentsApi.getAll({
         page: currentPage,
-        page_size: 20,
+        page_size: 2000,
         search: searchTerm || undefined,
+        status: 'ACTIVE',
       }) as any
 
       // Handle both paginated and non-paginated responses
@@ -361,6 +362,13 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
       }
 
       const submissionData: any = {};
+      const validEnrollments = formData.enrollments.filter((e: any) => e.subject_id && e.subject_id !== '' && e.subject_id !== '0' && e.subject_id !== 0);
+      
+      if (!editingStudent && validEnrollments.length === 0) {
+          notifyError('Please enroll in at least one valid subject');
+          setFormLoading(false);
+          return;
+      }
       allowedFields.forEach(field => {
         let value = formData[field];
 
@@ -384,6 +392,10 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
           value = parseInt(value, 10) || null;
         }
 
+        if (field === 'enrollments') {
+          value = validEnrollments;
+        }
+
         submissionData[field] = value;
       });
 
@@ -397,32 +409,30 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
       } else {
         console.log('DEBUG: Submitting student registration request:', submissionData);
         
-        // Convert submissionData to FormData for registrationRequestsApi
-        const formDataObj = new FormData();
-        Object.entries(submissionData).forEach(([key, value]) => {
-          if (key === 'enrollments') {
-             // For registration-requests, the backend expects 'subjects_data' as JSON
-             formDataObj.append('subjects_data', JSON.stringify(value));
-          } else if (value !== null && value !== undefined) {
-             formDataObj.append(key, value as any);
-          }
-        });
-
-        const regRequestApi = (await import('@/lib/api/students')).registrationRequestsApi;
-        result = await regRequestApi.adminCreate(formDataObj)
+        console.log('DEBUG: Submitting offline registration:', submissionData);
         
-        console.log('DEBUG: Registration Request Result:', result);
-        notifySuccess('Registration Request Submitted Successfully')
+        result = await studentsApi.registerOffline(submissionData as any);
         
-        // Store for tracking if needed
-        if (result.success && result.id) {
-          notifyInfo('Redirecting to Request Acceptance page...');
-          setShowForm(false);
-          resetForm();
-          if (onNavigateToRequestAcceptance) {
-            // We don't have a Student ID yet, so we pass the Request ID or name to help filter
-            setTimeout(() => onNavigateToRequestAcceptance(formData.name), 1500);
-          }
+        console.log('DEBUG: Registration Result:', result);
+        notifySuccess('Registration Submitted Successfully');
+        
+        if (result.success && result.data) {
+          const newStudent = result.data as any;
+          setSubmittedCredentials({
+            studentId: newStudent.student_id,
+            username: newStudent.username || newStudent.login_username,
+            password: newStudent.password || newStudent.login_password_hint
+          });
+          
+          // Display for exactly 2 seconds, then redirect
+          setTimeout(() => {
+            setSubmittedCredentials(null);
+            setShowForm(false);
+            resetForm();
+            if (onNavigateToRequestAcceptance) {
+              onNavigateToRequestAcceptance(newStudent.student_id);
+            }
+          }, 2000);
         }
       }
       fetchStudents()
@@ -1364,7 +1374,7 @@ export default function StudentsPage({ userRole, canEdit, onNavigateToRequestAcc
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-6 bg-white rounded-3xl border border-gray-100 shadow-sm">
                 <div className="flex-1">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                    Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalCount)} of {totalCount} students
+                    Showing {((currentPage - 1) * 2000) + 1} to {Math.min(currentPage * 2000, totalCount)} of {totalCount} students
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
                     Page {currentPage} of {totalPages}
